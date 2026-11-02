@@ -6,13 +6,19 @@
   "repo_root": "..",
   "max_lines": 600,
   "prefixes": {
+    "AUTH": "Xác thực và tài khoản",
+    "ORG": "Tổ chức và nhân sự",
     "MTG": "Điểm danh cuộc họp",
-    "CC": "Chấm công vào ra",
-    "TB": "Thiết bị và tích hợp",
-    "NV": "Tổ chức và nhân sự"
+    "ATT": "Chấm công vào ra",
+    "DASH": "Bảng điều khiển báo cáo"
   },
-  "code_roots": [],
-  "doc_roots": [],
+  "code_roots": [
+    "src"
+  ],
+  "doc_roots": [
+    "docs",
+    "Design System"
+  ],
   "source_priority": {
     "desired": "tài liệu yêu cầu trong raw/specs/ (bản mới hơn thắng)",
     "current": "chưa có code"

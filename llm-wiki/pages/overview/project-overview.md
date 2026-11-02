@@ -2,26 +2,27 @@
 title: Tổng quan Attendance Portal
 type: overview
 sources:
-  - pages/sources/initial-requirements.md
+  - pages/sources/portal-architecture-decisions-2026-11-02.md
 updated: 2026-11-02
 ---
 
 # Tổng quan Attendance Portal
 
 ## Tóm tắt
-Hệ thống **Attendance Portal** (Cổng Quản trị Điểm danh & Chấm công) do Finviet phát triển là nền tảng quản trị sự hiện diện tự động hóa dành cho các cơ quan nhà nước / UBND xã phường, công ty xí nghiệp / nhà máy sản xuất, và bệnh viện. Hệ thống tích hợp camera Hikvision (Face ID, vân tay) và quẹt thẻ nhân viên vật lý để tự động ghi nhận điểm danh cuộc họp (trọng tâm P0) và chấm công vào ra cơ quan.
+Hệ thống **Attendance Portal** (Cổng Quản trị Điểm danh & Chấm công) do Finviet phát triển là giải pháp quản lý hiện diện trực quan dành riêng cho các khách hàng là Cơ quan nhà nước / UBND xã phường, Doanh nghiệp / Nhà máy sản xuất, và Bệnh viện. Toàn bộ giao diện hệ thống tuân thủ nghiêm ngặt theo **Design System** tokenized tại `Design System/src/css.css`.
 
 ## Bản đồ
 
 | Tiền tố | Phân hệ | Mô tả |
 |---|---|---|
-| `MTG` | [Điểm danh cuộc họp](module-meeting.md) | Quản lý hội họp, check-in/out phòng họp, chuyên cần thời gian thực |
-| `CC` | [Chấm công vào ra](module-daily-attendance.md) | Ghi nhận giờ đến và giờ về trong ngày, tính tổng giờ làm việc |
-| `TB` | [Thiết bị và tích hợp](module-device-integration.md) | Kết nối camera Hikvision (Face ID, vân tay) và đầu đọc thẻ vật lý |
-| `NV` | [Tổ chức và nhân sự](module-organization.md) | Cơ cấu phòng ban, hồ sơ nhân sự và định danh thiết bị |
+| `AUTH` | [Xác thực và tài khoản](module-authentication.md) | Đăng nhập tài khoản Finviet cấp, cô lập dữ liệu đơn vị, đổi mật khẩu |
+| `ORG` | [Tổ chức và nhân sự](module-organization.md) | Cơ cấu phòng ban, danh sách nhân viên (Excel/Face ID) và quản lý thẻ vật lý |
+| `MTG` | [Điểm danh cuộc họp](module-meeting.md) | Tạo cuộc họp, màn hình Live roll-call phòng họp và xuất biên bản chuyên cần |
+| `ATT` | [Chấm công vào ra](module-attendance.md) | Khung giờ hành chính chuẩn, theo dõi giờ đến/về và thống kê đi muộn |
+| `DASH` | [Bảng điều khiển báo cáo](module-dashboard.md) | Báo cáo sau họp và xu hướng chuyên cần toàn cơ quan theo ngày/tuần/tháng |
 
 ## Liên quan
 
 - [Danh mục wiki](../../index.md)
 - [SCHEMA](../../SCHEMA.md)
-- [Nguồn yêu cầu khởi tạo](../sources/initial-requirements.md)
+- [Quyết định kiến trúc 2026-11-02](../sources/portal-architecture-decisions-2026-11-02.md)

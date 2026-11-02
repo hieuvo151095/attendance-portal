@@ -2,7 +2,7 @@
 title: Màn hình điểm danh cuộc họp
 type: screen
 sources:
-  - pages/sources/initial-requirements.md
+  - pages/sources/portal-architecture-decisions-2026-11-02.md
 spec_ids: [MTG-01, MTG-02, MTG-03, MTG-04]
 apps: [web]
 route_ids: [/meetings/attendance]
@@ -13,7 +13,7 @@ updated: 2026-11-02
 # Màn hình điểm danh cuộc họp
 
 ## Mục đích
-Màn hình phục vụ người chủ trì cuộc họp, thư ký hoặc ban tổ chức theo dõi danh sách đại biểu hiện diện trực tiếp tại phòng họp theo thời gian thực (kèm ảnh chụp và phương thức xác thực), điểm danh bổ sung thủ công nếu cần và xuất biên bản chuyên cần ngay khi tan họp.
+Màn hình phục vụ người chủ trì cuộc họp, thư ký hoặc ban tổ chức lên lịch họp, chiếu màn hình Live roll-call tại phòng họp hiển thị ngay ảnh chân dung khi đại biểu nhận diện Face ID / quẹt thẻ và xuất biên bản chuyên cần sau họp. Áp dụng split-view panel và các thẻ đại biểu theo Design System.
 
 ## App / route / file code
 | App | Route | File |
@@ -23,20 +23,20 @@ Màn hình phục vụ người chủ trì cuộc họp, thư ký hoặc ban t�
 ## Yêu cầu spec
 | Mã | Yêu cầu | Trạng thái |
 |---|---|---|
-| MTG-01 | Chọn cuộc họp đang diễn ra, hiển thị thông tin phòng họp và thời gian | MISSING |
-| MTG-02 | Hiển thị bảng đại biểu tham dự, cập nhật trạng thái "Đã vào họp" kèm ảnh Face ID / phương thức thẻ ngay khi có sự kiện | MISSING |
-| MTG-03 | Hiển thị trạng thái "Đã ra ngoài / Tan họp" khi đại biểu check-out | MISSING |
-| MTG-04 | Widget thống kê trực quan tỷ lệ chuyên cần (% tham dự, số người vắng mặt, số người đi muộn) và nút xuất báo cáo Excel/PDF | MISSING |
+| MTG-01 | Form tạo cuộc họp, chọn phòng họp, thời gian và chọn đại biểu theo phòng ban | MISSING |
+| MTG-02 | Chế độ Màn hình Live (Live roll-call): Hiển thị ảnh chân dung Face ID / phương thức thẻ của đại biểu vừa bước vào, cập nhật tức thì danh sách ai đã đến, ai chưa đến | MISSING |
+| MTG-03 | Nút Check-out và nút "Kết thúc cuộc họp", chuyển trạng thái cuộc họp sang Đã đóng | MISSING |
+| MTG-04 | Khung tổng hợp chuyên cần (% có mặt, số người đi muộn, vắng mặt) và nút xuất file PDF/Excel biên bản họp | MISSING |
 
 ## Khác biệt spec ↔ code
-| Mã spec | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
-|---|---|---|---|---|
-| MTG-01 | Giao diện chọn và theo dõi cuộc họp | Chưa triển khai | MISSING | - |
-| MTG-02 | Widget hiển thị sự kiện check-in thời gian thực | Chưa triển khai | MISSING | - |
-| MTG-03 | Widget hiển thị sự kiện check-out thời gian thực | Chưa triển khai | MISSING | - |
-| MTG-04 | Widget thống kê tỷ lệ chuyên cần và xuất báo cáo | Chưa triển khai | MISSING | - |
+| Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
+|---|---|---|---|---|---|
+| MTG-01 | P0 | Giao diện tạo lịch họp và chọn đại biểu | Chưa triển khai | MISSING | - |
+| MTG-02 | P0 | Màn hình Live roll-call điểm danh thời gian thực kèm ảnh Face ID | Chưa triển khai | MISSING | - |
+| MTG-03 | P0 | Chức năng chốt kết thúc cuộc họp | Chưa triển khai | MISSING | - |
+| MTG-04 | P0 | Khung báo cáo chuyên cần và xuất biên bản cuộc họp | Chưa triển khai | MISSING | - |
 
 ## Liên quan
 - [Cuộc họp](../entities/meeting.md)
 - [Luồng điểm danh cuộc họp](../flows/meeting-attendance-flow.md)
-- [Bảng điều khiển điểm danh](attendance-dashboard.md)
+- [Bảng điều khiển báo cáo](attendance-dashboard.md)

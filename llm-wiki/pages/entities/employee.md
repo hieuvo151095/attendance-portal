@@ -2,34 +2,33 @@
 title: Nhân viên
 type: entity
 sources:
-  - pages/sources/initial-requirements.md
-spec_ids: [NV-01, NV-02]
+  - pages/sources/portal-architecture-decisions-2026-11-02.md
+spec_ids: [ORG-02]
 updated: 2026-11-02
 ---
 
 # Nhân viên
 
 ## Định nghĩa
-Thực thể `Nhân viên` (Employee) đại diện cho cán bộ, công chức, công nhân viên, bác sĩ, y tá hoặc người lao động thuộc tổ chức, có thông tin định danh sinh trắc học và thẻ vật lý trong hệ thống.
+Thực thể `Nhân viên` (Employee) đại diện cho một cán bộ, công chức, công nhân viên, bác sĩ hoặc nhân sự thuộc biên chế của cơ quan khách hàng. Nhân viên lưu giữ thông tin cá nhân, chức vụ, liên kết phòng ban và dữ liệu nhận diện khuôn mặt (Face ID).
 
 ## Thuộc tính / quy tắc nghiệp vụ
 | Mã | Quy tắc | Ghi chú |
 |---|---|---|
-| NV-01 | Mỗi nhân viên có mã định danh duy nhất (Employee ID), họ tên, chức danh, phòng ban và các dữ liệu định danh phần cứng (mã thẻ vật lý, Face token Hikvision, mẫu vân tay). | Dữ liệu sinh trắc học được mã hóa an toàn |
-| NV-02 | Cơ cấu tổ chức linh hoạt cho 3 mô hình hoạt động: Cơ quan nhà nước/Uỷ ban phường (Khối/Phòng/Ban), Doanh nghiệp/Nhà máy (Phân xưởng/Tổ đội/Văn phòng), Bệnh viện (Khoa/Phòng khám/Kíp trực). | Hỗ trợ phân quyền đại biểu theo đơn vị |
+| ORG-02 | Mỗi nhân viên có mã nhân viên duy nhất (Employee ID), họ tên, số CCCD/hộ chiếu, chức danh/vị trí công tác, phòng ban trực thuộc, email, số điện thoại và ảnh chân dung nhận diện khuôn mặt (Face ID). Hỗ trợ import danh sách từ Excel và tải ảnh chân dung hàng loạt. | Tự động đồng bộ sang hệ sinh thái nhận diện Face ID |
 
 ## Quan hệ
-- Thuộc về phòng ban, đơn vị trong cơ cấu tổ chức.
-- Là chủ thể thực hiện tạo ra [Bản ghi điểm danh](attendance-record.md).
-- Có thể được triệu tập tham dự một hoặc nhiều [Cuộc họp](meeting.md).
+- Thuộc về một [Phòng ban](department.md).
+- Được cấp phát một hoặc nhiều [Thẻ nhân viên](employee-card.md).
+- Có thể được triệu tập tham dự các [Cuộc họp](meeting.md).
+- Sinh ra các [Bản ghi điểm danh](attendance-record.md).
 
 ## Khác biệt spec ↔ code
-| Mã spec | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
-|---|---|---|---|---|
-| NV-01 | Quản lý hồ sơ nhân viên, mã thẻ và dữ liệu nhận diện thiết bị | Chưa triển khai | MISSING | - |
-| NV-02 | Thiết lập cơ cấu tổ chức đa mô hình (Uỷ ban, Doanh nghiệp/Nhà máy, Bệnh viện) | Chưa triển khai | MISSING | - |
+| Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
+|---|---|---|---|---|---|
+| ORG-02 | P0 | Quản lý hồ sơ nhân sự, import Excel và nạp ảnh Face ID | Chưa triển khai | MISSING | - |
 
 ## Liên quan
 - [Phân hệ Tổ chức và nhân sự](../overview/module-organization.md)
-- [Bản ghi điểm danh](attendance-record.md)
-- [Cuộc họp](meeting.md)
+- [Thẻ nhân viên](employee-card.md)
+- [Màn hình quản lý nhân viên](../screens/employee-management-screen.md)

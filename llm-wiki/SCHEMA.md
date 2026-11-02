@@ -129,10 +129,11 @@ Danh sách tiền tố cũng nằm trong `wiki.json → prefixes`; khi thêm ti�
 
 | Tiền tố | Phân hệ | Hub |
 |---|---|---|
+| `AUTH` | Xác thực và tài khoản | [Xác thực và tài khoản](pages/overview/module-authentication.md) |
+| `ORG` | Tổ chức và nhân sự | [Tổ chức và nhân sự](pages/overview/module-organization.md) |
 | `MTG` | Điểm danh cuộc họp | [Điểm danh cuộc họp](pages/overview/module-meeting.md) |
-| `CC` | Chấm công vào ra | [Chấm công vào ra](pages/overview/module-daily-attendance.md) |
-| `TB` | Thiết bị và tích hợp | [Thiết bị và tích hợp](pages/overview/module-device-integration.md) |
-| `NV` | Tổ chức và nhân sự | [Tổ chức và nhân sự](pages/overview/module-organization.md) |
+| `ATT` | Chấm công vào ra | [Chấm công vào ra](pages/overview/module-attendance.md) |
+| `DASH` | Bảng điều khiển báo cáo | [Bảng điều khiển báo cáo](pages/overview/module-dashboard.md) |
 
 **Quyết định của chủ sở hữu:**
 - Ghi vào trang source riêng `sources/<module>-decisions-YYYY-MM-DD.md`, rồi cập nhật các mã liên quan.

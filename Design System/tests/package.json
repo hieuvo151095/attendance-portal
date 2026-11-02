@@ -1,0 +1,6 @@
+{
+  "name": "eco-school-ecosystem-verify",
+  "private": true,
+  "description": "Smoke tests for dist/index.html (run: npm install && node verify.js ../dist/index.html)",
+  "dependencies": { "jsdom": "^24.0.0", "css-tree": "^2.3.1" }
+}

@@ -1,0 +1,4166 @@
+[
+{
+"i": 1,
+"code": "M5/SM5",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Khối lớp",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách khối lớp theo cấp học",
+"code": "M5/SM5-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách, cấp học/năm và phân trang.",
+"todo": "Đối chiếu catalog và tổng đếm với DB, gồm khối trống/dữ liệu ngừng hoạt động.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Tìm kiếm khối lớp",
+"code": "M5/SM5-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tìm kiếm trong source hiện tại; BA ghi lỗi trên bản demo cũ.",
+"todo": "Kiểm từ khóa khớp và xóa từ khóa khôi phục danh sách; chưa dùng lỗi demo để kết luận code hiện tại lỗi.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Xem chi tiết khối lớp",
+"code": "M5/SM5-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có chi tiết, tổng lớp/học sinh và liên kết lớp.",
+"todo": "So số đếm với DB; kiểm GVCN, link lớp và giữ năm đã chọn.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Danh sách và chi tiết khối lớp theo cấp học/năm học.",
+"Tìm kiếm, phân trang, số lớp/học sinh và liên kết sang lớp."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Số lượng hiển thị đã khớp DB thật chưa; dữ liệu ngừng hoạt động có bị đếm sai không."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Dữ liệu kiểm thử có khối có lớp, khối trống và học sinh ngừng hoạt động."
+],
+"muted": ""
+}
+},
+"steps": [
+"Đối chiếu danh sách/chi tiết khối với dữ liệu DB kiểm thử.",
+"Kiểm tìm kiếm, chuyển cấp/năm và các trạng thái trống/lỗi/thử lại.",
+"Đối chiếu tổng lớp/học sinh và đường dẫn sang lớp; lưu kết quả nghiệm thu."
+],
+"close": [
+"Tổng đếm đúng theo năm/cấp; dữ liệu trống hiển thị đúng.",
+"Liên kết lớp giữ đúng năm; màn hình dùng được ở mobile/desktop."
+],
+"deps": [
+"M5/SM13"
+],
+"tracker": "Partial (P2 read slice)",
+"routes": [
+"/master-data/grade-levels"
+]
+},
+{
+"i": 2,
+"code": "M6/SM1",
+"g": "M6",
+"gl": "Cấu hình",
+"name": "Trường",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem hồ sơ trường",
+"code": "M6/SM1-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có hồ sơ trường và múi giờ.",
+"todo": "Kiểm đọc dữ liệu DB thật và trường trống.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Cập nhật thông tin cơ bản",
+"code": "M6/SM1-R02",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có sửa trường bắt buộc; logo/lưu trữ chưa hoàn thiện.",
+"todo": "Chốt loại/dung lượng/nơi lưu; làm upload/thay/xem logo.",
+"need": "Quy tắc logo (loại/dung lượng); nơi lưu và quyền truy cập."
+},
+{
+"n": "03",
+"t": "Cập nhật giờ hoạt động",
+"code": "M6/SM1-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có giờ hoạt động Thứ 2–7.",
+"todo": "Kiểm validation giờ/ngày, múi giờ và dữ liệu lịch sử.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Cấu hình đến/về muộn",
+"code": "M6/SM1-R04",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có bật/tắt/ngưỡng; điểm danh đã dùng snapshot đến muộn, về muộn chưa tự tạo phí.",
+"todo": "Kiểm ngưỡng rồi nối consumer trả trễ/phí sau khi chốt tài chính.",
+"need": "Giờ trường, bộ ngày/giờ biên và công thức phí trả trễ."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Hồ sơ trường, thông tin bắt buộc và múi giờ.",
+"Giờ hoạt động Thứ 2–7; bật/tắt và ngưỡng đến/về muộn."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Luồng logo/lưu trữ chưa đủ.",
+"Chưa nối đủ quy tắc giờ trường sang các nghiệp vụ khác."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Đến muộn phải giữ nguyên kết quả lịch sử sau khi sửa cấu hình."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Quy tắc logo: loại file, dung lượng, nơi lưu.",
+"Bộ giờ/ngày mẫu để kiểm quy tắc đến muộn và trả trễ."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm hồ sơ và giờ hoạt động hiện tại, ghi các trường còn thiếu so với BA.",
+"Hoàn thiện lưu/xem/thay logo và kiểm dữ liệu nhập.",
+"Kiểm giờ trường → điểm danh; ghi riêng phần tính phí về muộn cho module tài chính."
+],
+"close": [
+"Lưu/xem/thay logo hoạt động, lỗi giữ nguyên dữ liệu.",
+"Đổi giờ/quy tắc không viết lại lịch sử điểm danh."
+],
+"deps": [],
+"tracker": "Partial (P1)",
+"routes": [
+"/setup/school"
+]
+},
+{
+"i": 3,
+"code": "M5/SM13",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Năm học",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem & tìm kiếm danh sách năm học",
+"code": "M5/SM13-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách năm và chọn năm hiện hành theo múi giờ.",
+"todo": "Kiểm tìm kiếm/ngày biên; đổi năm không lẫn dữ liệu các module.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Tạo/Sửa năm học",
+"code": "M5/SM13-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tạo/sửa ngày/năm; có quy tắc chọn khi năm chồng lấn.",
+"todo": "Kiểm tie-break đúng quyết định đã chốt; không tự cấm chồng lấn.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Tạo/sửa năm học, khoảng ngày và chọn năm hiện hành.",
+"Đã có quy tắc chọn khi các năm chồng lấn."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Chuyển năm/ngày biên có giữ đúng dữ liệu lịch sử ở các module không."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Hai năm kiểm thử, các ngày đầu/cuối năm và múi giờ trường hợp lệ."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm tạo/sửa năm, ngày biên và năm hiện hành theo giờ trường.",
+"Kiểm năm chồng lấn đúng quy tắc đã chốt; không tự đổi nghiệp vụ.",
+"Kiểm lớp, điểm danh, học phí và tệp khi chuyển năm; lưu evidence."
+],
+"close": [
+"Năm hiện hành đúng quy tắc đã thống nhất.",
+"Đổi năm không lẫn dữ liệu hoặc làm mất khả năng xem lịch sử."
+],
+"deps": [
+"M6/SM1"
+],
+"tracker": "Partial (P1 calendar source)",
+"routes": [
+"/setup/calendar"
+]
+},
+{
+"i": 4,
+"code": "M5/SM4",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Môn học",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách môn học theo cấp học",
+"code": "M5/SM4-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh mục môn theo cấp học.",
+"todo": "Đối chiếu catalog nguồn, cùng mã môn ở nhiều cấp/năm.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Tìm kiếm môn học",
+"code": "M5/SM4-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tìm kiếm môn.",
+"todo": "Kiểm tên/mã, dữ liệu rỗng và xóa từ khóa.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Xem chi tiết môn học",
+"code": "M5/SM4-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có chi tiết môn và metadata chưa cấu hình.",
+"todo": "Kiểm thông tin đánh giá và liên kết lớp/giáo viên.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Thêm giáo viên vào môn học",
+"code": "M5/SM4-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có thêm phân công giáo viên, kiểm trùng.",
+"todo": "Kiểm quyền, giáo viên ngừng hoạt động và phạm vi năm/cấp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Xoá giáo viên khỏi môn học",
+"code": "M5/SM4-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có gỡ phân công giáo viên.",
+"todo": "Kiểm lớp/điểm đang tham chiếu và không làm mất dữ liệu lịch sử.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Danh sách/chi tiết môn theo cấp học.",
+"Thêm/xóa phân công giáo viên và kiểm trùng."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Danh mục nguồn có đủ không; ràng buộc xóa/phân công và thông tin đánh giá cần đối chiếu BA."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Môn cùng mã ở hai cấp/năm; giáo viên có/không có phân công."
+],
+"muted": ""
+}
+},
+"steps": [
+"Đối chiếu danh mục môn với nguồn và cấp/năm.",
+"Kiểm thêm/xóa giáo viên, trùng phân công và lớp đang tham chiếu.",
+"Kiểm liên thông lớp/đánh giá; sửa lỗi được tái hiện và nghiệm thu."
+],
+"close": [
+"Không lẫn môn cùng mã giữa các cấp/năm.",
+"Phân công và xóa giữ đúng ràng buộc, không mất dữ liệu đang dùng."
+],
+"deps": [
+"M5/SM13"
+],
+"tracker": "Partial (P2 catalogue slice)",
+"routes": [
+"/master-data/subjects"
+]
+},
+{
+"i": 5,
+"code": "M6/SM2",
+"g": "M6",
+"gl": "Cấu hình",
+"name": "Tài khoản",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem & lọc danh sách tài khoản",
+"code": "M6/SM2-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có quản lý danh sách tài khoản qua adapter hiện tại.",
+"todo": "Kiểm đủ lọc, vai trò, chức năng và phạm vi lớp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Tạo/Sửa tài khoản Người Dùng",
+"code": "M6/SM2-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tạo/sửa tài khoản người dùng, không lưu mật khẩu nội bộ.",
+"todo": "Kiểm lifecycle hiện có; tài khoản IdP thật kiểm riêng, không chặn kiểm CRUD mô phỏng.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Đổi trạng thái & Xoá tài khoản",
+"code": "M6/SM2-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có khóa/xóa và session/quyền.",
+"todo": "Kiểm phiên đang mở bị thu quyền ngay, không chỉ ẩn menu.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Quản lý tài khoản đăng nhập học sinh",
+"code": "M6/SM2-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có quản lý tài khoản đăng nhập học sinh qua adapter.",
+"todo": "Kiểm liên kết đúng học sinh, quyền và vòng đời; nối IdP thật ở bước tích hợp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Quản lý tài khoản/người dùng/học sinh, vai trò/chức năng/lớp.",
+"Session, kiểm quyền và tài khoản dev dùng adapter mô phỏng."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"SSO/IdP đăng nhập thật chưa hoàn tất."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Khóa/xóa/thu quyền và toàn bộ vai trò còn cần nghiệm thu đầu cuối."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Tài khoản kiểm thử admin/giáo viên/quản lý/nhân viên/phụ huynh.",
+"Contract SSO/IdP cho bước đăng nhập thật."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm quản lý tài khoản và matrix vai trò/chức năng/lớp bằng adapter hiện có.",
+"Thử khóa/xóa/đổi role/mất liên kết con trong phiên đang mở.",
+"Nối IdP thật, kiểm login/logout/hết hạn/thu hồi và cập nhật acceptance."
+],
+"close": [
+"Quyền bị thu ngay, không chỉ ẩn menu; session không lộ danh tính/bí mật.",
+"Login/logout thật chỉ coi hoàn tất sau smoke với IdP."
+],
+"deps": [],
+"tracker": "Pending DoD (A1 P8 fake implemented)",
+"routes": [
+"/settings/accounts"
+]
+},
+{
+"i": 6,
+"code": "M5/SM2",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Giáo viên",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Danh sách giáo viên (tìm kiếm, lọc, phân trang)",
+"code": "M5/SM2-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách giáo viên.",
+"todo": "Kiểm tìm/lọc/phân trang và giáo viên ngừng hoạt động.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Xem chi tiết giáo viên",
+"code": "M5/SM2-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có hồ sơ và phân công lớp/môn.",
+"todo": "Đối chiếu phân công và dữ liệu tài khoản liên kết.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Thêm giáo viên mới",
+"code": "M5/SM2-R03",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có tạo hồ sơ trước, tạo tài khoản mô phỏng và retry giữ teacherUid.",
+"todo": "Nối tài khoản/lời mời thật; thử lỗi rồi retry không tạo trùng.",
+"need": "Contract IdP, tài khoản sandbox và kênh lời mời."
+},
+{
+"n": "04",
+"t": "Cập nhật/Đổi email/Đổi mật khẩu",
+"code": "M5/SM2-R04",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có cập nhật/đổi email và liên kết đổi mật khẩu.",
+"todo": "Kiểm thay email với IdP thật và luồng gửi/đổi mật khẩu.",
+"need": "IdP đổi email/mật khẩu; tài khoản test và kênh gửi."
+},
+{
+"n": "05",
+"t": "Xoá giáo viên",
+"code": "M5/SM2-R05",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có vòng đời hồ sơ; tác động xóa/ngừng hoạt động lên tài khoản chưa nghiệm thu.",
+"todo": "Kiểm xóa/khóa tài khoản và phân công lớp/môn; không để quyền truy cập sót.",
+"need": "Giáo viên có phân công; quyền khóa/xóa và tài khoản đang mở phiên."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Danh sách/hồ sơ và quan hệ lớp/môn.",
+"Tạo hồ sơ trước tài khoản, thử lại khi tạo tài khoản lỗi; đổi email và liên kết đổi mật khẩu."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Tài khoản thật/lời mời chưa được nghiệm thu.",
+"Cần kiểm khóa/xóa giáo viên tác động đúng lên tài khoản và phân công."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Tài khoản kiểm thử cho từng vai trò; dữ liệu phân công.",
+"Nhà cung cấp đăng nhập và thông báo thật cho phần vận hành thật."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm hồ sơ giáo viên và phân công lớp/môn trước.",
+"Kiểm tạo tài khoản lỗi rồi thử lại, đổi email và khóa/ngừng hoạt động.",
+"Nghiệm thu liên thông quyền; tách phần lời mời/SSO thật thành gate riêng."
+],
+"close": [
+"Thử lại không tạo trùng; đổi email không mất liên kết teacherUid.",
+"Khóa/ngừng hoạt động không để lại quyền truy cập sai."
+],
+"deps": [
+"M6/SM2",
+"M5/SM4"
+],
+"tracker": "Partial (P2 + B5 A1 slice)",
+"routes": [
+"/master-data/teachers"
+]
+},
+{
+"i": 7,
+"code": "M5/SM3",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Lớp học",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Danh sách lớp học (2 tab, tìm kiếm, lọc, phân trang)",
+"code": "M5/SM3-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách lớp chính khóa/ngoại khóa theo năm.",
+"todo": "Kiểm đủ tìm/lọc/phân trang và không lẫn hai loại lớp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Xem chi tiết lớp học",
+"code": "M5/SM3-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có chi tiết và tab học sinh/hoạt động/điểm danh/phí.",
+"todo": "Đối chiếu từng tab với dữ liệu nguồn và quyền theo lớp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Thêm lớp học",
+"code": "M5/SM3-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tạo lớp và phân công môn/giáo viên.",
+"todo": "Kiểm ràng buộc dữ liệu và quan hệ phân công.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Cập nhật lớp học",
+"code": "M5/SM3-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có cập nhật lớp.",
+"todo": "Kiểm roster/phí khi đổi lớp/năm và lịch sử đang tham chiếu.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Xoá lớp học",
+"code": "M5/SM3-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có xóa lớp.",
+"todo": "Kiểm lớp có học sinh/hóa đơn/điểm danh không bị xóa sai; lưu evidence DB.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Thêm/sửa/xóa lớp chính khóa và ngoại khóa; phân công môn/giáo viên.",
+"Các tab học sinh, hoạt động, điểm danh, học phí và điều hướng theo năm."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Cần kiểm toàn bộ liên kết và vòng đời lớp trên DB thật; nhiều bằng chứng cũ dùng dữ liệu giả lập."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Một lớp chính khóa, một lớp ngoại khóa có học sinh/giáo viên/phí."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm danh sách/CRUD và phân công ở cả hai loại lớp.",
+"Đối chiếu từng tab với nguồn học sinh/điểm danh/phí/hoạt động.",
+"Kiểm đổi năm, xóa lớp có tham chiếu và quyền theo lớp; lưu kết quả."
+],
+"close": [
+"Các tab khớp nguồn gốc và giữ đúng lớp/năm.",
+"Xóa/sửa không phá tham chiếu hoặc làm lộ dữ liệu lớp khác."
+],
+"deps": [
+"M5/SM13",
+"M5/SM4",
+"M5/SM2"
+],
+"tracker": "Partial (P2 structural slice)",
+"routes": [
+"/master-data/classes"
+]
+},
+{
+"i": 8,
+"code": "M6/SM5",
+"g": "M6",
+"gl": "Cấu hình",
+"name": "Cấu hình tính năng",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Cấu hình bình luận hoạt động",
+"code": "M6/SM5-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có bật/tắt bình luận/duyệt; Hoạt động đã dùng policy.",
+"todo": "Kiểm BE thực thi policy với phụ huynh và khi đổi cấu hình giữa phiên.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Xem cấu hình học kỳ theo năm học",
+"code": "M6/SM5-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có xem học kỳ theo năm.",
+"todo": "Kiểm đúng năm và dữ liệu lịch sử.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Thêm/Sửa học kỳ",
+"code": "M6/SM5-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có thêm/sửa học kỳ.",
+"todo": "Kiểm ngày/khoảng kỳ, quyền sửa và liên thông đánh giá.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Bật/tắt bình luận và duyệt bình luận hoạt động.",
+"Xem/thêm/sửa học kỳ theo năm; hoạt động đã đọc policy bình luận."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Cần kiểm khi đổi cấu hình giữa phiên và tác động lên tương tác phụ huynh."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Bài hoạt động có bình luận chờ duyệt; hai phiên đang mở."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm thêm/sửa học kỳ đúng năm và dữ liệu thời gian.",
+"Kiểm các tổ hợp bật/tắt bình luận, duyệt/không duyệt.",
+"Đổi cấu hình trong khi phiên khác đang dùng; kiểm phía BE vẫn thực thi đúng."
+],
+"close": [
+"Policy được thực thi ở BE, không chỉ đổi giao diện.",
+"Đổi học kỳ hoặc policy không lẫn năm và không làm mất nội dung."
+],
+"deps": [
+"M5/SM13",
+"M2/SM2"
+],
+"tracker": "Partial (P1→P7)",
+"routes": [
+"/settings/features/activity"
+]
+},
+{
+"i": 9,
+"code": "M2/SM2",
+"g": "M2",
+"gl": "Vận hành",
+"name": "Hoạt động",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Đăng bài hoạt động mới",
+"code": "M2/SM2-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tạo bài hoạt động.",
+"todo": "Kiểm lưu nháp/đăng, dữ liệu bắt buộc và quyền theo lớp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Chọn đối tượng hiển thị",
+"code": "M2/SM2-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có chọn đối tượng bài viết.",
+"todo": "Kiểm tài khoản trong/ngoài đối tượng và khi đổi lớp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Gắn thẻ giáo viên/học sinh (@)",
+"code": "M2/SM2-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tag giáo viên/học sinh và luồng thông báo liên quan.",
+"todo": "Kiểm người được tag, quyền xem và thông báo mô phỏng; giao thật cần provider.",
+"need": "Tài khoản được tag/ngoài đối tượng; provider thông báo cho bước gửi thật."
+},
+{
+"n": "04",
+"t": "Gắn tên bài học (#)",
+"code": "M2/SM2-R04",
+"s": "U",
+"sl": "Chưa đủ bằng chứng",
+"done": "Có xử lý tag nói chung, snapshot chưa phân biệt rõ nhánh tên bài học (#).",
+"todo": "Kiểm riêng dấu # theo BA; bổ sung nếu thiếu hoặc sai.",
+"need": "Quy tắc và danh mục tên bài học theo BA."
+},
+{
+"n": "05",
+"t": "Chèn mẫu câu gợi ý ($)",
+"code": "M2/SM2-R05",
+"s": "U",
+"sl": "Chưa đủ bằng chứng",
+"done": "Chưa có bằng chứng riêng cho chèn mẫu câu bằng dấu $.",
+"todo": "Kiểm danh mục/gợi ý/chèn mẫu; xác nhận nguồn mẫu trước khi bổ sung.",
+"need": "Danh mục mẫu câu và quy tắc dấu $."
+},
+{
+"n": "06",
+"t": "Đính kèm ảnh/video/file",
+"code": "M2/SM2-R06",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có upload/xem ảnh và phát video riêng tư; hai test MP4 lỗi do thiếu ffprobe lúc audit.",
+"todo": "Bổ sung ffprobe ở môi trường BE; kiểm đủ ảnh/video/file và quyền tải.",
+"need": "ffprobe trên BE; tệp ảnh/video/file hợp lệ và lỗi; storage."
+},
+{
+"n": "07",
+"t": "Lọc danh sách bài đăng",
+"code": "M2/SM2-R07",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách/lọc bài.",
+"todo": "Đối chiếu từng bộ lọc, phân trang và năm/lớp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "08",
+"t": "Ghim / Sửa / Xoá bài đăng",
+"code": "M2/SM2-R08",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có ghim, sửa, xóa và duyệt.",
+"todo": "Kiểm trạng thái, quyền, tệp sau khi sửa/xóa và thử lại khi lỗi.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "09",
+"t": "Xem chỉ số tương tác",
+"code": "M2/SM2-R09",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có dữ liệu tương tác.",
+"todo": "Kiểm số đếm/chi tiết và policy bình luận ở hai phiên khác nhau.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Đăng/sửa/xóa/ghim/duyệt bài; đối tượng, tag và tương tác.",
+"Upload, xem ảnh và phát video riêng tư đã có FE/BE."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Máy audit trước đó thiếu ffprobe, khiến nhánh kiểm video lỗi."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Toàn luồng media, quyền xem và tích hợp thật cần nghiệm thu."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"ffprobe trên môi trường BE; Node 22.",
+"File ảnh/video hợp lệ và không hợp lệ để kiểm thử."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm/cài ffprobe trong môi trường BE rồi chạy lại hai test MP4 từng lỗi.",
+"Kiểm bài viết, đối tượng, duyệt/tag và các thao tác tệp.",
+"Nghiệm thu upload → lưu → xem → xóa; kiểm mất quyền và thử lại khi lỗi."
+],
+"close": [
+"Video hợp lệ qua kiểm tra; video sai bị từ chối rõ ràng.",
+"Ảnh/tệp không lộ cho người ngoài đối tượng; xóa/thử lại không tạo trùng."
+],
+"deps": [
+"M5/SM3",
+"M6/SM5"
+],
+"tracker": "Partial (P5)",
+"routes": [
+"/operations/activities"
+]
+},
+{
+"i": 10,
+"code": "M6/SM6",
+"g": "M6",
+"gl": "Cấu hình",
+"name": "Cấu hình thông báo",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Cấu hình thông báo Điểm danh",
+"code": "M6/SM6-R01",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có policy và consumer điểm danh; chưa đủ bằng chứng từng tùy chọn/kênh/lịch.",
+"todo": "Lập từng sự kiện→lịch→người nhận→giao; bổ sung nhánh thiếu và kiểm bật/tắt.",
+"need": "Bảng từng sự kiện điểm danh→lịch→người nhận→kênh gửi."
+},
+{
+"n": "02",
+"t": "Cấu hình thông báo Sinh nhật",
+"code": "M6/SM6-R02",
+"s": "U",
+"sl": "Chưa đủ bằng chứng",
+"done": "Có cấu hình lịch/kênh chung; chưa đủ bằng chứng riêng job thông báo sinh nhật.",
+"todo": "Kiểm job theo giờ trường, người nhận và chống lặp; làm phần chưa có.",
+"need": "Quy tắc ngày/giờ sinh nhật, người nhận và job theo múi giờ trường."
+},
+{
+"n": "03",
+"t": "Cấu hình thông báo Học phí",
+"code": "M6/SM6-R03",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có policy và một số consumer học phí.",
+"todo": "Đối chiếu từng tùy chọn gửi/nhắc/hoàn phí, hoàn thiện lịch và provider thật.",
+"need": "Các sự kiện hóa đơn/nhắc nợ/hoàn tiền và kênh gửi thật."
+},
+{
+"n": "04",
+"t": "Cấu hình thông báo khác (Tin nhắn, Hoạt động chờ duyệt, Nhật ký, Yêu thích)",
+"code": "M6/SM6-R04",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Nhiều consumer đã nối, trạng thái chung còn partial.",
+"todo": "Kiểm từng toggle tin nhắn/chờ duyệt/nhật ký/yêu thích; album/media còn thiếu.",
+"need": "Danh sách từng toggle, sự kiện và consumer còn thiếu, nhất là album/media."
+},
+{
+"n": "05",
+"t": "Cấu hình \"Phụ huynh nhận thông báo\"",
+"code": "M6/SM6-R05",
+"s": "U",
+"sl": "Chưa đủ bằng chứng",
+"done": "Có policy; chưa đủ bằng chứng riêng cho mọi phạm vi phụ huynh nhận.",
+"todo": "Đối chiếu lựa chọn nhận với guardian/roster và danh tính thật.",
+"need": "Nguồn guardian/roster và ma trận ai được nhận thông báo."
+},
+{
+"n": "06",
+"t": "Lưu cấu hình thông báo",
+"code": "M6/SM6-R06",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có lưu kênh/lịch/phiên bản.",
+"todo": "Kiểm lưu không ghi đè cấu hình khác; lưu form không đồng nghĩa có job gửi thật.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Lưu cấu hình kênh/lịch/phiên bản.",
+"Nhiều luồng thông báo đã nối: trao đổi, hoạt động, điểm danh, học tập, học phí…"
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Chưa nối đủ mọi tùy chọn/lịch gửi; trạng thái vẫn partial.",
+"Album/media và provider giao thông báo thật còn mở."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Cần kiểm từng toggle thực sự có luồng tạo/gửi/nhận và chống gửi lặp."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Danh sách từng cấu hình → sự kiện → lịch → người nhận → kết quả.",
+"Provider email/web/app thật cho bước giao nhận thật."
+],
+"muted": ""
+}
+},
+"steps": [
+"Lập bảng từng tùy chọn đang có/thiếu luồng sử dụng, không suy từ việc lưu form.",
+"Hoàn thiện các sự kiện/job/người nhận còn thiếu và thử bật/tắt/lịch.",
+"Nối provider thật, kiểm lỗi/retry/chống lặp và trạng thái giao nhận."
+],
+"close": [
+"Mỗi tùy chọn có hành vi được chứng minh hoặc được ghi rõ chưa khả dụng.",
+"Không gửi nhầm/gửi lặp; trạng thái mô phỏng và giao thật được phân biệt."
+],
+"deps": [
+"M6/SM2"
+],
+"tracker": "Partial (A9 core)",
+"routes": [
+"/settings/notifications"
+]
+},
+{
+"i": 11,
+"code": "M5/SM1",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Học sinh",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Danh sách học sinh (tìm kiếm, lọc, phân trang)",
+"code": "M5/SM1-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách/tìm kiếm/lọc/phân trang.",
+"todo": "Kiểm trạng thái, năm/lớp và phạm vi quyền.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Xem chi tiết học sinh",
+"code": "M5/SM1-R02",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có hồ sơ, CCCD, sức khỏe/BMI và tab Hoạt động; tab Thư viện chưa đủ.",
+"todo": "Nối Library; kiểm đúng học sinh, quyền tệp và liên kết guardian.",
+"need": "Media Thư viện theo học sinh; nguồn guardian thật cho bước tích hợp."
+},
+{
+"n": "03",
+"t": "Thêm học sinh",
+"code": "M5/SM1-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tạo hồ sơ; nguồn guardian hiện mô phỏng.",
+"todo": "Kiểm dữ liệu bắt buộc/trùng; nghiệm thu guardian thật là bước riêng.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Cập nhật/Lưu trữ/Chuyển lớp",
+"code": "M5/SM1-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có cập nhật, lưu trữ và chuyển lớp.",
+"todo": "Kiểm liên thông lịch sử điểm danh/phí/đánh giá và quan hệ người giám hộ.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Chuyển năm học hàng loạt",
+"code": "M5/SM1-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có chuyển năm hàng loạt.",
+"todo": "Thử lỗi giữa chừng, không tạo trạng thái nửa chừng hoặc mất lịch sử.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "06",
+"t": "Ghi chú học sinh",
+"code": "M5/SM1-R06",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có ghi chú.",
+"todo": "Kiểm người xem/sửa, lưu lại và dữ liệu nhạy cảm theo quyền.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "07",
+"t": "Xoá học sinh",
+"code": "M5/SM1-R07",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có lưu trữ; xóa vĩnh viễn chưa mở đầy đủ vì thiếu chính sách lưu giữ.",
+"todo": "Chốt retention và dữ liệu phải giữ; phân biệt xóa với lưu trữ/phục hồi.",
+"need": "Chính sách lưu giữ và quyền xóa; danh sách lịch sử phải bảo toàn."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Hồ sơ, người giám hộ mô phỏng, CCCD, ghi chú, sức khỏe/BMI.",
+"Chuyển lớp/năm hàng loạt, tab Hoạt động và phí ghi đè."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Tab Thư viện chưa hoàn thiện theo BA."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Quan hệ người giám hộ thật và tác động liên module khi chuyển/lưu trữ còn cần nghiệm thu."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Dữ liệu học sinh có lớp/năm cũ và người giám hộ liên kết.",
+"Luồng ảnh của Thư viện để hoàn thiện tab còn thiếu."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm hồ sơ, người giám hộ và chuyển lớp/năm bằng dữ liệu kiểm thử.",
+"Nối tab Thư viện với đúng ảnh/học sinh và quyền truy cập.",
+"Kiểm liên thông chuyển lớp/năm/lưu trữ với phí, điểm và người giám hộ."
+],
+"close": [
+"Tab Thư viện đúng học sinh và phạm vi quyền.",
+"Chuyển hàng loạt không tạo trạng thái nửa chừng hoặc mất lịch sử."
+],
+"deps": [
+"M5/SM3",
+"M2/SM3",
+"M5/SM14"
+],
+"tracker": "Partial (P3A/P3B; chỉ còn BR10 tab Thư viện)",
+"routes": [
+"/people/students"
+]
+},
+{
+"i": 12,
+"code": "M5/SM9",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Điểm danh NV",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách, lọc & tìm kiếm theo ngày",
+"code": "M5/SM9-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách theo ngày/lớp/vai trò.",
+"todo": "Kiểm tìm kiếm, nhân viên thiếu binding tài khoản và phạm vi quản lý.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Check-in / Check-out",
+"code": "M5/SM9-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có check-in/out và sửa giờ.",
+"todo": "Kiểm quyền, giờ biên, cửa sổ sửa và đồng bộ báo cáo tháng.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Đánh dấu Vắng",
+"code": "M5/SM9-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có đánh dấu vắng.",
+"todo": "Kiểm trạng thái đã đón/trả và quyền sửa.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Ghi chú điểm danh",
+"code": "M5/SM9-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có ghi chú.",
+"todo": "Kiểm lưu/đọc đúng nhân viên/ngày và quyền truy cập.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Xem thông tin nhân viên",
+"code": "M5/SM9-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có liên kết vai trò qua teacherUid.",
+"todo": "Đối chiếu nhân viên–hồ sơ–tài khoản thật; không suy đoán vai trò khi thiếu binding.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Điểm danh ngày, lọc lớp/vai trò, đón/trả/sửa giờ/vắng/ghi chú.",
+"Nguồn chung báo cáo tháng và liên kết vai trò với tài khoản."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Binding nhân viên–tài khoản, quyền quản lý/lớp và DB hiện tại cần nghiệm thu."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Nhân viên có/không có tài khoản liên kết; vai trò quản lý/giáo viên."
+],
+"muted": ""
+}
+},
+"steps": [
+"Đối chiếu nhân viên/role với hồ sơ và tài khoản gốc.",
+"Kiểm sửa giờ/vắng/ghi chú, cửa sổ sửa và phạm vi quản lý.",
+"Đối chiếu ngày–tháng và thử khóa tài khoản/thu quyền."
+],
+"close": [
+"Không suy đoán vai trò khi thiếu liên kết; quyền đúng theo lớp.",
+"Báo cáo tháng khớp dữ liệu ngày và sửa đổi hợp lệ."
+],
+"deps": [
+"M5/SM2",
+"M6/SM2"
+],
+"tracker": "Partial (daily operations complete; linked P8 role slice in progress)",
+"routes": [
+"/operations/staff-attendance"
+]
+},
+{
+"i": 13,
+"code": "M2/SM4",
+"g": "M2",
+"gl": "Vận hành",
+"name": "Trao đổi",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách trao đổi, tìm kiếm, lọc theo lớp",
+"code": "M2/SM4-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách hội thoại, lọc theo lớp và tìm kiếm.",
+"todo": "Kiểm kết quả theo quyền người nhận, dữ liệu rỗng và phân trang.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Mở 1 trao đổi, lọc theo thể loại, nhảy tới ngày cụ thể",
+"code": "M2/SM4-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có đọc hội thoại và lọc ngày.",
+"todo": "Đối chiếu thêm bộ lọc thể loại và nhảy ngày theo BA.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Xác nhận/Hủy báo vắng ngay trong khung chat",
+"code": "M2/SM4-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có xác nhận/hủy báo vắng chung nguồn Điểm danh.",
+"todo": "Kiểm hai phía đồng bộ, không tự ghi giờ và không xử lý trùng.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Xem \"Tin nhắn quan trọng\"",
+"code": "M2/SM4-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tin quan trọng.",
+"todo": "Kiểm đánh dấu, bỏ đánh dấu và quyền xem.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Tạo trao đổi cá nhân",
+"code": "M2/SM4-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có hội thoại cá nhân.",
+"todo": "Kiểm danh tính người nhận và ngăn gửi cho đối tượng ngoài phạm vi.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "06",
+"t": "Tạo trao đổi nhóm",
+"code": "M2/SM4-R06",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tạo hội thoại nhóm.",
+"todo": "Kiểm quyền tạo nhóm và giới hạn người tham gia.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "07",
+"t": "Quản lý người nhận của nhóm",
+"code": "M2/SM4-R07",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có quản lý người nhận; một số phạm vi quản lý chưa đủ.",
+"todo": "Hoàn thiện quyền theo vai trò và thu quyền đọc khi bị gỡ khỏi nhóm.",
+"need": "Ma trận quyền quản lý nhóm và tài khoản thuộc/ngoài nhóm."
+},
+{
+"n": "08",
+"t": "Thu hồi tin nhắn",
+"code": "M2/SM4-R08",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có thu hồi và trạng thái đã đọc.",
+"todo": "Kiểm cửa sổ/quyền thu hồi, phiên đang mở và nội dung sau thu hồi.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Hội thoại cá nhân/nhóm, quản lý người nhận, tin quan trọng/thu hồi/đã đọc.",
+"Xử lý báo vắng chung nguồn với Điểm danh; có thông báo mô phỏng."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Đính kèm/media và một số phạm vi người quản lý chưa đủ."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Danh tính người nhận và giao/nhận thông báo đầu cuối."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Tài khoản/người giám hộ theo lớp; quy tắc ai được tạo/đọc nhóm.",
+"Nơi lưu và quyền tệp đính kèm."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm hội thoại, nhóm, người nhận và xử lý báo vắng hiện có.",
+"Hoàn thiện tệp và quyền quản lý/nhóm theo BA.",
+"Kiểm báo vắng → quyết định → thông báo; thử thu hồi, mất quyền và lỗi gửi."
+],
+"close": [
+"Tin/tệp chỉ tới đúng người, quyền nhóm được kiểm ở BE.",
+"Xác nhận báo vắng không tự sửa giờ điểm danh và không gửi trùng."
+],
+"deps": [
+"M6/SM2",
+"M5/SM1",
+"M6/SM6"
+],
+"tracker": "Partial (P5)",
+"routes": [
+"/operations/communications"
+]
+},
+{
+"i": 14,
+"code": "M2/SM1",
+"g": "M2",
+"gl": "Vận hành",
+"name": "Điểm danh",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Chọn lớp + ngày để điểm danh",
+"code": "M2/SM1-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách theo lớp và ngày.",
+"todo": "Kiểm đổi ngày/năm, quyền theo lớp và trạng thái không có dữ liệu.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Đánh dấu Đón (giờ đến)",
+"code": "M2/SM1-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có ghi giờ đón và lưu kết quả đến muộn theo cấu hình trường.",
+"todo": "Kiểm giờ biên; đổi cấu hình sau đó không viết lại lịch sử.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Đánh dấu Trả (giờ về)",
+"code": "M2/SM1-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có ghi giờ trả.",
+"todo": "Kiểm ngày, quyền người thao tác và trạng thái trước/sau khi trả.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Sửa giờ Đón/Trả đã ghi",
+"code": "M2/SM1-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có sửa giờ đón/trả.",
+"todo": "Kiểm quyền sửa, cửa sổ sửa và dấu vết thay đổi.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Ghi nhiệt độ / sức khỏe / ghi chú",
+"code": "M2/SM1-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có nhiệt độ, ghi chú và thông tin sức khỏe liên quan.",
+"todo": "Kiểm dữ liệu nhập và lưu/đọc lại đúng học sinh/ngày.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "06",
+"t": "Đánh dấu vắng hàng loạt (chọn phép/không phép, hoàn tiền)",
+"code": "M2/SM1-R06",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có đánh dấu vắng hàng loạt; chính sách báo vắng/hoàn tiền chưa có đầy đủ xử lý sử dụng.",
+"todo": "Chốt giờ báo vắng và điều kiện hoàn; nối tính hoàn tiền đúng nguồn.",
+"need": "Giờ chốt báo vắng, điều kiện hoàn tiền ăn và consumer học phí."
+},
+{
+"n": "07",
+"t": "Đánh dấu Đón/Trả hàng loạt",
+"code": "M2/SM1-R07",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có thao tác đón/trả hàng loạt.",
+"todo": "Kiểm lỗi giữa chừng và thử lại không tạo ghi nhận trùng.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "08",
+"t": "Ghi nhận giờ trả + người đón (icon cài đặt)",
+"code": "M2/SM1-R08",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có ghi giờ trả; chưa đủ bằng chứng riêng cho toàn bộ người đón và phí trả trễ.",
+"todo": "Đối chiếu người đón theo BA; nối phí trễ sau khi chốt công thức.",
+"need": "Danh sách người đón hợp lệ; ngưỡng và công thức phí trả trễ."
+},
+{
+"n": "09",
+"t": "Xem báo vắng từ phụ huynh",
+"code": "M2/SM1-R09",
+"s": "C",
+"sl": "Đã làm",
+"done": "Đã dùng báo vắng chung nguồn với Trao đổi.",
+"todo": "Kiểm xác nhận/hủy báo vắng không tự đổi giờ điểm danh.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "10",
+"t": "Xem lịch sử ảnh nhận diện khuôn mặt",
+"code": "M2/SM1-R10",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Chưa có luồng hoàn chỉnh xem lịch sử ảnh nhận diện.",
+"todo": "Cần nguồn ảnh và đăng ký nhận diện; làm API, màn hình lịch sử, kiểm quyền.",
+"need": "Đăng ký nhận diện, nguồn ảnh điểm danh, quan hệ ảnh–học sinh."
+},
+{
+"n": "11",
+"t": "Tìm kiếm học sinh trong lớp",
+"code": "M2/SM1-R11",
+"s": "U",
+"sl": "Chưa đủ bằng chứng",
+"done": "Snapshot chưa tách bằng chứng riêng cho tìm học sinh trong lớp.",
+"todo": "Đọc/kiểm ô tìm kiếm hiện tại; ghi rõ kết quả rồi mới quyết định bổ sung mã.",
+"need": "Lớp có nhiều học sinh; từ khóa khớp/không khớp để kiểm."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Điểm danh ngày/lớp, đón/trả, sửa giờ, nhiệt độ, ghi chú và hàng loạt.",
+"Tính đến muộn từ cấu hình trường; xem báo vắng từ Trao đổi."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Lịch sử ảnh nhận diện, luồng nhận diện và phí trả trễ chưa đầy đủ."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Liên thông báo vắng/phí/thông báo và toàn bộ tình huống đón/trả cần nghiệm thu."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Quy tắc phí trả trễ; nguồn ảnh nhận diện.",
+"Dữ liệu giờ/ngày biên, người đón và học sinh báo vắng."
+],
+"muted": ""
+}
+},
+"steps": [
+"Nghiệm thu điểm danh thủ công và xử lý báo vắng trước.",
+"Hoàn thiện luồng trả trễ/phí với nguồn tài chính; giữ lịch sử giờ.",
+"Nối ảnh/nhận diện khi source sẵn sàng; kiểm không tự ghi đè giờ đón/trả."
+],
+"close": [
+"Đón/trả và chỉnh sửa đúng ngày/quyền; không tính lại lịch sử khi đổi cấu hình.",
+"Phí/ảnh đúng nguồn; mất dữ liệu không bị hiển thị thành số 0."
+],
+"deps": [
+"M6/SM1",
+"M2/SM4",
+"M6/SM3",
+"M6/SM4"
+],
+"tracker": "Partial (P5)",
+"routes": [
+"/operations/attendance"
+]
+},
+{
+"i": 15,
+"code": "M4/SM3",
+"g": "M4",
+"gl": "Tài chính",
+"name": "Khoản phí",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh mục khoản phí, tìm kiếm, lọc theo Xuất HĐĐT",
+"code": "M4/SM3-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh mục phí hệ thống/tùy chỉnh và lọc HĐĐT.",
+"todo": "Kiểm tìm kiếm, dữ liệu trống và từng cờ xuất HĐĐT.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Thêm khoản phí tùy chỉnh",
+"code": "M4/SM3-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có thêm khoản phí tùy chỉnh.",
+"todo": "Kiểm trùng, dữ liệu tiền và thuộc tính bắt buộc.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Sửa khoản phí tùy chỉnh",
+"code": "M4/SM3-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có sửa phí tùy chỉnh.",
+"todo": "Kiểm thay đổi không sửa ngược dòng phí hóa đơn đã phát hành.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Xóa khoản phí tùy chỉnh",
+"code": "M4/SM3-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có lưu trữ và chặn phí đang được dùng.",
+"todo": "Đối chiếu hành vi xóa/lưu trữ BA; kiểm mọi tham chiếu lớp/học sinh/hóa đơn.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Bật/tắt Xuất HĐĐT nhanh tại danh sách",
+"code": "M4/SM3-R05",
+"s": "U",
+"sl": "Chưa đủ bằng chứng",
+"done": "Có cờ HĐĐT và bộ lọc; snapshot chưa tách bằng chứng nút đổi nhanh tại danh sách.",
+"todo": "Kiểm toggle và lưu lại; cờ này chưa chứng minh đã xuất HĐĐT thật.",
+"need": "Khoản phí bật/tắt HĐĐT và tài khoản được phép sửa."
+},
+{
+"n": "06",
+"t": "Xem học sinh/lớp đang áp dụng 1 khoản phí",
+"code": "M4/SM3-R06",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có xem lớp/học sinh áp dụng phí.",
+"todo": "Đối chiếu với ma trận Quản lý học phí và dữ liệu hiện tại.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Phí hệ thống/tùy chỉnh, thêm/sửa/lưu trữ và lọc xuất HĐĐT.",
+"Danh sách lớp/học sinh đang áp dụng; chặn lưu trữ phí đang dùng."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Liên thông phân công phí/hóa đơn, số tiền mặc định/ghi đè và dữ liệu thật."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Phí hệ thống, tùy chỉnh chưa dùng và đã dùng trong hóa đơn."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm CRUD, lọc và phí cố định theo BA.",
+"Kiểm lớp/học sinh áp dụng, phí 0/chưa đặt và phí tự nguyện.",
+"Thử lưu trữ phí đang dùng và đối chiếu hóa đơn đã phát hành."
+],
+"close": [
+"Không lưu trữ nhầm phí đang có tham chiếu.",
+"Cờ HĐĐT và người áp dụng đúng; hóa đơn cũ không bị đổi tiền."
+],
+"deps": [
+"M5/SM3"
+],
+"tracker": "Partial (P6)",
+"routes": [
+"/finance/fees"
+]
+},
+{
+"i": 16,
+"code": "M4/SM4",
+"g": "M4",
+"gl": "Tài chính",
+"name": "Quản lý học phí",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách lớp có cấu hình khoản phí, tìm kiếm, lọc theo Khối",
+"code": "M4/SM4-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách lớp với cấu hình phí.",
+"todo": "Kiểm tìm kiếm/khối, năm và số liệu khớp lớp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Xem ma trận học sinh × khoản phí của 1 lớp",
+"code": "M4/SM4-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có ma trận học sinh×phí.",
+"todo": "Kiểm phân biệt 0, chưa đặt và tắt áp dụng phí tự nguyện.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Sửa số tiền riêng cho 1 học sinh",
+"code": "M4/SM4-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có ghi đè tiền riêng cho học sinh.",
+"todo": "Kiểm số tiền hợp lệ và giữ nguyên snapshot hóa đơn cũ.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Cập nhật hàng loạt số tiền cho nhiều học sinh",
+"code": "M4/SM4-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có cập nhật hàng loạt bằng transaction.",
+"todo": "Thử lỗi giữa chừng, rollback và thử lại không nhân đôi.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Thêm khoản phí mới vào lớp",
+"code": "M4/SM4-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có thêm khoản phí vào lớp.",
+"todo": "Kiểm trùng, học sinh đang/không áp dụng và chuyển lớp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "06",
+"t": "Truy cập nhanh hóa đơn của lớp",
+"code": "M4/SM4-R06",
+"s": "U",
+"sl": "Chưa đủ bằng chứng",
+"done": "Có liên thông hóa đơn, chưa tách bằng chứng đường dẫn truy cập nhanh trong UI.",
+"todo": "Kiểm nút/route giữ đúng lớp/năm và bộ lọc hóa đơn.",
+"need": "Lớp có hóa đơn ở hai năm; route từ ma trận phí sang hóa đơn."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Ma trận học sinh×phí, số tiền riêng, thêm/cập nhật hàng loạt.",
+"Thao tác transaction và chọn áp dụng phí tự nguyện ở từng học sinh."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Chuyển lớp/năm và snapshot hóa đơn; phân biệt 0/chưa đặt/tắt phí."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"DB kiểm thử có transaction; học sinh chuyển lớp giữa kỳ."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm ma trận, thêm phí và ghi đè tiền từng học sinh.",
+"Kiểm hàng loạt: lỗi giữa chừng phải rollback, thử lại không lặp.",
+"Đối chiếu chuyển lớp/năm và hóa đơn đã phát hành khi sửa phí."
+],
+"close": [
+"Cập nhật nguyên tử, không bỏ sót hoặc áp phí tự nguyện sai.",
+"Phí hiện tại đúng; hóa đơn đã phát hành giữ snapshot cũ."
+],
+"deps": [
+"M4/SM3",
+"M5/SM1"
+],
+"tracker": "Partial (P6)",
+"routes": [
+"/finance/tuition-management"
+]
+},
+{
+"i": 17,
+"code": "M6/SM3",
+"g": "M6",
+"gl": "Cấu hình",
+"name": "Cấu hình học phí",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Cập nhật ghi chú hóa đơn",
+"code": "M6/SM3-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có lưu ghi chú và dùng trên bản in hóa đơn.",
+"todo": "Kiểm lưu riêng từng phần, xung đột phiên bản và bản in.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Xem thông tin thanh toán tự động Sepay",
+"code": "M6/SM3-R02",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Source trả unavailable cho Sepay.",
+"todo": "Cần contract/tài khoản sandbox, thông tin ngân hàng và cơ chế webhook; làm tích hợp.",
+"need": "Contract Sepay, sandbox, tài khoản nhận tiền và webhook."
+},
+{
+"n": "03",
+"t": "Cấu hình hóa đơn điện tử",
+"code": "M6/SM3-R03",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Source trả unavailable cho hóa đơn điện tử.",
+"todo": "Cần nhà cung cấp/contract/sandbox, thông tin pháp lý, mẫu và quy tắc khoản phí xuất HĐĐT.",
+"need": "Contract nhà cung cấp HĐĐT, sandbox, thông tin pháp lý và mẫu hóa đơn."
+},
+{
+"n": "04",
+"t": "Cấu hình trả trễ và báo vắng",
+"code": "M6/SM3-R04",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có lưu quy tắc trả trễ/báo vắng nhưng đang no_consumer.",
+"todo": "Chốt ngưỡng/làm tròn/giờ báo vắng; làm consumer tính phí và hoàn tiền ăn.",
+"need": "Ngưỡng/làm tròn phí; giờ chốt báo vắng; nguồn điểm danh và hóa đơn."
+},
+{
+"n": "05",
+"t": "Cấu hình đối soát học phí",
+"code": "M6/SM3-R05",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có lưu cấu hình/email đối soát nhưng đang no_consumer.",
+"todo": "Chốt lịch/nội dung/người nhận; làm job đối soát/gửi email và kiểm chống lặp.",
+"need": "Lịch chạy, người nhận email, nguồn giao dịch và provider email."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Lưu cấu hình riêng từng phần có kiểm phiên bản.",
+"Ghi chú in hóa đơn, quy tắc trả trễ/báo vắng/email đối soát."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Lưu chính sách trả trễ/báo vắng/đối soát nhưng chưa có xử lý sử dụng đủ.",
+"Sepay và HĐĐT chưa khả dụng trong source hiện tại."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Cần chốt quy tắc tiền và kiểm liên nguồn trước tích hợp thật."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"BA chốt ngưỡng trả trễ, làm tròn phí và giờ chốt hoàn tiền ăn.",
+"Contract và thông tin kết nối Sepay/SInvoice cho bước thật."
+],
+"muted": ""
+}
+},
+"steps": [
+"Chốt ví dụ tính tiền: trả trễ, báo vắng trước/sau giờ chốt và đối soát.",
+"Nối từng chính sách sang đúng nghiệp vụ; kiểm kết quả tiền và thông báo.",
+"Nối Sepay/HĐĐT thật khi có contract; kiểm webhook và chống ghi nhận trùng."
+],
+"close": [
+"Đổi cấu hình tạo đúng hành vi đã chốt, không chỉ lưu form.",
+"Giao dịch/webhook không ghi trùng; lỗi có đối chiếu và phục hồi."
+],
+"deps": [
+"M6/SM1",
+"M4/SM1",
+"M2/SM4"
+],
+"tracker": "Partial (A9 core)",
+"routes": [
+"/settings/finance"
+]
+},
+{
+"i": 18,
+"code": "M4/SM1",
+"g": "M4",
+"gl": "Tài chính",
+"name": "Học phí",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách học phí theo học sinh, tìm kiếm, lọc",
+"code": "M4/SM1-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách học phí/hóa đơn và bộ lọc.",
+"todo": "Kiểm học sinh chưa có hóa đơn, tìm theo tên/số và phạm vi lớp/năm.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Tạo hóa đơn hàng loạt theo Toàn Trường/Khối/Lớp/Học sinh",
+"code": "M4/SM1-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tạo hóa đơn nhiều phạm vi, giữ snapshot dòng phí.",
+"todo": "Kiểm loại trừ học sinh đã trả đủ, tiền ăn/hoàn phí và ngày gửi.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Xem/In chi tiết 1 hóa đơn",
+"code": "M4/SM1-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có chi tiết và in hóa đơn.",
+"todo": "Đối chiếu tổng/dòng phí, thông tin thanh toán và bản in.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Chỉnh sửa hóa đơn (khi còn \"Đã tạo\")",
+"code": "M4/SM1-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có sửa hóa đơn nháp.",
+"todo": "Kiểm khóa sau gửi, giảm trừ/làm tròn và giữ snapshot hóa đơn đã phát hành.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Gửi hóa đơn + mã QR thanh toán",
+"code": "M4/SM1-R05",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có luồng gửi ở source; QR/thanh toán và giao thông báo thật chưa đủ.",
+"todo": "Nối thông tin thanh toán/QR và provider gửi; kiểm đúng người và không gửi lặp.",
+"need": "Thông tin tài khoản nhận tiền/QR, contract thanh toán và kênh thông báo."
+},
+{
+"n": "06",
+"t": "Xác nhận thanh toán (thủ công/tự động)",
+"code": "M4/SM1-R06",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có thu/hoàn thủ công; thanh toán tự động chưa hoàn thiện.",
+"todo": "Nối provider/webhook, chữ ký, chống trùng và lịch sử thu tự động.",
+"need": "Contract webhook, sandbox, khóa xác thực do provider cấp và dữ liệu giao dịch mẫu."
+},
+{
+"n": "07",
+"t": "Hủy/Xóa hóa đơn",
+"code": "M4/SM1-R07",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có hủy/xóa theo vòng đời.",
+"todo": "Kiểm trạng thái được phép, tiền đã thu/hoàn và dấu vết lịch sử.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "08",
+"t": "Điều chỉnh hàng loạt qua Excel",
+"code": "M4/SM1-R08",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có import preview/commit và xuất CSV; chưa xác nhận đủ tương thích Excel/màu ô BA.",
+"todo": "Đối chiếu định dạng Excel, cột được sửa và rollback khi import lỗi.",
+"need": "File Excel mẫu đúng BA, quy tắc màu/cột và dữ liệu lỗi import."
+},
+{
+"n": "09",
+"t": "Lọc mở rộng theo trạng thái/khối/hoàn phí/HĐĐT",
+"code": "M4/SM1-R09",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có lọc hóa đơn; HĐĐT thật chưa khả dụng.",
+"todo": "Kiểm đủ trường lọc, chốt quá hạn 2 ngày hay 2 ngày làm việc; nối nguồn HĐĐT.",
+"need": "Quyết định quá hạn; nguồn HĐĐT và dữ liệu các trạng thái."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Tạo hóa đơn nhiều phạm vi, sửa nháp/import, gửi/in/CSV/hủy/xóa.",
+"Thu/hoàn thủ công và giữ snapshot dòng phí."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Thanh toán tự động/QR/HĐĐT và gửi thật chưa đầy đủ."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Quy tắc quá hạn 2 ngày hay 2 ngày làm việc, múi giờ/làm tròn/giảm phí cần khép rõ."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Ví dụ BA thống nhất về ngày quá hạn và làm tròn/chiết khấu.",
+"Bộ phí và học sinh đã áp dụng; provider cho bước tích hợp thật."
+],
+"muted": ""
+}
+},
+"steps": [
+"Chốt ngày/tiền và kiểm tạo/sửa/import hóa đơn theo các ví dụ.",
+"Nghiệm thu thu một phần/thu đủ/hoàn/hủy và bảo toàn lịch sử.",
+"Nối thanh toán tự động/HĐĐT; kiểm trùng webhook và liên thông đối soát."
+],
+"close": [
+"Tổng/thu/còn lại/hoàn đúng và không thay đổi snapshot ngoài quy tắc.",
+"Quá hạn đúng định nghĩa đã chốt; giao dịch không trùng."
+],
+"deps": [
+"M4/SM3",
+"M4/SM4",
+"M6/SM3"
+],
+"tracker": "Partial (P6)",
+"routes": [
+"/finance/invoices"
+]
+},
+{
+"i": 19,
+"code": "M4/SM5",
+"g": "M4",
+"gl": "Tài chính",
+"name": "Khoản chi",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách phiếu chi theo tháng, tìm kiếm, lọc",
+"code": "M4/SM5-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách phiếu chi/danh mục.",
+"todo": "Kiểm tháng, tìm kiếm và quyền lọc.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Tạo phiếu chi (Khác/Hoàn tiền, cho Học sinh/Nhân viên)",
+"code": "M4/SM5-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tạo phiếu chi, gồm nguồn hoàn tiền.",
+"todo": "Kiểm đúng đối tượng, hóa đơn gốc và ngăn ghi chi hoàn trùng.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Duyệt / Xác nhận chi",
+"code": "M4/SM5-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có duyệt/xác nhận chi.",
+"todo": "Kiểm quyền, trạng thái và không hiểu thao tác sổ chi là chuyển tiền ngân hàng.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Hủy phiếu chi",
+"code": "M4/SM5-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có hủy phiếu.",
+"todo": "Kiểm điều kiện hủy và lịch sử, không làm lệch sổ.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Quản lý danh mục chi phí",
+"code": "M4/SM5-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có quản lý danh mục chi.",
+"todo": "Kiểm trùng và xóa danh mục đang dùng.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "06",
+"t": "Xuất dữ liệu / Tải phiếu chi",
+"code": "M4/SM5-R06",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có in/CSV.",
+"todo": "Đối chiếu file với bộ lọc và sổ; kiểm liên thông hoàn hóa đơn không đếm hai lần.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Phiếu chi/danh mục, tạo–duyệt–xác nhận–hủy, in/CSV.",
+"Nguồn thông báo hoàn tiền và xử lý riêng đã có mã."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Hoàn hóa đơn↔phiếu chi↔báo cáo, recovery và thông báo cần nghiệm thu liên thông."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Hóa đơn có hoàn tiền; người xác nhận và tài khoản đủ quyền."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm các trạng thái phiếu và quyền tạo/duyệt/xác nhận/hủy.",
+"Đối chiếu hoàn hóa đơn với phiếu chi và sổ tiền để không đếm hai lần.",
+"Kiểm retry/recovery/thông báo và file xuất; lưu chứng cứ nghiệm thu."
+],
+"close": [
+"Phiếu/lịch sử khớp và không ghi trùng khi thử lại.",
+"Báo cáo không đếm hai lần tiền hoàn; trạng thái thông báo chính xác."
+],
+"deps": [
+"M4/SM1",
+"M6/SM6"
+],
+"tracker": "Partial (A8 core)",
+"routes": [
+"/finance/expenses"
+]
+},
+{
+"i": 20,
+"code": "M4/SM2",
+"g": "M4",
+"gl": "Tài chính",
+"name": "Đối soát",
+"kind": "integration",
+"klabel": "Đạt mô phỏng · cần tích hợp thật",
+"quick": "Đã có bằng chứng đạt với bộ mô phỏng. Muốn chốt vận hành thật cần nguồn dữ liệu/nhà cung cấp thật và chạy kiểm chứng.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách phiên đối soát, đổi khoảng ngày",
+"code": "M4/SM2-R01",
+"s": "A",
+"sl": "Đạt mô phỏng",
+"done": "Có bằng chứng nghiệm thu phiên đối soát với adapter mô phỏng.",
+"todo": "Nối nguồn giao dịch thật; đối chiếu khoảng ngày/múi giờ.",
+"need": "Contract thanh toán/ngân hàng, sandbox và nguồn giao dịch thật."
+},
+{
+"n": "02",
+"t": "Xem chi tiết giao dịch trong 1 phiên, lọc theo trẻ/kênh thanh toán",
+"code": "M4/SM2-R02",
+"s": "A",
+"sl": "Đạt mô phỏng",
+"done": "Mô phỏng đã kiểm khớp, chống trùng, vượt tiền và giao dịch đảo.",
+"todo": "Kiểm contract thật, kênh/định danh và xử lý chênh lệch.",
+"need": "Giao dịch khớp/lệch/trùng/vượt tiền/đảo từ provider."
+},
+{
+"n": "03",
+"t": "Xem hóa đơn liên kết 1 giao dịch",
+"code": "M4/SM2-R03",
+"s": "A",
+"sl": "Đạt mô phỏng",
+"done": "Đã nghiệm thu liên kết giao dịch–hóa đơn trong phạm vi adapter.",
+"todo": "Đối chiếu hóa đơn và số tiền trên dữ liệu nhà cung cấp.",
+"need": "Hóa đơn kiểm thử có giao dịch thật tương ứng."
+},
+{
+"n": "04",
+"t": "Xuất báo cáo",
+"code": "M4/SM2-R04",
+"s": "A",
+"sl": "Đạt mô phỏng",
+"done": "Có CSV và bằng chứng adapter.",
+"todo": "So file xuất với sổ và nguồn giao dịch thật; không dùng mô phỏng xác nhận tiền về.",
+"need": "Sổ thu và file giao dịch provider để đối chiếu độc lập."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Đã nghiệm thu adapter giả lập: phiên/giao dịch/khớp/chống trùng/đảo.",
+"Liên kết hóa đơn và CSV; có evidence DB/browser lịch sử."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Chưa kiểm chứng đối soát với nguồn giao dịch thật."
+],
+"muted": ""
+},
+"verify": {
+"items": [],
+"muted": "Bằng chứng mô phỏng đã có; phần tích hợp thật vẫn cần kiểm chứng."
+},
+"need": {
+"items": [
+"Contract thanh toán/ngân hàng, dữ liệu đối chiếu và môi trường sandbox/live."
+],
+"muted": ""
+}
+},
+"steps": [
+"Rà lại bộ contract test và các trường dữ liệu nguồn đối soát.",
+"Nối adapter thật, kiểm khớp/không khớp/vượt tiền/trùng/đảo giao dịch.",
+"Đối chiếu độc lập tiền và hóa đơn; chạy smoke live rồi cập nhật nghiệm thu."
+],
+"close": [
+"Dữ liệu nhà cung cấp khớp sổ, chênh lệch được thể hiện rõ.",
+"Chỉ nâng Verified khi có bằng chứng thật; không suy từ mô phỏng."
+],
+"deps": [
+"M4/SM1"
+],
+"tracker": "**Verified-A (P6 fake)**",
+"routes": [
+"/finance/reconciliation"
+]
+},
+{
+"i": 21,
+"code": "M4/SM6",
+"g": "M4",
+"gl": "Tài chính",
+"name": "Báo cáo học phí",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem tổng quan tỉ lệ thu theo lớp",
+"code": "M4/SM6-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tổng quan theo lớp.",
+"todo": "Tính tổng độc lập từ hóa đơn/thu/hoàn/chi, so tỷ lệ từng lớp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Xem hóa đơn đã thanh toán",
+"code": "M4/SM6-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách đã thanh toán.",
+"todo": "Kiểm người xác nhận và thu tự động/thủ công theo nguồn thật.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Xem hóa đơn thanh toán một phần + lịch sử",
+"code": "M4/SM6-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có thu một phần và lịch sử.",
+"todo": "Kiểm cộng dồn nhiều lần, hoàn tiền và số còn lại.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Xem hóa đơn chưa thanh toán, lọc quá hạn",
+"code": "M4/SM6-R04",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có chưa thanh toán và lọc; quy tắc quá hạn chưa thống nhất hết.",
+"todo": "Chốt 2 ngày hay ngày làm việc; đồng bộ với hóa đơn và múi giờ trường.",
+"need": "Quy tắc quá hạn thống nhất với Học phí; bộ hóa đơn ở ngày biên."
+},
+{
+"n": "05",
+"t": "Xuất báo cáo",
+"code": "M4/SM6-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có CSV.",
+"todo": "So tổng/file/bộ lọc ngày và tránh đếm hai lần tiền hoàn.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Tổng theo lớp; đã thu/thu một phần/chưa thu, lịch sử và CSV.",
+"Bộ lọc theo giờ trường; có tài chính tháng trên dashboard."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Nhóm số liệu, người xác nhận thật, quá hạn và đối soát với sổ cần kiểm lại."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Bộ hóa đơn có thu/hoàn/chi; quy tắc ngày đã chốt."
+],
+"muted": ""
+}
+},
+"steps": [
+"Tính tổng độc lập từ hóa đơn/sổ thu/hoàn/chi trên bộ dữ liệu kiểm thử.",
+"So từng tab/bộ lọc/khoảng ngày và CSV với tổng độc lập.",
+"Kiểm quá hạn/người xác nhận, dữ liệu lịch sử và số dư đối soát."
+],
+"close": [
+"Tổng các tab khớp sổ; không cộng sai tiền hoàn hoặc ngày biên.",
+"CSV và drilldown khớp số liệu hiển thị."
+],
+"deps": [
+"M4/SM1",
+"M4/SM5",
+"M4/SM2"
+],
+"tracker": "Partial (P6)",
+"routes": [
+"/finance/reports/tuition"
+]
+},
+{
+"i": 22,
+"code": "M2/SM5",
+"g": "M2",
+"gl": "Vận hành",
+"name": "Báo cáo điểm danh",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem lưới điểm danh tháng — Học Sinh",
+"code": "M2/SM5-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có lưới tháng học sinh, lọc lớp/năm và tổng trạng thái.",
+"todo": "Đối chiếu tổng với từng ngày, phân biệt thiếu dữ liệu và số 0.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Xem lưới điểm danh tháng — Nhân Viên",
+"code": "M2/SM5-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có lưới tháng nhân viên dùng nguồn chung điểm danh ngày.",
+"todo": "Đối chiếu vai trò/nhân viên và tổng ngày–tháng.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Xem chi tiết điểm danh 1 ngày",
+"code": "M2/SM5-R03",
+"s": "U",
+"sl": "Chưa đủ bằng chứng",
+"done": "Có nguồn ngày/tháng, chưa tách bằng chứng cho màn hình chi tiết một ngày từ báo cáo.",
+"todo": "Kiểm điều hướng/chi tiết ngày theo BA, bổ sung nếu thiếu.",
+"need": "Dữ liệu ngày đã có; route chi tiết cần kiểm."
+},
+{
+"n": "04",
+"t": "Sửa trạng thái vắng",
+"code": "M2/SM5-R04",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Sửa vắng và lịch sử người sửa chưa đầy đủ.",
+"todo": "Làm quyền sửa, lưu audit người sửa và đồng bộ về dữ liệu ngày.",
+"need": "Quyền sửa vắng và nơi lưu audit người sửa/thời điểm."
+},
+{
+"n": "05",
+"t": "Xem báo cáo đón trễ + phí dự tính",
+"code": "M2/SM5-R05",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có đếm đến muộn từ kết quả đã lưu; báo cáo trễ kèm phí chưa đủ.",
+"todo": "Chốt loại trễ và nguồn phí; nối số tiền, không suy từ giờ hiển thị.",
+"need": "Quy tắc trễ, nguồn phí đã chốt và dữ liệu giờ biên."
+},
+{
+"n": "06",
+"t": "Xuất dữ liệu báo cáo",
+"code": "M2/SM5-R06",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Chưa có đầy đủ xuất báo cáo điểm danh.",
+"todo": "Chốt cột/định dạng; làm export khớp bộ lọc và tổng trên giao diện.",
+"need": "Mẫu/cột file xuất và bộ lọc báo cáo."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Lưới tháng học sinh/nhân viên, tổng trạng thái và lọc lớp/năm.",
+"Số lần đến muộn dựa trên kết quả đã lưu."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Sửa vắng/lịch sử người sửa, báo cáo trễ kèm phí và xuất báo cáo chưa đủ."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Cần đối chiếu tổng tháng với dữ liệu từng ngày."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Nguồn phí trễ đã chốt; nguồn người sửa/audit.",
+"Bộ dữ liệu tháng có vắng, muộn, ngày thiếu dữ liệu."
+],
+"muted": ""
+}
+},
+"steps": [
+"Đối chiếu lưới tháng và tổng với dữ liệu ngày của HS/NV.",
+"Làm sửa vắng, audit người sửa và xuất dữ liệu theo BA.",
+"Nối báo cáo trễ/phí sau khi nguồn phí sẵn sàng; nghiệm thu số tiền và tổng."
+],
+"close": [
+"Tổng đúng; thiếu dữ liệu khác với 0.",
+"Sửa vắng có dấu vết; file xuất và phí khớp nguồn."
+],
+"deps": [
+"M2/SM1",
+"M5/SM9",
+"M6/SM3"
+],
+"tracker": "Partial (P5)",
+"routes": [
+"/operations/attendance/report"
+]
+},
+{
+"i": 23,
+"code": "M5/SM6",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Bảng thông tin",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách thông báo, lọc & tìm kiếm",
+"code": "M5/SM6-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách/bộ lọc thông báo.",
+"todo": "Kiểm tìm kiếm và quyền đối tượng theo năm/lớp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Tạo thông báo mới",
+"code": "M5/SM6-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có soạn, tệp riêng tư và 5 loại đối tượng.",
+"todo": "Kiểm từng đối tượng, tệp và trường bắt buộc.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Xem trước nội dung thông báo",
+"code": "M5/SM6-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có preview.",
+"todo": "So bản preview với bản gửi, tệp và định dạng.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Chỉnh sửa/Gửi thông báo bản nháp",
+"code": "M5/SM6-R04",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có sửa/gửi/lên lịch/gửi lại; provider giao thật chưa nghiệm thu.",
+"todo": "Kiểm lịch, retry và người nhận; nối kênh thật cho phần giao nhận.",
+"need": "Đồng hồ/lịch gửi, đối tượng nhận và provider thông báo thật."
+},
+{
+"n": "05",
+"t": "Xem chi tiết thông báo",
+"code": "M5/SM6-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có chi tiết, người nhận/đã đọc và tệp.",
+"todo": "Kiểm ai được xem/tải và trạng thái đọc đúng danh tính.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "06",
+"t": "Xoá thông báo (đơn lẻ/hàng loạt)",
+"code": "M5/SM6-R06",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có vòng đời CRUD.",
+"todo": "Kiểm xóa đơn/hàng loạt theo trạng thái và cleanup tệp, không xóa sai bản đã gửi.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Soạn/preview/lên lịch/gửi lại; 5 loại đối tượng.",
+"Người nhận/đã đọc và tệp riêng tư có FE/BE."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Các lát cắt mới cần kiểm Mongo/quyền/người nhận/media/thông báo đầu cuối."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Tài khoản trong/ngoài đối tượng, đồng hồ lịch gửi và tệp kiểm thử."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm từng loại đối tượng và lưu/preview/sửa nháp.",
+"Kiểm gửi/lên lịch/gửi lại/đọc và tệp bằng các vai trò.",
+"Thử mất phản hồi, thay đối tượng, xóa/thu hồi và thu quyền."
+],
+"close": [
+"Đúng người nhận và thời điểm; không gửi trùng khi thử lại.",
+"Tệp và trạng thái đã đọc không lộ sai đối tượng."
+],
+"deps": [
+"M6/SM2",
+"M6/SM6"
+],
+"tracker": "Partial (local audience/B4 complete; actual gates pending)",
+"routes": [
+"/school/bulletins"
+]
+},
+{
+"i": 24,
+"code": "M3/SM1",
+"g": "M3",
+"gl": "Học tập",
+"name": "Thời khóa biểu",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách, tìm kiếm, lọc theo lớp/học kỳ/hình thức",
+"code": "M3/SM1-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách thời khóa biểu.",
+"todo": "Kiểm đủ tìm kiếm, lọc lớp/học kỳ/hình thức.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Xem chi tiết 1 thời khóa biểu",
+"code": "M3/SM1-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có xem lưới và mở/tải tệp.",
+"todo": "Kiểm dữ liệu và quyền theo lớp/năm.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Tạo thời khóa biểu dạng lưới",
+"code": "M3/SM1-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có lưới, gộp ô và kiểm lịch trùng.",
+"todo": "Kiểm xung đột giáo viên/lớp và dữ liệu biên.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Tạo thời khóa biểu bằng file",
+"code": "M3/SM1-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Đã có tạo/thay/xem/tải thời khóa biểu file.",
+"todo": "Kiểm upload, loại/dung lượng tệp và quyền tải; tracker cũ về file đã lỗi thời.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Chỉnh sửa thời khóa biểu",
+"code": "M3/SM1-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có chỉnh lưới và thay file.",
+"todo": "Kiểm xung đột phiên bản và quy tắc sửa theo trạng thái.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "06",
+"t": "Gửi thời khóa biểu + xem lịch sử gửi",
+"code": "M3/SM1-R06",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Nút gửi đang khóa; lịch sử gửi mới có phần đọc.",
+"todo": "Làm gửi/gửi lại/đăng bảng tin và lịch sử theo phiên bản đã phát hành.",
+"need": "Danh sách người nhận; module Bảng thông tin/Thông báo; quy tắc bản phát hành và retry."
+},
+{
+"n": "07",
+"t": "Tạo bản sao thời khóa biểu",
+"code": "M3/SM1-R07",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có sao chép.",
+"todo": "Kiểm bản sao nháp, phạm vi lớp và kiểm trùng lại.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "08",
+"t": "Xóa thời khóa biểu nháp",
+"code": "M3/SM1-R08",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có xóa nháp.",
+"todo": "Kiểm chỉ xóa trạng thái cho phép và cleanup tệp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Tạo/sửa/xóa/sao chép lưới, gộp ô, kiểm lịch trùng, in/CSV.",
+"Tạo/thay/xem/tải thời khóa biểu dạng file."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Nút gửi đang khóa; chưa đủ gửi/gửi lại/đăng bảng tin."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Lịch sử gửi và người nhận phải được kiểm đầu cuối."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Quy tắc gửi/gửi lại và đối tượng nhận; kênh thông báo/bảng tin."
+],
+"muted": ""
+}
+},
+"steps": [
+"Nghiệm thu lưới/file và kiểm xung đột lịch trước.",
+"Làm API/BFF/UI gửi/gửi lại và lưu lịch sử theo bản phát hành.",
+"Nối người nhận/bảng tin/thông báo; kiểm gửi trùng, lỗi và bản sao nháp."
+],
+"close": [
+"Gửi được tới đúng đối tượng; retry không nhân đôi lần gửi.",
+"Lịch sử giữ bản đã gửi; bản sao luôn được kiểm lại."
+],
+"deps": [
+"M5/SM3",
+"M6/SM6",
+"M5/SM6"
+],
+"tracker": "Partial (P4A read slice)",
+"routes": [
+"/academics/timetable"
+]
+},
+{
+"i": 25,
+"code": "M3/SM2",
+"g": "M3",
+"gl": "Học tập",
+"name": "Bài tập",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách, tìm kiếm, lọc theo lớp/môn học",
+"code": "M3/SM2-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách, CRUD và bộ lọc.",
+"todo": "Đối chiếu lớp/môn và phạm vi giáo viên.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Xem chi tiết 1 bài tập + danh sách học sinh",
+"code": "M3/SM2-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có chi tiết và danh sách học sinh.",
+"todo": "Kiểm dữ liệu người nhận và thay đổi lớp sau khi gửi.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Tạo bài tập mới",
+"code": "M3/SM2-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tạo bài tập.",
+"todo": "Kiểm trường bắt buộc, tệp và hạn nộp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Chỉnh sửa bài tập",
+"code": "M3/SM2-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có chỉnh bài tập.",
+"todo": "Kiểm quyền/trạng thái sửa và bảo toàn bài đã nộp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Nộp bài thay + đánh giá học sinh",
+"code": "M3/SM2-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có nộp thay và đánh giá.",
+"todo": "Kiểm người thao tác, tệp và thời điểm nộp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "06",
+"t": "Quản lý học sinh trong bài tập",
+"code": "M3/SM2-R06",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có quản lý học sinh nhận bài.",
+"todo": "Kiểm thêm/gỡ, đổi lớp và dữ liệu đã nộp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "07",
+"t": "Thảo luận về bài tập",
+"code": "M3/SM2-R07",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có thảo luận.",
+"todo": "Kiểm quyền xem/gửi và nội dung tệp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "08",
+"t": "Lọc mở rộng theo đối tượng/hạn/trạng thái",
+"code": "M3/SM2-R08",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có lọc đối tượng/hạn/trạng thái.",
+"todo": "Kiểm múi giờ, tổ hợp bộ lọc và số đếm.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "09",
+"t": "Gửi / Xóa bài tập",
+"code": "M3/SM2-R09",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có gửi/xóa và thông báo mô phỏng; chưa đủ bằng chứng giao nhận đầu cuối.",
+"todo": "Kiểm người nhận, lỗi/thử lại/thu hồi; nối provider cho gửi thật.",
+"need": "Tài khoản giáo viên/phụ huynh/học sinh; provider thông báo thật."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"CRUD, gửi, lọc đối tượng/hạn; nộp thay/đánh giá và thảo luận.",
+"Đã có xử lý thông báo và một số evidence DB/browser."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Cần nghiệm thu tệp/người nhận/nhận thông báo ở phiên bản hiện tại."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Lớp/giáo viên/học sinh/phụ huynh kiểm thử và dữ liệu bài nộp."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm tạo/gửi bài và chốt danh sách học sinh nhận.",
+"Kiểm nộp thay/đánh giá/thảo luận/tệp và thay đổi lớp/người nhận.",
+"Kiểm lỗi gửi/mất phản hồi/thu hồi/gửi lại; lưu nghiệm thu toàn luồng."
+],
+"close": [
+"Đúng người xem/nộp/đánh giá; nội dung và tệp giữ đúng phạm vi.",
+"Thử lại không gửi trùng và không làm sai trạng thái bài."
+],
+"deps": [
+"M5/SM3",
+"M6/SM2",
+"M6/SM6"
+],
+"tracker": "Partial (P4B)",
+"routes": [
+"/academics/assignments"
+]
+},
+{
+"i": 26,
+"code": "M3/SM3",
+"g": "M3",
+"gl": "Học tập",
+"name": "Điểm & Đánh giá",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem lưới tổng quan theo lớp × kỳ, lọc theo lớp/khối/giáo viên",
+"code": "M3/SM3-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có hồ sơ/mẫu/kỳ và tách lớp ngoại khóa khỏi điểm chính khóa.",
+"todo": "Đối chiếu lưới và từng bộ lọc theo BA.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Nhập điểm theo môn học (ĐĐGTX/ĐĐGGK/ĐĐGCK)",
+"code": "M3/SM3-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có nhập điểm theo mẫu/môn/kỳ.",
+"todo": "Kiểm các cột điểm, dữ liệu biên và quyền sửa.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Tổng kết học kỳ (KQ học tập/rèn luyện + nhận xét)",
+"code": "M3/SM3-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tổng kết/nhận xét.",
+"todo": "Tính độc lập ví dụ tổng kết để xác minh công thức và làm tròn.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Đánh giá định kỳ theo mức (năng lực/phẩm chất) — lớp mầm non",
+"code": "M3/SM3-R04",
+"s": "U",
+"sl": "Chưa đủ bằng chứng",
+"done": "Có mẫu đánh giá nhưng snapshot chưa đủ chứng minh riêng mọi mức năng lực/phẩm chất mầm non.",
+"todo": "Đối chiếu mẫu mầm non và thang mức với BA trước khi chốt.",
+"need": "Mẫu mầm non, thang năng lực/phẩm chất và ví dụ BA."
+},
+{
+"n": "05",
+"t": "Công bố / cập nhật kết quả đã công bố",
+"code": "M3/SM3-R05",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có API công bố và thông báo; cập nhật sau công bố/người nhận chưa nghiệm thu.",
+"todo": "Kiểm công bố→xem kết quả→cập nhật; bảo toàn lịch sử và quyền.",
+"need": "Quy tắc sửa sau công bố; tài khoản nhận kết quả và provider thông báo."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Hồ sơ/mẫu/kỳ, nhập điểm/tổng kết/nhận xét.",
+"Có API công bố và xử lý thông báo; tách lớp ngoại khóa."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Công thức, cập nhật sau công bố và hành vi người nhận cần nghiệm thu."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"BA công thức điểm/mức đánh giá; mẫu và kỳ có dữ liệu biên."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm mẫu/kỳ và nhập điểm với ví dụ tính tổng kết độc lập.",
+"Kiểm công bố và cập nhật sau công bố, quyền theo lớp.",
+"Đối chiếu kết quả người nhận và thông báo; kiểm không lẫn lớp ngoại khóa."
+],
+"close": [
+"Công thức/mức đánh giá khớp BA và không lẫn kỳ/lớp.",
+"Bản công bố/cập nhật và người nhận được kiểm đầu cuối."
+],
+"deps": [
+"M5/SM3",
+"M5/SM4",
+"M6/SM6"
+],
+"tracker": "Partial (P4C)",
+"routes": [
+"/academics/evaluations"
+]
+},
+{
+"i": 27,
+"code": "M2/SM6",
+"g": "M2",
+"gl": "Vận hành",
+"name": "Báo cáo mở rộng",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách báo cáo, lọc lớp/tìm kiếm",
+"code": "M2/SM6-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách báo cáo và UI.",
+"todo": "Kiểm tìm kiếm/lớp, quyền và dữ liệu thật.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Lọc mở rộng theo mẫu/trạng thái/thời gian",
+"code": "M2/SM6-R02",
+"s": "U",
+"sl": "Chưa đủ bằng chứng",
+"done": "Snapshot chưa tách bằng chứng cho đủ bộ lọc mẫu/trạng thái/thời gian.",
+"todo": "Đối chiếu từng bộ lọc với BA và API hiện tại.",
+"need": "Mẫu/trạng thái/giai đoạn có dữ liệu để kiểm bộ lọc."
+},
+{
+"n": "03",
+"t": "Tạo báo cáo mới",
+"code": "M2/SM6-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tạo báo cáo.",
+"todo": "Kiểm mẫu, giai đoạn và học sinh nhận đúng phạm vi.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Tạo bản sao báo cáo",
+"code": "M2/SM6-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có sao chép báo cáo.",
+"todo": "Kiểm bản sao luôn đúng trạng thái nháp và không lẫn người nhận.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Xem/điền chi tiết báo cáo",
+"code": "M2/SM6-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có điền/đọc chi tiết báo cáo.",
+"todo": "Kiểm dữ liệu nhập, lưu lại và quyền theo lớp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "06",
+"t": "Gửi báo cáo / Hoàn tất",
+"code": "M2/SM6-R06",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có gửi/hoàn tất và thông báo mô phỏng; chưa nghiệm thu người nhận thật.",
+"todo": "Kiểm toàn luồng API–DB–giao diện và lỗi/thử lại; nối provider cho gửi thật.",
+"need": "Tài khoản người nhận, DB kiểm thử và provider gửi thật khi tích hợp."
+},
+{
+"n": "07",
+"t": "Xóa báo cáo nháp",
+"code": "M2/SM6-R07",
+"s": "U",
+"sl": "Chưa đủ bằng chứng",
+"done": "Có vòng đời báo cáo; chưa tách bằng chứng riêng thao tác xóa nháp.",
+"todo": "Kiểm xóa đúng trạng thái, quyền và dữ liệu đang tham chiếu.",
+"need": "Báo cáo nháp/đã gửi và tài khoản đủ/thiếu quyền."
+},
+{
+"n": "08",
+"t": "Định nghĩa Giai đoạn",
+"code": "M2/SM6-R08",
+"s": "U",
+"sl": "Chưa đủ bằng chứng",
+"done": "Có giai đoạn/mẫu trong dữ liệu; chưa đủ bằng chứng cho đầy đủ quản lý giai đoạn.",
+"todo": "Kiểm tạo/sửa và ràng buộc giai đoạn; chốt quy tắc với BA nếu thiếu.",
+"need": "Mẫu báo cáo, giai đoạn và quy tắc ngày/khóa sửa."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Tạo/sao chép/điền/gửi/hoàn tất báo cáo và màn hình thao tác.",
+"Có tóm tắt phụ huynh và thông báo mô phỏng."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Tracker Pending do chưa đủ nghiệm thu toàn BA qua API–DB–trình duyệt thật."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Mẫu/giai đoạn báo cáo, học sinh/lớp và người nhận kiểm thử."
+],
+"muted": ""
+}
+},
+"steps": [
+"Đối chiếu mẫu/giai đoạn và tạo một báo cáo thật trên DB kiểm thử.",
+"Điền → gửi → hoàn tất; kiểm sao chép/xóa nháp và quyền lớp.",
+"Mở bằng tài khoản người nhận; kiểm lỗi/thử lại và lưu evidence."
+],
+"close": [
+"Luồng hoàn chỉnh khớp BA, đúng học sinh/giai đoạn.",
+"Người nhận đúng nội dung; không tự chuyển trạng thái khi thao tác lỗi."
+],
+"deps": [
+"M5/SM1",
+"M3/SM3",
+"M6/SM6"
+],
+"tracker": "Pending DoD (P5; B6 source + UI local)",
+"routes": [
+"/operations/reports"
+]
+},
+{
+"i": 28,
+"code": "M5/SM7",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Bình chọn",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách bình chọn, lọc & tìm kiếm",
+"code": "M5/SM7-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách bình chọn.",
+"todo": "Kiểm tìm/lọc/trạng thái và phạm vi quyền.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Tạo bình chọn",
+"code": "M5/SM7-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tạo nháp và ảnh riêng tư.",
+"todo": "Kiểm lựa chọn, ẩn danh, tệp và dữ liệu bắt buộc.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Gửi bình chọn",
+"code": "M5/SM7-R03",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có gửi/đóng và chốt danh sách người nhận; giao thông báo thật chưa nghiệm thu.",
+"todo": "Kiểm roster khi học sinh chuyển lớp và nối provider thật.",
+"need": "Danh sách người nhận tại thời điểm gửi; provider thông báo thật."
+},
+{
+"n": "04",
+"t": "Xem chi tiết & kết quả bình chọn",
+"code": "M5/SM7-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có chi tiết/kết quả.",
+"todo": "Đối chiếu tổng phiếu; bảo vệ danh tính ở chế độ ẩn danh.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "05",
+"t": "Xem lịch sử thay đổi lựa chọn",
+"code": "M5/SM7-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có lịch sử phiếu và lịch sử tổng hợp.",
+"todo": "Kiểm thay lựa chọn, tổng mới/cũ và quyền truy cập.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "06",
+"t": "Chỉnh sửa/Xoá bình chọn (khi còn là \"Đã tạo\")",
+"code": "M5/SM7-R06",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có CRUD nháp.",
+"todo": "Kiểm khóa sửa/xóa sau gửi, thay/xóa ảnh và lỗi đồng thời.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"CRUD nháp, gửi/đóng, kết quả và danh sách người nhận lúc gửi.",
+"Lịch sử lựa chọn/tổng hợp và ảnh riêng tư."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Cần kiểm phiếu–đối tượng–ẩn danh–thông báo trên dữ liệu kiểm thử hiện tại."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Bình chọn ẩn danh/công khai, có thay lựa chọn và học sinh chuyển lớp."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm tạo/sửa/gửi/đóng và khóa sửa sau gửi.",
+"Đối chiếu kết quả, lịch sử lựa chọn và bảo vệ ẩn danh.",
+"Kiểm ảnh/người nhận/thông báo và roster không đổi sai sau chuyển lớp."
+],
+"close": [
+"Phiếu/tổng chính xác; không lộ người bỏ phiếu ở chế độ ẩn danh.",
+"Không sửa trái trạng thái hoặc đổi roster đã gửi ngoài quy tắc."
+],
+"deps": [
+"M5/SM1",
+"M6/SM6"
+],
+"tracker": "Partial (local B1c/A6c/B2o/B4c complete; actual acceptance pending)",
+"routes": [
+"/school/polls"
+]
+},
+{
+"i": 29,
+"code": "M5/SM8",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Thực đơn",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách thực đơn, lọc & tìm kiếm",
+"code": "M5/SM8-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách thực đơn theo tuần.",
+"todo": "Kiểm lọc/tìm, tuần lịch sử và năm/lớp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Tạo thực đơn (dạng lưới hoặc file)",
+"code": "M5/SM8-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có tạo lưới/file, tải xuống và kiểm phiên bản.",
+"todo": "Kiểm upload, dữ liệu bữa ăn và quyền file.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Khai báo nguyên liệu truy xuất nguồn gốc",
+"code": "M5/SM8-R03",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có nguyên liệu và adapter GTIN; nguồn truy xuất thật chưa nghiệm thu.",
+"todo": "Cần API GTIN thật; đối chiếu mã và nguồn dữ liệu, không coi gợi ý AI là yêu cầu đã chốt.",
+"need": "API/sandbox GTIN và mã nguyên liệu mẫu; xác nhận riêng phạm vi gợi ý AI."
+},
+{
+"n": "04",
+"t": "Gửi/công bố thực đơn",
+"code": "M5/SM8-R04",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có công bố qua Bảng thông tin và thông báo mô phỏng.",
+"todo": "Kiểm người nhận/lịch sử và giao nhận thật bằng provider.",
+"need": "Bảng thông tin, người nhận và provider thông báo thật."
+},
+{
+"n": "05",
+"t": "Chỉnh sửa/Sao chép/Xoá thực đơn",
+"code": "M5/SM8-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có sửa/sao chép/xóa.",
+"todo": "Kiểm bản đã gửi không bị sửa ngầm, phạm vi tuần/năm và cleanup tệp.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "06",
+"t": "Xem lịch sử gửi",
+"code": "M5/SM8-R06",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có lịch sử gửi.",
+"todo": "Kiểm thời điểm, người nhận, phiên bản tệp và retry không nhân đôi.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Thực đơn lưới/file, sao chép, lịch sử, nguyên liệu/GTIN.",
+"Công bố qua bảng tin, lịch sử gửi và tải xuống."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Cần nghiệm thu DB/tệp/thông báo và dữ liệu GTIN thật.",
+"Gợi ý AI trong BA còn là điểm cần xác nhận, chưa mặc định bắt buộc."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Thực đơn tuần hiện tại/lịch sử, hai lớp/năm và mẫu nguyên liệu.",
+"API GTIN thật nếu nghiệm thu tích hợp truy xuất."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm tạo lưới/file, sao chép và chỉnh thực đơn lịch sử đúng phạm vi.",
+"Công bố → bảng tin → người nhận → mở/tải tệp.",
+"Đối chiếu nguyên liệu/GTIN, lịch sử gửi và lỗi/retry; ghi riêng scope AI cần chốt."
+],
+"close": [
+"Không lẫn lớp/năm/tuần; bản tệp đã gửi không bị sửa ngầm.",
+"Công bố và lịch sử đúng; dữ liệu truy xuất có nguồn rõ."
+],
+"deps": [
+"M5/SM6",
+"M6/SM6"
+],
+"tracker": "Partial (historical lifecycle/local BA gates)",
+"routes": [
+"/school/menu"
+]
+},
+{
+"i": 30,
+"code": "M5/SM10",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Sổ tay phụ huynh",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem cây danh mục/bài viết, lọc & tìm kiếm",
+"code": "M5/SM10-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có cây danh mục và danh sách/bộ lọc.",
+"todo": "Kiểm tìm kiếm và quyền người đọc/người quản lý.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Quản lý danh mục (Tạo/Sửa/Xoá)",
+"code": "M5/SM10-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có CRUD danh mục.",
+"todo": "Kiểm xóa khi còn bài và thay đổi thứ tự/cây theo BA.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Quản lý bài viết (Tạo/Sửa/Xuất bản/Ẩn/Xoá)",
+"code": "M5/SM10-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có soạn/xuất bản/ẩn, tệp và phiên bản.",
+"todo": "Kiểm transaction, xung đột, thay/xóa tệp và lỗi phục hồi.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "04",
+"t": "Xem chi tiết bài viết",
+"code": "M5/SM10-R04",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có trang phụ huynh riêng kiểm session/guardian/roster.",
+"todo": "Kiểm chỉ đọc bài công bố; mất liên kết con/khóa tài khoản phải mất quyền.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Danh mục/bài viết, soạn/xuất bản/ẩn và tệp riêng tư.",
+"Trang phụ huynh riêng kiểm quyền theo con/lớp/người giám hộ."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Transaction/session/media xuyên FE–BE–DB cần nghiệm thu lại."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Phụ huynh còn/mất liên kết con, bài nháp/công bố/ẩn và tệp."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm cây danh mục, tìm kiếm và vòng đời bài viết.",
+"Kiểm phụ huynh chỉ đọc bài công bố; thử mất liên kết con/khóa tài khoản.",
+"Kiểm upload/thay/xóa/tải tệp, xung đột phiên bản và phục hồi lỗi."
+],
+"close": [
+"Phụ huynh không thấy nháp/bài ẩn và bị thu quyền ngay khi mất điều kiện.",
+"Tệp đúng phiên bản/quyền, lỗi không làm mất bản đang dùng."
+],
+"deps": [
+"M5/SM1",
+"M6/SM2"
+],
+"tracker": "Partial (P7)",
+"routes": [
+"/school/parent-handbook"
+]
+},
+{
+"i": 31,
+"code": "M5/SM11",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Góp ý",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem, lọc & tìm kiếm hộp thư góp ý",
+"code": "M5/SM11-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có inbox, lọc và tìm kiếm.",
+"todo": "Kiểm vai trò quản lý và phạm vi ticket.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Xem chi tiết góp ý",
+"code": "M5/SM11-R02",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có chi tiết ticket/followup; ảnh/tệp chưa đủ.",
+"todo": "Hoàn thiện upload/xem/tải tệp đúng quyền ticket.",
+"need": "Storage tệp và quyền ticket; mẫu ảnh/file."
+},
+{
+"n": "03",
+"t": "Xử lý góp ý (gán người xử lý, đổi độ ưu tiên, đóng)",
+"code": "M5/SM11-R03",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có gán người, ưu tiên, đóng/mở lại; phạm vi người quản lý chưa đủ.",
+"todo": "Chốt và hoàn thiện quyền ai được nhận/xử lý/đọc ticket.",
+"need": "Ma trận người xử lý/quản lý và nguồn vai trò."
+},
+{
+"n": "04",
+"t": "Trao đổi với phụ huynh",
+"code": "M5/SM11-R04",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có trả lời và thông báo qua adapter; file và provider thật còn thiếu.",
+"todo": "Hoàn thiện tệp, kiểm phụ huynh nhận trả lời và retry không gửi trùng.",
+"need": "Nguồn guardian, storage và provider thông báo thật."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Hộp thư, phân công/ưu tiên/đóng/mở lại và trao đổi.",
+"Thông báo trường trả lời phụ huynh qua adapter."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Ảnh/tệp và phạm vi người quản lý chưa đủ."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Cần kiểm người nhận và provider thông báo thật cho nghiệm thu thật."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Quyền người xử lý và phụ huynh gửi/không thuộc ticket.",
+"Nơi lưu và quy tắc ảnh/tệp."
+],
+"muted": ""
+}
+},
+"steps": [
+"Nghiệm thu gửi góp ý → phân công → trả lời → đóng/mở lại.",
+"Hoàn thiện ảnh/tệp và quyền người quản lý theo BA.",
+"Kiểm phụ huynh nhận trả lời, thu quyền và lỗi/thử lại thông báo."
+],
+"close": [
+"Đúng người được đọc/xử lý; chỉ chủ thể hợp lệ theo dõi ticket.",
+"Tệp an toàn theo quyền và reply không gửi trùng."
+],
+"deps": [
+"M6/SM2",
+"M6/SM6"
+],
+"tracker": "Partial (P5)",
+"routes": [
+"/operations/feedback"
+]
+},
+{
+"i": 32,
+"code": "M5/SM12",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Lịch sự kiện",
+"kind": "verify",
+"klabel": "Có phần chính · cần kiểm chứng",
+"quick": "Đã có phần chức năng chính được mô tả dưới đây. Việc ưu tiên là kiểm chứng trên dữ liệu thật và sửa lỗi phát hiện được. Chưa khẳng định toàn bộ module đã xong.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem lịch theo Năm/Tháng/Danh sách",
+"code": "M5/SM12-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có lịch năm/tháng/danh sách và sự kiện nhiều ngày.",
+"todo": "Kiểm ranh tháng/năm, múi giờ và bộ lọc.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Tạo/Sửa/Xoá sự kiện",
+"code": "M5/SM12-R02",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có CRUD, avatar/tệp riêng tư và chống ghi đè đồng thời.",
+"todo": "Kiểm hai phiên sửa, lỗi giữa chừng và cleanup sau xóa.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "03",
+"t": "Xem chi tiết sự kiện",
+"code": "M5/SM12-R03",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có xem chi tiết và tải tệp.",
+"todo": "Kiểm quyền/file cũ/file đã xóa và dữ liệu đúng phiên bản.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"CRUD và lịch năm/tháng/danh sách, sự kiện nhiều ngày.",
+"Ảnh đại diện/tệp và upload/download riêng tư, chống ghi đè đồng thời."
+],
+"muted": ""
+},
+"missing": {
+"items": [],
+"muted": "Chưa xác định thêm chức năng phải viết mới trong phạm vi audit này. Kiểm lại BA trước khi chốt đủ."
+},
+"verify": {
+"items": [
+"Nguồn/media mới cần nghiệm thu DB thật, phục hồi lỗi và xóa tệp."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Sự kiện qua ranh tháng/năm; tệp đang dùng/đã xóa và hai phiên sửa."
+],
+"muted": ""
+}
+},
+"steps": [
+"Kiểm lịch các chế độ và sự kiện nhiều ngày/ngày biên.",
+"Kiểm upload/thay/xóa ảnh/tệp và xung đột hai phiên.",
+"Thử lỗi giữa chừng, xóa sự kiện rồi tải tệp; kiểm cleanup/quyền."
+],
+"close": [
+"Lịch và ngày đúng, không ghi đè âm thầm khi xung đột.",
+"Tệp cũ/đã xóa không còn truy cập sai; phục hồi không để bản rác."
+],
+"deps": [],
+"tracker": "Partial (P5)",
+"routes": [
+"/school/events"
+]
+},
+{
+"i": 33,
+"code": "M6/SM4",
+"g": "M6",
+"gl": "Cấu hình",
+"name": "Nhận diện",
+"kind": "source",
+"klabel": "Mới có xử lý nền · chưa có màn hình",
+"quick": "Có mã xử lý ở backend nhưng người dùng chưa có màn hình/API hoàn chỉnh để sử dụng module này.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem & lọc danh sách đăng ký nhận diện",
+"code": "M6/SM4-R01",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Có nền tảng backend, chưa có API/BFF/UI danh sách đăng ký.",
+"todo": "Khép kiểm chứng source và phục hồi tác vụ gián đoạn trước khi mở API, sau đó làm màn hình danh sách/lọc.",
+"need": "Review/fixture RD3–RD4; thiết kế phục hồi; dữ liệu học sinh theo lớp/năm."
+},
+{
+"n": "02",
+"t": "Đăng ký ảnh nhận diện",
+"code": "M6/SM4-R02",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Có source đăng ký và 70 test tập trung; chưa có luồng người dùng đăng ký ảnh.",
+"todo": "Khép RD3/RD4, làm recovery, API/BFF/UI upload và kiểm học sinh/quyền.",
+"need": "Storage, provider nhận diện, ảnh mẫu và quy tắc đồng ý/lưu/xóa."
+},
+{
+"n": "03",
+"t": "Chỉnh sửa ảnh nhận diện",
+"code": "M6/SM4-R03",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Có nền tảng source nhưng chưa có luồng UI/API thay ảnh hoàn chỉnh.",
+"todo": "Làm thay ảnh có phiên bản, phục hồi lỗi và dọn ảnh cũ an toàn.",
+"need": "Phiên bản ảnh hiện hành, cơ chế phục hồi và thu hồi ảnh cũ."
+},
+{
+"n": "04",
+"t": "Xóa ảnh nhận diện",
+"code": "M6/SM4-R04",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Chưa có luồng UI/API xóa đăng ký ảnh hoàn chỉnh.",
+"todo": "Làm xác nhận/quyền xóa và recovery không để ảnh mồ côi hoặc xóa nhầm.",
+"need": "Quyền xóa, xác nhận đúng học sinh, recovery và chính sách lưu giữ."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Bộ mô phỏng nhận diện và nơi lưu ảnh đã có nền tảng.",
+"Source đăng ký ảnh mới có snapshot bàn giao và 70 test tập trung."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Chưa có API/BFF và màn hình đăng ký/sửa/xóa ảnh.",
+"Chưa có phục hồi tác vụ bị gián đoạn trước khi mở API."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"RD3/RD4: review độc lập, fixture chạy mã biên dịch và acceptance source chưa khép."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Thiết kế cách phục hồi khi lưu ảnh/đăng ký bị gián đoạn.",
+"Với tích hợp thật: provider, đồng ý sử dụng và chính sách lưu/xóa ảnh."
+],
+"muted": ""
+}
+},
+"steps": [
+"Khép review/fixture của source đăng ký đang bàn giao (RD3/RD4).",
+"Thiết kế và kiểm phục hồi thao tác dở dang; sau đó mở API/BFF.",
+"Làm UI danh sách/đăng ký/thay/xóa; nghiệm thu rồi nối từng consumer riêng."
+],
+"close": [
+"Đăng ký/thay/xóa có xử lý lỗi và phục hồi, không để ảnh mồ côi.",
+"Giao diện/API đúng học sinh, có xác nhận xóa; không tự ghi giờ điểm danh."
+],
+"deps": [
+"M5/SM1"
+],
+"tracker": "Pending",
+"routes": [
+"Chưa có route riêng"
+]
+},
+{
+"i": 34,
+"code": "M2/SM3",
+"g": "M2",
+"gl": "Vận hành",
+"name": "Thư viện",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem danh sách album của lớp",
+"code": "M2/SM3-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có danh sách album và phạm vi lớp/năm.",
+"todo": "Kiểm quyền, đổi năm, phân trang và dữ liệu rỗng.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Tạo album mới",
+"code": "M2/SM3-R02",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có tạo thông tin album; media tùy chỉnh chưa hoàn thiện.",
+"todo": "Làm thêm ảnh/video vào album tùy chỉnh, lưu và kiểm quyền tệp.",
+"need": "Storage cho album tùy chỉnh và quy tắc loại/dung lượng tệp."
+},
+{
+"n": "03",
+"t": "Cập nhật album",
+"code": "M2/SM3-R03",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có sửa thông tin album; lifecycle media chưa đầy đủ.",
+"todo": "Làm thay/xóa media và xử lý lỗi không để tệp mồ côi.",
+"need": "Quy tắc thay/xóa media, dữ liệu phiên bản và storage."
+},
+{
+"n": "04",
+"t": "Xem ảnh trong album",
+"code": "M2/SM3-R04",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Đọc ảnh/video Hoạt động được; nguồn Điểm danh chưa khả dụng, ảnh tùy chỉnh chưa đủ.",
+"todo": "Hoàn thiện từng nguồn và hiển thị rõ nguồn chưa có dữ liệu.",
+"need": "Media Hoạt động, nguồn ảnh Điểm danh và media tùy chỉnh."
+},
+{
+"n": "05",
+"t": "Lọc ảnh theo học sinh",
+"code": "M2/SM3-R05",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Chưa có đầy đủ lọc ảnh theo học sinh.",
+"todo": "Cần quan hệ ảnh–học sinh; làm lọc và kiểm không gắn nhầm.",
+"need": "Quan hệ ảnh–học sinh từ Nhận diện hoặc gắn thủ công đã chốt."
+},
+{
+"n": "06",
+"t": "Xem tổng quan nhận diện khuôn mặt",
+"code": "M2/SM3-R06",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Chưa có luồng tổng quan nhận diện hoàn chỉnh.",
+"todo": "Cần module Nhận diện và dữ liệu kết quả có nguồn rõ ràng.",
+"need": "API Nhận diện, kết quả đăng ký và dữ liệu tổng hợp."
+},
+{
+"n": "07",
+"t": "Nhận diện thủ công theo album",
+"code": "M2/SM3-R07",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Chưa có luồng nhận diện thủ công theo album hoàn chỉnh.",
+"todo": "Nối xử lý nhận diện, tiến độ/lỗi/thử lại và quyền thao tác.",
+"need": "Provider nhận diện, storage, cơ chế tác vụ và retry."
+},
+{
+"n": "08",
+"t": "Album hệ thống tự động (Hoạt động, Điểm danh)",
+"code": "M2/SM3-R08",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có metadata album hệ thống; Hoạt động đọc được media, Điểm danh available:false.",
+"todo": "Nối nguồn ảnh Điểm danh; kiểm phạm vi album tự động theo lớp/năm.",
+"need": "Nguồn ảnh Điểm danh có metadata học sinh/lớp/ngày."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Quản lý thông tin album, lọc theo lớp/năm.",
+"Xem ảnh/phát video riêng tư từ Hoạt động."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Album Điểm danh hiện chưa có nguồn ảnh khả dụng.",
+"Media album tùy chỉnh và nhận diện/lọc ảnh theo học sinh chưa đủ."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Cần nghiệm thu DB thật, quyền và lifecycle tệp."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Nguồn ảnh Điểm danh rõ ràng.",
+"Nguồn media và đăng ký nhận diện theo học sinh."
+],
+"muted": ""
+}
+},
+"steps": [
+"Hoàn thiện thêm/xem/xóa media ở album tùy chỉnh; kiểm nguồn ảnh sẵn có.",
+"Nối album Điểm danh khi nguồn ảnh sẵn sàng; chưa có nguồn phải hiện đúng trạng thái.",
+"Nối lọc/nhận diện học sinh rồi kiểm toàn luồng ảnh và quyền."
+],
+"close": [
+"Album tùy chỉnh và hệ thống hoạt động theo đúng nguồn.",
+"Lọc/nhận diện không gắn nhầm học sinh; quyền và xóa tệp được kiểm chứng."
+],
+"deps": [
+"M2/SM2",
+"M6/SM4",
+"M2/SM1"
+],
+"tracker": "Pending (P5/P9; full BA acceptance open)",
+"routes": [
+"/operations/library"
+]
+},
+{
+"i": 35,
+"code": "M5/SM14",
+"g": "M5",
+"gl": "Nhà trường",
+"name": "Lưu trữ",
+"kind": "integration",
+"klabel": "Đạt mô phỏng · cần tích hợp thật",
+"quick": "Đã có bằng chứng đạt với bộ mô phỏng. Muốn chốt vận hành thật cần nguồn dữ liệu/nhà cung cấp thật và chạy kiểm chứng.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem, tìm kiếm, lọc & sắp xếp danh sách lưu trữ",
+"code": "M5/SM14-R01",
+"s": "A",
+"sl": "Đạt mô phỏng",
+"done": "Đã nghiệm thu lọc/danh sách lưu trữ với adapter.",
+"todo": "Kiểm lại danh tính/nguồn guardian thật và chính sách lưu giữ.",
+"need": "Nguồn guardian thật và chính sách retention."
+},
+{
+"n": "02",
+"t": "Xem chi tiết học sinh lưu trữ & người lưu trữ",
+"code": "M5/SM14-R02",
+"s": "A",
+"sl": "Đạt mô phỏng",
+"done": "Có bằng chứng giữ lịch sử học sinh và thông tin lưu trữ trong phạm vi adapter.",
+"todo": "Đối chiếu actor/guardian thật và quyền đọc lịch sử.",
+"need": "Danh tính người lưu trữ và quyền đọc lịch sử."
+},
+{
+"n": "03",
+"t": "Phục hồi hoặc xoá vĩnh viễn",
+"code": "M5/SM14-R03",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Phục hồi đã đạt mô phỏng, không tự xếp lớp; xóa vĩnh viễn chờ retention.",
+"todo": "Chốt dữ liệu phải giữ và quyền xóa; nối guardian thật, kiểm lịch sử hóa đơn/lớp.",
+"need": "Chính sách giữ/xóa; dữ liệu đang liên kết hóa đơn/lớp và quyền người xóa."
+},
+{
+"n": "04",
+"t": "Xuất dữ liệu",
+"code": "M5/SM14-R04",
+"s": "A",
+"sl": "Đạt mô phỏng",
+"done": "CSV đã có bằng chứng adapter.",
+"todo": "Đối chiếu dữ liệu xuất với nguồn thật và quyền tải.",
+"need": "Dữ liệu lưu trữ thật và quyền export."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Đã nghiệm thu adapter: lưu trữ, phục hồi, giữ lịch sử và xuất CSV.",
+"Đóng quan hệ lớp/năm; thử lại không tạo trùng, phục hồi không tự xếp lớp."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Nguồn người giám hộ và chính sách lưu giữ thật chưa khép.",
+"Xóa vĩnh viễn không tự mở khi chưa chốt chính sách."
+],
+"muted": ""
+},
+"verify": {
+"items": [],
+"muted": "Bằng chứng mô phỏng đã có; phần tích hợp thật vẫn cần kiểm chứng."
+},
+"need": {
+"items": [
+"Chính sách lưu giữ/xóa thật và nguồn quan hệ guardian thật."
+],
+"muted": ""
+}
+},
+"steps": [
+"Rà quy tắc lưu trữ/phục hồi và phạm vi dữ liệu giữ lại.",
+"Chốt retention/actor/guardian thật; nối adapter và quyền xóa được duyệt.",
+"Kiểm dữ liệu đang tham chiếu hóa đơn/lớp/điểm, phục hồi và retry."
+],
+"close": [
+"Không mất lịch sử hoặc tự tái xếp lớp khi phục hồi.",
+"Xóa/lưu giữ đúng chính sách và có audit; chỉ nâng trạng thái sau evidence thật."
+],
+"deps": [
+"M5/SM1"
+],
+"tracker": "**Verified-A (P3B fake retention)**",
+"routes": [
+"/people/student-archive"
+]
+},
+{
+"i": 36,
+"code": "M1/SM1",
+"g": "M1",
+"gl": "Tổng quan",
+"name": "Tổng quan",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Xem chỉ số tổng quan trường & tài chính",
+"code": "M1/SM1-R01",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có thẻ học sinh, lớp, nhân sự, kích hoạt phụ huynh và tài chính tháng.",
+"todo": "Đối chiếu từng tổng với dữ liệu nguồn và báo cáo chi tiết.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "02",
+"t": "Xem thông tin hoạt động trong ngày & điểm danh",
+"code": "M1/SM1-R02",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có dữ liệu điểm danh và một số hoạt động trong ngày; ảnh/video mới chưa khả dụng.",
+"todo": "Nối nguồn ảnh/video; kiểm các chỉ số ngày theo múi giờ trường.",
+"need": "Nguồn media Hoạt động/Thư viện; dữ liệu điểm danh ngày."
+},
+{
+"n": "03",
+"t": "Xem dung lượng lưu trữ, kiểm duyệt & hoạt động trong tuần",
+"code": "M1/SM1-R03",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Chưa đủ số liệu dung lượng và hoạt động tuần; có một phần dữ liệu liên quan kiểm duyệt.",
+"todo": "Xác định nguồn và công thức từng chỉ số; bổ sung các thẻ thiếu.",
+"need": "API thống kê dung lượng; định nghĩa hoạt động tuần/kiểm duyệt."
+},
+{
+"n": "04",
+"t": "Xem bảng thông tin, top giáo viên & học sinh vắng nhiều",
+"code": "M1/SM1-R04",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có tin mới, yêu thích và xếp hạng vắng; chưa đủ bằng chứng riêng cho top giáo viên.",
+"todo": "Kiểm từng bảng, bổ sung top giáo viên nếu chưa có đúng BA.",
+"need": "Định nghĩa xếp hạng giáo viên và nguồn dữ liệu."
+},
+{
+"n": "05",
+"t": "Xem hộp thư góp ý & sinh nhật trong tháng",
+"code": "M1/SM1-R05",
+"s": "C",
+"sl": "Đã làm",
+"done": "Có góp ý và sinh nhật.",
+"todo": "Đối chiếu đối tượng, tháng và điều hướng sang chi tiết.",
+"need": "Dữ liệu kiểm thử, quyền phù hợp và môi trường chạy local."
+},
+{
+"n": "06",
+"t": "Xem nhanh suất ăn & điểm danh nhanh theo lớp",
+"code": "M1/SM1-R06",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Tổng suất ăn chưa có nguồn khả dụng; luồng xem nhanh/điểm danh nhanh chưa đủ BA.",
+"todo": "Chốt cách đếm suất ăn; làm modal và điều hướng theo lớp.",
+"need": "Quy tắc tính suất ăn, dữ liệu thực đơn/điểm danh và lớp."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Đã có nhiều thẻ: học sinh/lớp/nhân viên/điểm danh/tài chính tháng.",
+"Tin mới, sinh nhật, góp ý, yêu thích, phụ huynh kích hoạt và xếp hạng vắng."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Ảnh/video mới, suất ăn còn chưa có nguồn khả dụng.",
+"Dung lượng lưu trữ, hoạt động tuần và một số xem nhanh chưa đủ BA."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Tổng thẻ phải khớp màn hình chi tiết/dữ liệu thật."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Định nghĩa phép đếm và nguồn ảnh/media/suất ăn/dung lượng.",
+"Các module nguồn liên quan phải có dữ liệu đúng."
+],
+"muted": ""
+}
+},
+"steps": [
+"Đối chiếu các thẻ đã có với số liệu nguồn và màn hình chi tiết.",
+"Làm từng thẻ thiếu: xác định nguồn → API → hiển thị; không thay bằng dữ liệu đoán.",
+"Kiểm ngày biên, năm hiện tại, phân quyền và từng thẻ lỗi độc lập."
+],
+"close": [
+"KPI khớp nguồn và drilldown; thiếu dữ liệu khác 0.",
+"Một thẻ lỗi không kéo hỏng dashboard; phần còn thiếu được hiển thị rõ."
+],
+"deps": [
+"M2/SM1",
+"M2/SM2",
+"M4/SM6"
+],
+"tracker": "Partial",
+"routes": [
+"/"
+]
+},
+{
+"i": 37,
+"code": "M7/SM1",
+"g": "M7",
+"gl": "Khác",
+"name": "Khác / Cá nhân & hệ thống",
+"kind": "missing",
+"klabel": "Có nhưng còn thiếu chức năng",
+"quick": "Đã có phần sử dụng được, nhưng còn các chức năng cụ thể chưa hoàn thiện. Làm phần thiếu rồi kiểm chứng cả luồng.",
+"reqs": [
+{
+"n": "01",
+"t": "Mở menu tài khoản (avatar dropdown)",
+"code": "M7/SM1-R01",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có shell/điều hướng và ngữ cảnh quyền.",
+"todo": "Đối chiếu từng mục avatar với BA, bổ sung mục/thao tác còn thiếu.",
+"need": "Danh sách mục menu cá nhân từ BA và danh tính hiện hành."
+},
+{
+"n": "02",
+"t": "Xem & chỉnh sửa thông tin tài khoản",
+"code": "M7/SM1-R02",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có nguồn tài khoản quản trị; màn hình hồ sơ/mật khẩu chính mình chưa đủ.",
+"todo": "Làm trang tự quản lý; chốt nguồn dữ liệu và đổi mật khẩu qua IdP.",
+"need": "API hồ sơ của chính mình; contract đổi mật khẩu IdP."
+},
+{
+"n": "03",
+"t": "Đổi ngôn ngữ giao diện",
+"code": "M7/SM1-R03",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Chưa có đủ luồng đổi ngôn ngữ theo BA.",
+"todo": "Chốt ngôn ngữ/phạm vi dịch; làm bộ bản dịch và lưu lựa chọn.",
+"need": "Danh sách ngôn ngữ, phạm vi bản dịch và cách lưu lựa chọn."
+},
+{
+"n": "04",
+"t": "Xem thông báo cá nhân",
+"code": "M7/SM1-R04",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Chưa có inbox thông báo cá nhân 4 tab hoàn chỉnh.",
+"todo": "Cần nguồn dữ liệu theo user; làm danh sách/đọc/chưa đọc và quyền.",
+"need": "API inbox theo user, định nghĩa 4 tab và quyền đọc."
+},
+{
+"n": "05",
+"t": "Đăng xuất khỏi hệ thống",
+"code": "M7/SM1-R05",
+"s": "P",
+"sl": "Đã làm một phần",
+"done": "Có session/dev-session; đăng xuất SSO thật chưa đầy đủ.",
+"todo": "Chốt contract IdP, hủy phiên và kiểm logout thật/đăng nhập lại.",
+"need": "Contract logout/thu hồi phiên của IdP."
+},
+{
+"n": "06",
+"t": "Xem thông báo hệ thống từ nhà cung cấp",
+"code": "M7/SM1-R06",
+"s": "N",
+"sl": "Chưa làm",
+"done": "Chưa có luồng hoàn chỉnh thông báo từ nhà cung cấp.",
+"todo": "Chốt nguồn/API và đối tượng; làm hiển thị/đã đọc theo tài khoản.",
+"need": "API/nơi quản lý thông báo nhà cung cấp và phạm vi tài khoản nhận."
+}
+],
+"blocks": {
+"have": {
+"items": [
+"Shell, điều hướng, ngữ cảnh/quyền và session/dev-session."
+],
+"muted": ""
+},
+"missing": {
+"items": [
+"Chưa đủ hồ sơ/mật khẩu chính mình, ngôn ngữ và inbox thông báo cá nhân.",
+"Đăng xuất SSO và thông báo từ nhà cung cấp chưa hoàn chỉnh."
+],
+"muted": ""
+},
+"verify": {
+"items": [
+"Cần đối chiếu từng hành vi menu cá nhân với BA; tách khỏi trang quản trị tài khoản."
+],
+"muted": ""
+},
+"need": {
+"items": [
+"Contract IdP; nguồn inbox cá nhân và thông báo nhà cung cấp.",
+"Danh sách ngôn ngữ và phạm vi bản dịch cần hỗ trợ."
+],
+"muted": ""
+}
+},
+"steps": [
+"Chốt nguồn dữ liệu/contract cho menu cá nhân, mật khẩu và inbox.",
+"Làm từng màn hình/tác vụ cá nhân, ngôn ngữ và thông báo hệ thống.",
+"Kiểm đọc/đánh dấu thông báo, login/logout và quyền của chính người dùng."
+],
+"close": [
+"Người dùng quản lý đúng hồ sơ của mình, không nhầm quyền quản trị.",
+"Inbox/ngôn ngữ/logout hoạt động theo BA và nguồn thật."
+],
+"deps": [
+"M6/SM2",
+"M6/SM6"
+],
+"tracker": "Partial (shell only; P8/P9)",
+"routes": [
+"Chưa có route riêng"
+]
+}
+]

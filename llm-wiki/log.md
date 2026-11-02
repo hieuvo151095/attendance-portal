@@ -13,3 +13,10 @@
 - Nạp yêu cầu khởi tạo hệ thống Attendance Portal từ Product Owner.
 - Định nghĩa 10 mã spec thuộc 4 phân hệ: MTG (Điểm danh cuộc họp), CC (Chấm công vào ra), TB (Thiết bị và tích hợp), NV (Tổ chức và nhân sự).
 - Tạo các trang entities (meeting, attendance-record, employee, device), flows (meeting-attendance-flow, daily-attendance-flow), screens (meeting-attendance-screen, attendance-dashboard) và 4 module overview.
+
+## [2026-11-02] decide | Quyết định tinh giản kiến trúc & chốt danh mục 14 tính năng
+
+- Chốt kiến trúc 4 phân hệ nghiệp vụ chính (Bảng điều khiển báo cáo, Điểm danh cuộc họp, Chấm công vào ra, Tổ chức và nhân sự) và phân hệ nền tảng Xác thực & tài khoản.
+- Định nghĩa 14 mã spec qua 5 tiền tố chuẩn: AUTH, ORG, MTG, ATT, DASH.
+- Ghim quy chuẩn giao diện bắt buộc: Toàn bộ frontend tuân thủ token và CSS variables từ Design System/src/css.css.
+- Bỏ phân hệ Nhật ký rời và phân hệ Thiết bị riêng; tích hợp báo cáo trực tiếp vào từng phân hệ.

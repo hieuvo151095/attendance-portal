@@ -2,7 +2,7 @@
 title: Cuộc họp
 type: entity
 sources:
-  - pages/sources/initial-requirements.md
+  - pages/sources/portal-architecture-decisions-2026-11-02.md
 spec_ids: [MTG-01, MTG-02, MTG-03, MTG-04]
 updated: 2026-11-02
 ---
@@ -10,28 +10,29 @@ updated: 2026-11-02
 # Cuộc họp
 
 ## Định nghĩa
-Thực thể `Cuộc họp` (Meeting) đại diện cho một sự kiện hội họp, hội nghị hoặc buổi giao ban được tổ chức tại một phòng họp cụ thể trong phạm vi cơ quan, xí nghiệp hoặc bệnh viện.
+Thực thể `Cuộc họp` (Meeting) đại diện cho một sự kiện hội nghị, họp giao ban hoặc tọa đàm do cơ quan tổ chức tại một phòng họp chỉ định.
 
 ## Thuộc tính / quy tắc nghiệp vụ
 | Mã | Quy tắc | Ghi chú |
 |---|---|---|
-| MTG-01 | Cuộc họp bắt buộc có tiêu đề, phòng họp chỉ định, thời điểm bắt đầu - kết thúc dự kiến và danh sách thành viên được triệu tập. | Hỗ trợ thiết lập người bắt buộc và người tùy chọn |
-| MTG-02 | Khi đại biểu thực hiện Check-in tại phòng họp, hệ thống tự động đối chiếu thời điểm ghi nhận với mốc bắt đầu cuộc họp để gắn nhãn đúng giờ hoặc đi muộn. | Áp dụng ngưỡng dung sai cho phép (ví dụ: trong vòng 5 phút) |
-| MTG-03 | Khi đại biểu thực hiện Check-out hoặc khi cuộc họp kết thúc, hệ thống ghi nhận thời điểm rời phòng họp để tính thời lượng tham gia thực tế. | Kiểm tra về sớm nếu check-out trước khi kết thúc cuộc họp |
-| MTG-04 | Báo cáo chuyên cần cuộc họp tự động tổng hợp danh sách: có mặt đúng giờ, đi muộn, vắng mặt có phép, vắng mặt không phép. | Cập nhật thời gian thực ngay trên màn hình giám sát |
+| MTG-01 | Cuộc họp bắt buộc có tiêu đề, tên phòng họp, thời điểm bắt đầu - kết thúc dự kiến và danh sách đại biểu được triệu tập (đại biểu bắt buộc, đại biểu tùy chọn). | Hỗ trợ chọn nhanh đại biểu theo phòng ban |
+| MTG-02 | Khi đại biểu thực hiện Check-in tại phòng họp qua Face ID hoặc quẹt thẻ, hệ thống đối soát tức thì với danh sách triệu tập, ghi nhận thời điểm và hiển thị ảnh đối soát. | Cập nhật ngay trên màn hình Live roll-call |
+| MTG-03 | Khi đại biểu thực hiện Check-out hoặc khi người chủ trì bấm kết thúc cuộc họp, hệ thống chốt danh sách và tính thời lượng tham dự thực tế. | Đánh dấu các trường hợp về sớm trước khi tan họp |
+| MTG-04 | Biên bản và báo cáo chuyên cần tự động tổng hợp tỷ lệ tham dự (% có mặt, số người đi muộn, số người vắng mặt); hỗ trợ xuất file PDF và Excel có chữ ký số hoặc dấu mộc lưu hồ sơ. | Báo cáo chốt dữ liệu bất biến sau khi kết thúc họp |
 
 ## Quan hệ
-- Thuộc về cơ cấu tổ chức quản lý bởi [Nhân viên](employee.md).
-- Gắn với phòng họp và tiếp nhận dữ liệu từ [Thiết bị](device.md) đặt tại phòng họp.
-- Sinh ra danh sách các [Bản ghi điểm danh](attendance-record.md) loại cuộc họp.
+- Thuộc về [Tài khoản đơn vị](tenant-account.md).
+- Triệu tập danh sách các [Nhân viên](employee.md).
+- Sinh ra danh sách các [Bản ghi điểm danh](attendance-record.md).
+- Cung cấp dữ liệu đã kết thúc cho [Báo cáo chuyên cần](attendance-summary.md).
 
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| MTG-01 | P0 | Thiết lập và quản lý danh sách cuộc họp, phòng họp, danh sách đại biểu | Chưa triển khai | MISSING | - |
-| MTG-02 | P0 | Ghi nhận Check-in cuộc họp qua Face ID, vân tay hoặc thẻ nhân viên | Chưa triển khai | MISSING | - |
-| MTG-03 | P0 | Ghi nhận Check-out rời phòng họp và tính toán thời lượng tham dự | Chưa triển khai | MISSING | - |
-| MTG-04 | P0 | Báo cáo thống kê chuyên cần cuộc họp thời gian thực | Chưa triển khai | MISSING | - |
+| MTG-01 | P0 | Thiết lập lịch họp, phòng họp, triệu tập danh sách đại biểu | Chưa triển khai | MISSING | - |
+| MTG-02 | P0 | Điểm danh trực tiếp tại phòng họp qua Face ID / Thẻ vật lý | Chưa triển khai | MISSING | - |
+| MTG-03 | P0 | Ghi nhận Check-out rời phòng họp và tính toán thời gian tham dự | Chưa triển khai | MISSING | - |
+| MTG-04 | P0 | Báo cáo chuyên cần và xuất biên bản cuộc họp PDF/Excel | Chưa triển khai | MISSING | - |
 
 ## Liên quan
 - [Phân hệ Điểm danh cuộc họp](../overview/module-meeting.md)
