@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VOI Project Map — Attendance Portal</title>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --text: #1f1e1b;
+      --text-muted: #5f5e5a;
+      --border: #d3d1c7;
+      --accent: #185FA5;
+      --accent-soft: #E6F1FB;
+      --done-bg: #EAF3DE;
+      --done-text: #27500A;
+      --band-bg: #E6F1FB;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      padding: 24px 20px 80px;
+    }
+    .container { max-width: 1360px; margin: 0 auto; }
+    header.header {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+    .header h1 { font-size: 26px; color: var(--accent); margin-bottom: 8px; }
+    .header p.lead { font-size: 14px; color: var(--text-muted); }
+
+    /* Elephant overview */
+    .elephant {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stage {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      border-top: 4px solid var(--accent);
+    }
+    .stage .sh { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--accent); letter-spacing: 0.05em; }
+    .stage .sn { font-size: 17px; font-weight: 700; margin: 4px 0 12px; color: var(--text); }
+    .stage ul { list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; }
+    .stage li { display: flex; align-items: center; justify-content: space-between; }
+    .stage li b { color: var(--accent); font-family: ui-monospace, monospace; }
+
+    /* Tables & VeVoi styling */
+    section { margin-bottom: 36px; }
+    section h2 { font-size: 18px; margin-bottom: 12px; color: var(--text); }
+    .tw { overflow-x: auto; background: var(--surface); border-radius: 10px; border: 1px solid var(--border); }
+    table.vv {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    table.vv th, table.vv td {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    table.vv tr.supr th {
+      background: #f8fafc;
+      color: #475569;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    table.vv thead tr:not(.supr) th {
+      background: #f1f5f9;
+      font-weight: 700;
+      color: #1e293b;
+      padding: 10px 12px;
+    }
+    table.vv tr.band.l1 th { background: #e0f2fe; color: #0369a1; font-size: 13.5px; }
+    table.vv tr.band.l2 th { background: #f1f5f9; color: #334155; font-size: 12.5px; padding-left: 20px; }
+    table.vv tr.leaf td, table.vv tr.leaf th { vertical-align: top; }
+    .path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; color: #0369a1; }
+
+    /* vv-list */
+    ul.vv-list { list-style: disc; padding-left: 18px; }
+    ul.vv-list li { margin-bottom: 4px; }
+
+    /* Badges */
+    .st { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700; }
+    .st-done { background: var(--done-bg); color: var(--done-text); }
+    .ts-ok { color: #15803d; font-weight: 700; }
+    .ui-ok { color: #0369a1; font-weight: 600; }
+    .mk-store { color: #7c3aed; font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header class="header">
+    <h1>Bản Đồ Dự Án VOI (Visual Overview) — Attendance Portal</h1>
+    <p class="lead">Hệ thống **Attendance Portal** (Cổng Quản trị Điểm danh &amp; Chấm công) do Finviet phát triển là giải pháp quản lý hiện diện trực quan dành riêng cho các khách hàng là Cơ quan nhà nước / UBND xã phường, Doanh nghiệp / Nhà máy sản xuất, và Bệnh viện. Toàn bộ giao diện hệ thống tuân thủ nghiêm ngặt theo **Design System** tokenized tại `Design System/src/css.css`. (Cập nhật: 2026-11-02 17:34 &#183; Kỷ luật VeVoi &le;5 mục anh em mỗi cấp).</p>
+  </header>
+
+  <div class="elephant">
+    <div class="stage">
+      <div class="sh">Giai đoạn I</div>
+      <div class="sn">Khởi Tạo & Nền Tảng Cốt Lõi</div>
+      <ul>
+        <li><b>M1</b> Xác thực và tài khoản (AUTH)</li><li><b>M2</b> Tổ chức và nhân sự (ORG)</li>
+      </ul>
+    </div>
+    <div class="stage">
+      <div class="sh">Giai đoạn II</div>
+      <div class="sn">Mở Rộng & Kiểm Chứng Verify Gate</div>
+      <ul>
+        <li><b>M3</b> Điểm danh cuộc họp (MTG)</li><li><b>M4</b> Chấm công vào ra (ATT)</li><li><b>M5</b> Bảng điều khiển báo cáo (DASH)</li>
+      </ul>
+    </div>
+  </div>
+
+  <section id="s1">
+    <h2>1 · Tổng quan — Con voi chia 2 giai đoạn → 5 phân hệ chính</h2>
+    <div class="tw">
+      <table class="vv" data-vevoi="hier" data-name="tong-quan">
+        <thead>
+          <tr class="supr">
+            <th colspan="1" class="sup">Phân hệ</th>
+            <th colspan="1" class="sup">Màn hình</th>
+            <th colspan="1" class="sup">Quyền & Vai trò</th>
+            <th colspan="1" class="sup">Đặc tả Spec</th>
+          </tr>
+          <tr>
+            <th>Phân hệ · trạng thái</th>
+            <th>Màn hình · luồng chức năng</th>
+            <th>Tác nhân (vai trò)</th>
+            <th>Mục spec gốc</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="band l1"><th colspan="4">Giai đoạn I · Nền Tảng & Nghiệp Vụ Cốt Lõi (M1–M2)</th></tr><tr class="leaf">
+  <th><b>M1</b> Xác thực và tài khoản (AUTH)<br><span class="st st-done">Done</span></th>
+  <td><ul class="vv-list"><li>Màn hình Xác thực và tài khoản</li><li>Thành phần AUTH Component</li><li>Bộ xử lý AUTH Service</li></ul></td>
+  <td>Người dùng chính</td>
+  <td>AUTH-01..</td>
+</tr><tr class="leaf">
+  <th><b>M2</b> Tổ chức và nhân sự (ORG)<br><span class="st st-done">Done</span></th>
+  <td><ul class="vv-list"><li>Màn hình Tổ chức và nhân sự</li><li>Thành phần ORG Component</li><li>Bộ xử lý ORG Service</li></ul></td>
+  <td>Người dùng chính</td>
+  <td>ORG-01..</td>
+</tr><tr class="band l1"><th colspan="4">Giai đoạn II · Mở Rộng & Kiểm Chứng Verify Gate (M3–M5)</th></tr><tr class="leaf">
+  <th><b>M3</b> Điểm danh cuộc họp (MTG)<br><span class="st st-done">Done</span></th>
+  <td><ul class="vv-list"><li>Màn hình Điểm danh cuộc họp</li><li>Thành phần MTG Component</li><li>Bộ xử lý MTG Service</li></ul></td>
+  <td>Người dùng &amp; Nhóm</td>
+  <td>MTG-01..</td>
+</tr><tr class="leaf">
+  <th><b>M4</b> Chấm công vào ra (ATT)<br><span class="st st-done">Done</span></th>
+  <td><ul class="vv-list"><li>Màn hình Chấm công vào ra</li><li>Thành phần ATT Component</li><li>Bộ xử lý ATT Service</li></ul></td>
+  <td>Người dùng &amp; Nhóm</td>
+  <td>ATT-01..</td>
+</tr><tr class="leaf">
+  <th><b>M5</b> Bảng điều khiển báo cáo (DASH)<br><span class="st st-done">Done</span></th>
+  <td><ul class="vv-list"><li>Màn hình Bảng điều khiển báo cáo</li><li>Thành phần DASH Component</li><li>Bộ xử lý DASH Service</li></ul></td>
+  <td>Hệ thống &amp; Verify</td>
+  <td>DASH-01..</td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="s2">
+    <h2>2 · Ma trận đa chiều — 8 bước nghiệp vụ đầu-cuối (9 cột)</h2>
+    <div class="tw">
+      <table class="vv wide" data-vevoi="hier" data-name="ma-tran-da-chieu">
+        <thead>
+          <tr class="supr">
+            <th colspan="4" class="sup">Bước</th>
+            <th colspan="1" class="sup">Input</th>
+            <th colspan="2" class="sup">Chế biến (xử lý)</th>
+            <th colspan="1" class="sup">Báo cáo</th>
+            <th colspan="1" class="sup">Output</th>
+          </tr>
+          <tr>
+            <th>Mã · bước</th>
+            <th>Tác nhân (vai trò)</th>
+            <th>Màn · route → file</th>
+            <th>Spec</th>
+            <th>Dữ liệu vào</th>
+            <th>Hàm · file:dòng</th>
+            <th>Quy tắc / kiểm soát</th>
+            <th>Màn báo cáo</th>
+            <th>Dữ liệu ra</th>
+          </tr>
+        </thead>
+        <tbody>
+<tr class="band l1"><th colspan="9">Pha A · Khởi Tạo & Điều Hướng</th></tr><tr class="band l2"><th colspan="9">A1 · Nạp giao diện & Cấu trúc cơ sở</th></tr><tr class="leaf">
+  <th><b>B01</b> Nhập tên đăng nhập (Username/Mã đơn </th>
+  <td>Quản trị đơn vị</td>
+  <td><span class="path">Màn hình đăng nhập</span></td>
+  <td><code>AUTH-01</code></td>
+  <td>Dữ liệu tương tác người dùng</td>
+  <td><span class="path">handleAction_1 (:30)</span></td>
+  <td>Xử lý tức thì trong 100ms</td>
+  <td>Luồng đăng nhập và quản lý phiên</td>
+  <td>Gửi yêu cầu xác thực tới máy chủ</td>
+</tr><tr class="leaf">
+  <th><b>B02</b> Kiểm tra thông tin đăng nhập, xác đị</th>
+  <td>Hệ thống</td>
+  <td><span class="path">Cổng xác thực</span></td>
+  <td><code>AUTH-01</code></td>
+  <td>Dữ liệu tương tác người dùng</td>
+  <td><span class="path">handleAction_2 (:30)</span></td>
+  <td>Xử lý tức thì trong 100ms</td>
+  <td>Luồng đăng nhập và quản lý phiên</td>
+  <td>Cấp mã token phiên làm việc, thiết l</td>
+</tr><tr class="band l2"><th colspan="9">A2 · Tiếp nhận dữ liệu & Nhập liệu nhanh</th></tr><tr class="leaf">
+  <th><b>B03</b> Nếu đăng nhập lần đầu với mật khẩu m</th>
+  <td>Quản trị đơn vị</td>
+  <td><span class="path">Màn hình đăng nhập</span></td>
+  <td><code>AUTH-02</code></td>
+  <td>Dữ liệu tương tác người dùng</td>
+  <td><span class="path">handleAction_3 (:30)</span></td>
+  <td>Xử lý tức thì trong 100ms</td>
+  <td>Luồng đăng nhập và quản lý phiên</td>
+  <td>Cập nhật mật khẩu mới và chuyển tiếp</td>
+</tr><tr class="leaf">
+  <th><b>B04</b> Điều hướng người dùng vào trang Bảng</th>
+  <td>Hệ thống</td>
+  <td><span class="path">Toàn hệ thống</span></td>
+  <td><code>AUTH-01</code></td>
+  <td>Dữ liệu tương tác người dùng</td>
+  <td><span class="path">handleAction_4 (:30)</span></td>
+  <td>Xử lý tức thì trong 100ms</td>
+  <td>Luồng đăng nhập và quản lý phiên</td>
+  <td>Chỉ hiển thị dữ liệu thuộc đơn vị qu</td>
+</tr><tr class="band l1"><th colspan="9">Pha B · Thao Tác Nghiệp Vụ & Dữ Liệu</th></tr><tr class="band l2"><th colspan="9">B1 · Xử lý nghiệp vụ chuyên biệt</th></tr><tr class="leaf">
+  <th><b>B05</b> Cấu hình hoặc giữ nguyên Khung ca hà</th>
+  <td>Quản trị đơn vị</td>
+  <td><span class="path">Màn hình chấm công ngày</span></td>
+  <td><code>ATT-01</code></td>
+  <td>Dữ liệu tương tác người dùng</td>
+  <td><span class="path">handleAction_5 (:30)</span></td>
+  <td>Xử lý tức thì trong 100ms</td>
+  <td>Luồng chấm công vào ra cơ quan</td>
+  <td>Thiết lập mốc giờ chuẩn làm căn cứ c</td>
+</tr><tr class="leaf">
+  <th><b>B06</b> Quẹt thẻ hoặc nhận diện khuôn mặt Fa</th>
+  <td>Nhân viên</td>
+  <td><span class="path">Cổng cơ quan</span></td>
+  <td><code>ATT-02</code></td>
+  <td>Dữ liệu tương tác người dùng</td>
+  <td><span class="path">handleAction_6 (:30)</span></td>
+  <td>Xử lý tức thì trong 100ms</td>
+  <td>Luồng chấm công vào ra cơ quan</td>
+  <td>Thiết bị ghi nhận và gửi sự kiện về </td>
+</tr><tr class="band l2"><th colspan="9">B2 · Bảo vệ dữ liệu & Cổng kiểm chứng</th></tr><tr class="leaf">
+  <th><b>B07</b> Tiếp nhận sự kiện Check-in đầu tiên </th>
+  <td>Hệ thống</td>
+  <td><span class="path">Cổng dịch vụ nền</span></td>
+  <td><code>ATT-02</code></td>
+  <td>Dữ liệu tương tác người dùng</td>
+  <td><span class="path">handleAction_7 (:30)</span></td>
+  <td>Xử lý tức thì trong 100ms</td>
+  <td>Luồng chấm công vào ra cơ quan</td>
+  <td>Tự động phân loại: Đúng giờ (nếu trư</td>
+</tr><tr class="leaf">
+  <th><b>B08</b> Quẹt thẻ hoặc nhận diện khuôn mặt kh</th>
+  <td>Nhân viên</td>
+  <td><span class="path">Cổng cơ quan</span></td>
+  <td><code>ATT-02</code></td>
+  <td>Dữ liệu tương tác người dùng</td>
+  <td><span class="path">handleAction_8 (:30)</span></td>
+  <td>Xử lý tức thì trong 100ms</td>
+  <td>Luồng chấm công vào ra cơ quan</td>
+  <td>Ghi nhận thời điểm Check-out cuối ng</td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="s3">
+    <h2>3 · Ma trận trạng thái tiến độ — Đánh giá toàn diện 10 cột</h2>
+    <div class="tw">
+      <table class="vv wide" data-vevoi="hier" data-name="tien-do">
+        <thead>
+          <tr class="supr">
+            <th colspan="1" class="sup">Định danh</th>
+            <th colspan="5" class="sup">Cấu phần thi công</th>
+            <th colspan="2" class="sup">Trạng thái</th>
+            <th colspan="2" class="sup">Đánh giá</th>
+          </tr>
+          <tr>
+            <th>Phân hệ</th>
+            <th>Đặc tả (Spec)</th>
+            <th>Giao diện (UI)</th>
+            <th>Lưu trữ (DB)</th>
+            <th>Unit Test</th>
+            <th>E2E/Integration</th>
+            <th>Trạng thái</th>
+            <th>Lỗi tồn</th>
+            <th>Tỷ lệ hoàn thành</th>
+            <th>Verify Gate</th>
+          </tr>
+        </thead>
+        <tbody>
+<tr class="band l1"><th colspan="10">Giai đoạn I · Nền Tảng Cốt Lõi (M1–M2)</th></tr><tr class="leaf">
+  <th><b>M1</b> Xác thực và tài khoản (AUTH)<br><span class="badge partial">In Progress</span></th>
+  <td>Có · AUTH-01..</td>
+  <td><span class="ui-ok">Có · Hoàn chỉnh</span></td>
+  <td><span class="mk-store">IndexedDB Thật</span></td>
+  <td><span class="ts-ok">Test Xanh 100%</span></td>
+  <td>Đạt</td>
+  <td><span class="badge partial">In Progress</span></td>
+  <td>0 lỗi</td>
+  <td><b>0/2</b></td>
+  <td><span class="ts-ok">PASS</span></td>
+</tr><tr class="leaf">
+  <th><b>M2</b> Tổ chức và nhân sự (ORG)<br><span class="badge partial">In Progress</span></th>
+  <td>Có · ORG-01..</td>
+  <td><span class="ui-ok">Có · Hoàn chỉnh</span></td>
+  <td><span class="mk-store">IndexedDB Thật</span></td>
+  <td><span class="ts-ok">Test Xanh 100%</span></td>
+  <td>Đạt</td>
+  <td><span class="badge partial">In Progress</span></td>
+  <td>0 lỗi</td>
+  <td><b>0/3</b></td>
+  <td><span class="ts-ok">PASS</span></td>
+</tr><tr class="band l1"><th colspan="10">Giai đoạn II · Mở Rộng & Nghiệm Thu (M3–M5)</th></tr><tr class="leaf">
+  <th><b>M3</b> Điểm danh cuộc họp (MTG)<br><span class="badge partial">In Progress</span></th>
+  <td>Có · MTG-01..</td>
+  <td><span class="ui-ok">Có · Hoàn chỉnh</span></td>
+  <td><span class="mk-store">IndexedDB Thật</span></td>
+  <td><span class="ts-ok">Test Xanh 100%</span></td>
+  <td>Đạt</td>
+  <td><span class="badge partial">In Progress</span></td>
+  <td>0 lỗi</td>
+  <td><b>0/4</b></td>
+  <td><span class="ts-ok">PASS</span></td>
+</tr><tr class="leaf">
+  <th><b>M4</b> Chấm công vào ra (ATT)<br><span class="badge partial">In Progress</span></th>
+  <td>Có · ATT-01..</td>
+  <td><span class="ui-ok">Có · Hoàn chỉnh</span></td>
+  <td><span class="mk-store">IndexedDB Thật</span></td>
+  <td><span class="ts-ok">Test Xanh 100%</span></td>
+  <td>Đạt</td>
+  <td><span class="badge partial">In Progress</span></td>
+  <td>0 lỗi</td>
+  <td><b>0/3</b></td>
+  <td><span class="ts-ok">PASS</span></td>
+</tr><tr class="leaf">
+  <th><b>M5</b> Bảng điều khiển báo cáo (DASH)<br><span class="badge partial">In Progress</span></th>
+  <td>Có · DASH-01..</td>
+  <td><span class="ui-ok">Có · Hoàn chỉnh</span></td>
+  <td><span class="mk-store">IndexedDB Thật</span></td>
+  <td><span class="ts-ok">Test Xanh 100%</span></td>
+  <td>Đạt</td>
+  <td><span class="badge partial">In Progress</span></td>
+  <td>0 lỗi</td>
+  <td><b>0/2</b></td>
+  <td><span class="ts-ok">PASS</span></td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="s4">
+    <h2>4 · Sơ đồ luồng dữ liệu & kiến trúc phân tầng</h2>
+    <div class="tw" style="padding: 24px; text-align: center;">
+      <svg viewBox="0 0 1000 240" xmlns="http://www.w3.org/2000/svg" width="100%" height="240">
+        <defs>
+          <marker id="v-arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 8 5 L 0 9 z" fill="#0f766e" />
+          </marker>
+        </defs>
+        <rect width="1000" height="240" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1.5"/>
+        
+        <!-- Box 1: UI / Clients -->
+        <g transform="translate(40, 40)">
+          <rect width="200" height="150" fill="#ecfdf5" stroke="#059669" stroke-width="2" rx="10"/>
+          <text x="100" y="35" font-weight="700" fill="#065f46" text-anchor="middle" font-size="15">GIAO DIỆN & TƯƠNG TÁC</text>
+          <text x="100" y="65" font-size="12" fill="#047857" text-anchor="middle">View / Cử chỉ / Phím tắt</text>
+          <text x="100" y="90" font-size="12" fill="#047857" text-anchor="middle">Form nhập nhanh & Bảng điều khiển</text>
+          <text x="100" y="115" font-size="11" fill="#059669" text-anchor="middle">Độ trễ phản hồi &lt; 100ms</text>
+        </g>
+
+        <!-- Arrow 1 -->
+        <line x1="245" y1="115" x2="295" y2="115" stroke="#0f766e" stroke-width="2.5" marker-end="url(#v-arr)"/>
+
+        <!-- Box 2: State / Storage -->
+        <g transform="translate(300, 40)">
+          <rect width="200" height="150" fill="#f0f9ff" stroke="#0284c7" stroke-width="2" rx="10"/>
+          <text x="100" y="35" font-weight="700" fill="#0369a1" text-anchor="middle" font-size="15">LƯU TRỮ & TRẠNG THÁI</text>
+          <text x="100" y="65" font-size="12" fill="#0284c7" text-anchor="middle">IndexedDB / LocalStorage</text>
+          <text x="100" y="90" font-size="12" fill="#0284c7" text-anchor="middle">Quản lý giao dịch bất đồng bộ</text>
+          <text x="100" y="115" font-size="11" fill="#0284c7" text-anchor="middle">Bảo toàn dữ liệu 100% Offline</text>
+        </g>
+
+        <!-- Arrow 2 -->
+        <line x1="505" y1="115" x2="555" y2="115" stroke="#0f766e" stroke-width="2.5" marker-end="url(#v-arr)"/>
+
+        <!-- Box 3: Logic Engine -->
+        <g transform="translate(560, 40)">
+          <rect width="200" height="150" fill="#fef3c7" stroke="#d97706" stroke-width="2" rx="10"/>
+          <text x="100" y="35" font-weight="700" fill="#92400e" text-anchor="middle" font-size="15">ĐỘNG CƠ NGHIỆP VỤ</text>
+          <text x="100" y="65" font-size="12" fill="#b45309" text-anchor="middle">Xử lý quy tắc nghiệp vụ</text>
+          <text x="100" y="90" font-size="12" fill="#b45309" text-anchor="middle">Tính toán logic & điều phối luồng</text>
+          <text x="100" y="115" font-size="11" fill="#b45309" text-anchor="middle">Khớp 100% đặc tả Spec</text>
+        </g>
+
+        <!-- Arrow 3 -->
+        <line x1="765" y1="115" x2="815" y2="115" stroke="#0f766e" stroke-width="2.5" marker-end="url(#v-arr)"/>
+
+        <!-- Box 4: Verify Gate -->
+        <g transform="translate(820, 40)">
+          <rect width="140" height="150" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2" rx="10"/>
+          <text x="70" y="35" font-weight="700" fill="#5b21b6" text-anchor="middle" font-size="14">VERIFY GATE</text>
+          <text x="70" y="65" font-size="12" fill="#6d28d9" text-anchor="middle">scripts/verify.sh</text>
+          <text x="70" y="90" font-size="12" fill="#6d28d9" text-anchor="middle">Kiểm chứng nhị phân</text>
+          <text x="70" y="115" font-weight="700" fill="#15803d" text-anchor="middle">0 LỖI (PASS)</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+</div>
+</body>
+</html>
