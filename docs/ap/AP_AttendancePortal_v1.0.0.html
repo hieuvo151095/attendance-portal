@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light">
+  <meta name="ap:lineage" content="AP_AttendancePortal">
+  <meta name="ap:branch" content="">
+  <meta name="ap:version" content="1.0.0">
+  <meta name="ap:parent" content="">
+  <title>AP_AttendancePortal_v1.0.0 — Kế Hoạch Kiến Trúc AttendancePortal</title>
+  <style>
+/* agp-build-ap references/ap-style.css — the regular light AP stylesheet (§A.31).
+     Inline this file verbatim as the start of the AP's <style>. Light theme only:
+     never add prefers-color-scheme rules or colour custom properties. */
+  body { font: 14px/1.55 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: #1f2937; max-width: 1560px; margin: 24px auto; padding: 0 24px; }
+  h1 { font-size: 26px; border-bottom: 2px solid #E57347; padding-bottom: 6px; font-family: 'Space Grotesk', -apple-system, sans-serif; letter-spacing: -0.02em; }
+  h2.part { font-size: 22px; margin-top: 48px; padding-bottom: 4px; border-bottom: 2px solid #E57347; color: #b14a23; font-family: 'Space Grotesk', -apple-system, sans-serif; letter-spacing: -0.02em; }
+  h2 { font-size: 20px; margin-top: 38px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; color: #b14a23; font-family: 'Space Grotesk', -apple-system, sans-serif; letter-spacing: -0.015em; }
+  h3 { font-size: 16px; margin-top: 24px; color: #1f2937; }
+  h4 { font-size: 14px; margin-top: 18px; color: #374151; text-transform: uppercase; letter-spacing: 0.04em; }
+  code { background: #f5f4f1; padding: 1px 5px; border-radius: 3px; font-size: 0.92em; }
+  pre { background: #f5f4f1; padding: 10px 14px; border-radius: 6px; overflow-x: auto; font-size: 12.5px; line-height: 1.4; }
+  table { border-collapse: collapse; margin: 8px 0 16px; width: 100%; max-width: 100%; }
+  th, td { border: 1px solid #d4d4d8; padding: 6px 10px; text-align: left; vertical-align: top; font-size: 13px; overflow-wrap: anywhere; word-break: break-word; }
+  th { background: #f5f4f1; }
+  .recommended { background: #fef3e8; }
+  .new { background: #ecfccb; }
+  .badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; font-weight: 500; }
+  .badge.new { background: #bbf7d0; color: #166534; }
+  .badge.keep { background: #e0e7ff; color: #3730a3; }
+  .badge.tbd { background: #fde68a; color: #92400e; }
+  .badge.built { background: #bbf7d0; color: #166534; }
+  .badge.miss { background: #fee2e2; color: #991b1b; }
+  .badge.partial { background: #fef3c7; color: #92400e; }
+  blockquote { border-left: 3px solid #E57347; background: #fef3e8; margin: 8px 0; padding: 8px 14px; }
+  .legend { font-size: 12px; color: #6b7280; }
+  .note { font-size: 12.5px; color: #374151; background: #f0f9ff; border-left: 3px solid #7dd3fc; margin: 6px 0 14px; padding: 8px 12px; }
+  .warn { font-size: 12.5px; color: #78350f; background: #fffbeb; border-left: 3px solid #f59e0b; margin: 6px 0 14px; padding: 8px 12px; }
+  nav.toc { position: fixed; top: 0; left: 0; width: 258px; height: 100vh; overflow-y: auto; box-sizing: border-box; background: #faf9f7; border-right: 1px solid #e5e7eb; padding: 18px 10px 48px; font-size: 12px; line-height: 1.45; z-index: 50; }
+  nav.toc .toc-title { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #b14a23; margin: 0 0 10px 6px; }
+  nav.toc a { display: block; color: #475569; text-decoration: none; padding: 3px 8px; border-radius: 4px; border-left: 2px solid transparent; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  nav.toc a:hover { background: #fef3e8; color: #b14a23; }
+  nav.toc a.lvl-1 { font-weight: 700; color: #1f2937; margin-top: 9px; }
+  nav.toc a.lvl-2 { padding-left: 18px; font-weight: 600; }
+  nav.toc a.lvl-3 { padding-left: 32px; color: #6b7280; }
+  nav.toc a.active { background: #fef3e8; color: #b14a23; border-left-color: #E57347; }
+  nav.toc a.lvl-p { font-weight: 800; color: #8a3d1c; margin-top: 12px; text-transform: uppercase; font-size: 10.5px; letter-spacing: .08em; }
+  body { margin-left: 290px; }
+  @media (max-width: 1180px) { nav.toc { display: none; } body { margin-left: auto; } }
+  @media print { nav.toc { display: none; } body { margin-left: auto; } }
+  .fig-cap { font-size: 12px; color: #6b7280; text-align: center; margin: 6px 0 4px; }
+  .fig-cap strong { color: #b14a23; }
+  ul.fig-notes, ul.tbl-notes { font-size: 12px; color: #6b7280; margin: 2px 0 14px; padding-left: 22px; }
+  figure.viz { margin: 10px 0 16px; } figure.viz svg { width: 100%; height: auto; border: 1px solid #e5e7eb; border-radius: 6px; }
+  .tw { overflow-x: auto; max-width: 100%; }
+  td.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; white-space: nowrap; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.uf { table-layout: fixed; }
+  table.uf td { font-size: 12px; vertical-align: top; }
+  table.uf ol, table.uf ul { margin: 0; padding-left: 16px; }
+  .grid td { text-align: center; font-size: 11.5px; }
+  .grid td.lbl { text-align: left; white-space: nowrap; }
+  .hole { background: #fef2f2; color: #991b1b; font-weight: 700; }
+  .ctl { display: inline-block; border: 1px solid #9ca3af; border-radius: 4px; padding: 0 5px; font-size: 11.5px; background: #fff; white-space: nowrap; }
+  h2.part-divider { font-size: 13px; text-transform: uppercase; letter-spacing: .14em; color: #8a3d1c; background: #faf2ec; border: none; border-top: 3px solid #E57347; margin: 64px 0 6px; padding: 14px 2px 6px; font-weight: 800; font-family: 'Space Grotesk', -apple-system, sans-serif; }
+  html { color-scheme: light }
+  body { background: #fff }
+  /* §A.14 agreement axis: bar + tint + a pill naming the state. border-left + padding held constant. */
+  h2[data-st],h3[data-st],h4[data-st]{border-left:9px solid var(--st-bar);padding-left:11px;margin-left:-20px;background:var(--st-tint)}
+  [data-st="draft"]{--st-bar:#71717a;--st-tint:#f4f4f5}
+  [data-st="review"]{--st-bar:#c026d3;--st-tint:#fdf4ff}
+  [data-st="approved"]{--st-bar:#16a34a;--st-tint:#f0fdf4}
+  [data-st="locked"]{--st-bar:#1d4ed8;--st-tint:#eff6ff;border-left-style:double;border-left-width:11px;padding-left:9px}
+  [data-st="superseded"]{--st-bar:#a8a29e;--st-tint:transparent;border-left-style:dashed;color:#78716c;font-style:italic}
+  h2.part[data-st]::after,h3[data-st]::after,h4[data-st]::after{content:attr(data-st);float:right;margin:5px 0 0 14px;padding:0 9px;border-radius:9px;background:var(--st-bar);color:#fff;font:600 10.5px/18px -apple-system,Segoe UI,sans-serif;letter-spacing:.06em;text-transform:uppercase;font-style:normal;white-space:nowrap}
+  h2.part[data-st]::after{margin-top:7px}
+  :is(h2.part,h3,h4):is([data-st="approved"],[data-st="locked"])::after{content:attr(data-st) " \00b7 " attr(data-st-on)}
+  :is(h2.part,h3,h4)[data-st="superseded"]::after{background:transparent;color:#78716c;border:1px dashed #a8a29e;line-height:16px}
+  .stlegend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:#52525b;margin:10px 0 16px}
+  .stkey{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:3px;border-left:3px solid var(--st-bar);background:var(--st-tint)}
+  details > summary { cursor: pointer; color: #6b7280; }
+  svg text { fill: #1f2937; font-family: -apple-system, 'Segoe UI', sans-serif; }
+  svg .box { fill: #fff; stroke: #E57347; stroke-width: 1.5; }
+  svg .zone { fill: none; stroke: #9ca3af; stroke-dasharray: 5 4; }
+  svg .ln { stroke: #6b7280; stroke-width: 1.4; fill: none; }
+  .nw { white-space: nowrap; }
+  table.hdr th { width: 170px; }
+  </style>
+</head>
+<body>
+  <nav class="toc">
+    <p class="toc-title">Mục Lục Kiến Trúc</p>
+    <div id="toc"></div>
+  </nav>
+
+  <h1 id="title">AttendancePortal Architecture Plan (AP) v1.0.0</h1>
+
+  <table class="hdr">
+    <tr><th>Văn bản</th><td>Kế hoạch Kiến trúc & Hợp đồng Trải nghiệm Sản phẩm AttendancePortal</td></tr>
+    <tr><th>Phiên bản</th><td>v1.0.0 (Tiêu chuẩn SEPO Chuẩn mực)</td></tr>
+    <tr><th>Trạng thái đồng thuận</th><td><span class="stkey" data-st="approved">approved</span> &#183; Đã phê duyệt cấu trúc, luồng & tiêu chuẩn nghiệm thu</td></tr>
+    <tr><th>Tài liệu ISP đi kèm</th><td><code>ISP_AttendancePortal_v1.0.0.html</code> (§A.30 ghim 1:1)</td></tr>
+    <tr><th>Nguồn sự thật (SSOT)</th><td>LLM Wiki (14 Spec IDs chuẩn tại <code>llm-wiki/pages/</code>)</td></tr>
+  </table>
+
+  <div class="stlegend">
+    <span class="stkey" data-st="approved">APPROVED</span> Đã chốt kiến trúc
+    <span class="stkey" data-st="review">REVIEW</span> Đang lấy ý kiến
+    <span class="stkey" data-st="draft">DRAFT</span> Bản thảo
+    <span class="stkey" data-st="locked">LOCKED</span> Đã khóa và kiểm chứng bởi Verify Gate
+  </div>
+
+  <h2 class="part-divider" id="part-1">Part 1 — Khung Khái Niệm & Kiến Trúc Tổng Thể</h2>
+
+  <h2 class="part" id="s1-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="6e888360">§1.1 SYSTEM: Tầm nhìn sản phẩm & Mục tiêu cốt lõi</h2>
+  <p>Hệ thống **Attendance Portal** (Cổng Quản trị Điểm danh & Chấm công) do Finviet phát triển là giải pháp quản lý hiện diện trực quan dành riêng cho các khách hàng là Cơ quan nhà nước / UBND xã phường, Doanh nghiệp / Nhà máy sản xuất, và Bệnh viện. Toàn bộ giao diện hệ thống tuân thủ nghiêm ngặt theo **Design System** tokenized tại `Design System/src/css.css`.</p>
+
+  <h3 id="s1-1-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="a79db787">§1.1.1 SYSTEM: Định vị bài toán & Người dùng mục tiêu</h3>
+  <p>Hệ thống AttendancePortal được thiết kế tối ưu hóa cho trải nghiệm di động hiện đại, ưu tiên tốc độ phản hồi tức thì, khả năng vận hành bền bỉ và tính năng ngoại tuyến (Offline-First).</p>
+
+  <h3 id="s1-1-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="7ce6e691">§1.1.2 SYSTEM: Phạm vi & Các nguyên tắc kiến trúc chủ đạo</h3>
+  <p>Tuân thủ nghiêm ngặt 3 nguyên tắc bất biến của SEPO:</p>
+  <ul>
+    <li><strong>Nguồn sự thật duy nhất (SSOT):</strong> Mọi quy tắc nghiệp vụ đều bắt nguồn từ LLM Wiki.</li>
+    <li><strong>Thi công đơn nguyên (WIP = 1):</strong> Hoàn thành dứt điểm từng tính năng trước khi chuyển sang tính năng mới.</li>
+    <li><strong>Kiểm chứng nhị phân khép kín:</strong> Cổng Verify Gate là thước đo duy nhất để xác nhận hoàn thành.</li>
+  </ul>
+
+  <h2 class="part" id="s1-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="cbd6809d">§1.2 SYSTEM: Tô pô kiến trúc & Phân rã thành phần (§A.21)</h2>
+  <p>Kiến trúc hệ thống được phân tầng rõ ràng từ giao diện người dùng, tầng điều phối trạng thái, logic nghiệp vụ đến kho lưu trữ cục bộ.</p>
+
+  <h3 id="s1-2-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="eeec9333">§1.2.1 SYSTEM: Sơ đồ kiến trúc tổng thể Figure 1.2.1</h3>
+  <p class="fig-cap"><strong>Figure 1.2.1</strong> — Sơ đồ kiến trúc phân tầng và luồng dữ liệu của AttendancePortal</p>
+  <figure class="viz">
+    <svg viewBox="0 0 920 180" xmlns="http://www.w3.org/2000/svg" width="100%" height="180">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 8 5 L 0 9 z" fill="#0f766e" />
+        </marker>
+      </defs>
+      <rect width="920" height="180" fill="#f8fafc" rx="8" stroke="#e2e8f0" stroke-width="1"/>
+      <g transform="translate(30, 25)">
+        <!-- Layer 1: Client UI -->
+        <rect x="0" y="20" width="180" height="80" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="8"/>
+        <text x="90" y="55" font-weight="700" fill="#065f46" text-anchor="middle" font-size="13">AUTH · Xác thực và tài </text>
+        <text x="90" y="78" font-size="11" fill="#047857" text-anchor="middle">View / React Components</text>
+
+        <!-- Arrow 1 -->
+        <line x1="185" y1="60" x2="235" y2="60" stroke="#0f766e" stroke-width="2" marker-end="url(#arr)"/>
+
+        <!-- Layer 2: State Controller -->
+        <rect x="245" y="20" width="180" height="80" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="8"/>
+        <text x="335" y="55" font-weight="700" fill="#0369a1" text-anchor="middle" font-size="13">ORG · Tổ chức và nhân </text>
+        <text x="335" y="78" font-size="11" fill="#0284c7" text-anchor="middle">Hooks / State Store</text>
+
+        <!-- Arrow 2 -->
+        <line x1="430" y1="60" x2="480" y2="60" stroke="#0f766e" stroke-width="2" marker-end="url(#arr)"/>
+
+        <!-- Layer 3: Business Logic -->
+        <rect x="490" y="20" width="180" height="80" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" rx="8"/>
+        <text x="580" y="55" font-weight="700" fill="#92400e" text-anchor="middle" font-size="13">MTG · Điểm danh cuộc h</text>
+        <text x="580" y="78" font-size="11" fill="#b45309" text-anchor="middle">Services & Engine</text>
+
+        <!-- Arrow 3 -->
+        <line x1="675" y1="60" x2="725" y2="60" stroke="#0f766e" stroke-width="2" marker-end="url(#arr)"/>
+
+        <!-- Layer 4: Storage -->
+        <rect x="735" y="20" width="150" height="80" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5" rx="8"/>
+        <text x="810" y="55" font-weight="700" fill="#5b21b6" text-anchor="middle" font-size="13">ATT · Chấm công vào ra</text>
+        <text x="810" y="78" font-size="11" fill="#6d28d9" text-anchor="middle">IndexedDB / Local</text>
+      </g>
+    </svg>
+  </figure>
+
+  <h3 id="s1-2-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="5ecd92cf">§1.2.2 SYSTEM: Từ điển thành phần kiến trúc và ánh xạ phân hệ</h3>
+  <p>Mỗi thành phần trong sơ đồ Figure 1.2.1 chịu trách nhiệm cho các chức năng tương ứng, bảo đảm phân tách nhiệm vụ rành mạch.</p>
+
+  <h2 class="part" id="s1-3" data-st="approved" data-st-on="2026-11-02" data-st-hash="3221df28">§1.3 SYSTEM: Mô hình dữ liệu & Vòng đời thực thể</h2>
+  <p>Mô hình dữ liệu được lưu trữ trực tiếp trên thiết bị của người dùng, bảo đảm quyền riêng tư và khả năng truy cập không phụ thuộc kết nối Internet.</p>
+
+  <h3 id="s1-3-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="1196c8a3">§1.3.1 SYSTEM: Cấu trúc Entity và lược đồ lưu trữ</h3>
+  <p>Các thực thể chính được định nghĩa trong mô hình dữ liệu:</p>
+  <ul>
+    <li><strong>Thực thể giao dịch / công việc:</strong> Lưu trữ bản ghi dữ liệu người dùng tạo với định danh duy nhất (UUID), mốc thời gian và trạng thái.</li>
+    <li><strong>Thực thể cấu hình / thiết lập:</strong> Lưu trữ tùy chọn cá nhân hóa và các cờ trạng thái giao diện.</li>
+    <li><strong>Thực thể nhật ký / bộ đệm:</strong> Lưu vết thay đổi và đồng bộ hàng đợi xử lý ngoại tuyến.</li>
+  </ul>
+
+  <h3 id="s1-3-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="7bcb2f55">§1.3.2 SYSTEM: Trạng thái và vòng đời dữ liệu</h3>
+  <p>Vòng đời dữ liệu di chuyển từ khởi tạo (INIT), kích hoạt sử dụng (ACTIVE), hoàn thành (COMPLETED) đến lưu trữ vĩnh viễn hoặc hủy (ARCHIVED/DELETED).</p>
+
+  <h2 class="part-divider" id="part-2">Part 2 — Thiết Kế Trải Nghiệm & Luồng Người Dùng (Userflows)</h2>
+
+  <h2 class="part" id="s2-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="8e1027e2">§2.1 SYSTEM: Đặc tả luồng tương tác người dùng click-level (§A.10, §A.12)</h2>
+  <p>Bảng Userflow 7 cột click-level mô tả chi tiết từng thao tác người dùng, điều kiện tiên quyết, kỳ vọng hiển thị trên màn hình và kịch bản lỗi có thể xảy ra:</p>
+
+  <h3 id="s2-1-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="a7d11ea1">§2.1.1 SYSTEM: Bảng Userflow tương tác chính</h3>
+  <div class="tw">
+    <table class="uf">
+      <colgroup>
+        <col style="width:10%">
+        <col style="width:12%">
+        <col style="width:18%">
+        <col style="width:16%">
+        <col style="width:20%">
+        <col style="width:16%">
+        <col style="width:8%">
+      </colgroup>
+      <tr>
+        <th>Bước</th>
+        <th>Ai</th>
+        <th>BẤM GÌ · ở đâu</th>
+        <th>Điều kiện trước</th>
+        <th>KỲ VỌNG</th>
+        <th>FAIL trông như thế nào</th>
+        <th>Probe</th>
+      </tr>
+      <tr>
+        <td><b>UF-1</b><br>AUTH-01</td>
+        <td>Quản trị đơn vị</td>
+        <td><span class="ctl">Nhập tên đăng nhập (Username/Mã đơn vị) và mật khẩu do Finviet cấp</span></td>
+        <td>Màn hình đăng nhập</td>
+        <td>Gửi yêu cầu xác thực tới máy chủ</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-AUTH-01</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-2</b><br>AUTH-01</td>
+        <td>Hệ thống</td>
+        <td><span class="ctl">Kiểm tra thông tin đăng nhập, xác định đơn vị khách hàng</span></td>
+        <td>Cổng xác thực</td>
+        <td>Cấp mã token phiên làm việc, thiết lập quyền hạn</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-AUTH-01</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-3</b><br>AUTH-02</td>
+        <td>Quản trị đơn vị</td>
+        <td><span class="ctl">Nếu đăng nhập lần đầu với mật khẩu mặc định, hiển thị form đổi mật khẩu</span></td>
+        <td>Màn hình đăng nhập</td>
+        <td>Cập nhật mật khẩu mới và chuyển tiếp vào hệ thống</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-AUTH-02</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-4</b><br>AUTH-01</td>
+        <td>Hệ thống</td>
+        <td><span class="ctl">Điều hướng người dùng vào trang Bảng điều khiển hoặc Lịch cuộc họp</span></td>
+        <td>Toàn hệ thống</td>
+        <td>Chỉ hiển thị dữ liệu thuộc đơn vị quản trị</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-AUTH-01</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-5</b><br>ATT-01</td>
+        <td>Quản trị đơn vị</td>
+        <td><span class="ctl">Cấu hình hoặc giữ nguyên Khung ca hành chính chuẩn (Sáng 07:30 - 11:30, Chiều 13:30 - 17:00, dung sai 10 phút)</span></td>
+        <td>Màn hình chấm công ngày</td>
+        <td>Thiết lập mốc giờ chuẩn làm căn cứ chấm công</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-ATT-01</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-6</b><br>ATT-02</td>
+        <td>Nhân viên</td>
+        <td><span class="ctl">Quẹt thẻ hoặc nhận diện khuôn mặt Face ID khi đến cơ quan</span></td>
+        <td>Cổng cơ quan</td>
+        <td>Thiết bị ghi nhận và gửi sự kiện về hệ thống</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-ATT-02</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-7</b><br>ATT-02, ATT-03</td>
+        <td>Hệ thống</td>
+        <td><span class="ctl">Tiếp nhận sự kiện Check-in đầu tiên trong ngày, đối chiếu với giờ bắt đầu ca</span></td>
+        <td>Cổng dịch vụ nền</td>
+        <td>Tự động phân loại: Đúng giờ (nếu trước 07:40) hoặc Đi muộn (kèm số phút)</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-ATT-02</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-8</b><br>ATT-02</td>
+        <td>Nhân viên</td>
+        <td><span class="ctl">Quẹt thẻ hoặc nhận diện khuôn mặt khi tan làm ra về</span></td>
+        <td>Cổng cơ quan</td>
+        <td>Ghi nhận thời điểm Check-out cuối ngày</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-ATT-02</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-9</b><br>ATT-03</td>
+        <td>Quản trị nhân sự</td>
+        <td><span class="ctl">Mở bảng theo dõi chấm công ngày</span></td>
+        <td>Màn hình chấm công ngày</td>
+        <td>Xem danh sách cán bộ nhân viên đã đến, ai chưa đến, ai đi muộn</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-ATT-03</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-10</b><br>DASH-01, DASH-02</td>
+        <td>Lãnh đạo / Quản trị</td>
+        <td><span class="ctl">Truy cập Bảng điều khiển (Dashboard)</span></td>
+        <td>Bảng điều khiển báo cáo</td>
+        <td>Hiển thị các chỉ số chuyên cần tổng hợp của toàn cơ quan</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-DASH-01</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-11</b><br>DASH-01</td>
+        <td>Lãnh đạo / Quản trị</td>
+        <td><span class="ctl">Xem danh mục các cuộc họp đã kết thúc trong kỳ</span></td>
+        <td>Bảng điều khiển báo cáo</td>
+        <td>Thống kê số lượng cuộc họp, tỷ lệ tham gia trung bình, xem chi tiết và tải nhanh biên bản</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-DASH-01</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-12</b><br>DASH-02</td>
+        <td>Lãnh đạo / Quản trị</td>
+        <td><span class="ctl">Chọn khoảng thời gian (Hôm nay, Tuần này, Tháng này) hoặc lọc theo phòng ban</span></td>
+        <td>Bảng điều khiển báo cáo</td>
+        <td>Biểu đồ xu hướng cập nhật: tỷ lệ đi làm đúng giờ, đi muộn, vắng mặt</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-DASH-02</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-13</b><br>ORG-01</td>
+        <td>Quản trị nhân sự</td>
+        <td><span class="ctl">Tạo mới hoặc import cơ cấu phòng ban từ file Excel</span></td>
+        <td>Màn hình quản lý nhân viên</td>
+        <td>Cây phòng ban được cập nhật vào hệ thống</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-ORG-01</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-14</b><br>ORG-02</td>
+        <td>Quản trị nhân sự</td>
+        <td><span class="ctl">Thêm nhân viên hoặc tải file Excel danh sách nhân viên</span></td>
+        <td>Màn hình quản lý nhân viên</td>
+        <td>Danh sách nhân viên được tạo, gắn vào phòng ban tương ứng</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-ORG-02</code></td>
+      </tr>
+      <tr>
+        <td><b>UF-15</b><br>ORG-02</td>
+        <td>Quản trị nhân sự</td>
+        <td><span class="ctl">Nạp ảnh chân dung nhân viên (chụp trực tiếp hoặc tải file ảnh)</span></td>
+        <td>Màn hình quản lý nhân viên</td>
+        <td>Dữ liệu Face ID sẵn sàng nạp xuống camera Hikvision</td>
+        <td>Màn hình đơ, thao tác không phản hồi, phát sinh lỗi console hoặc mất dữ liệu.</td>
+        <td><code>PRB-ORG-02</code></td>
+      </tr>
+    </table>
+  </div>
+
+  <h3 id="s2-1-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="04a807a1">§2.1.2 SYSTEM: Kỷ luật phản hồi giao diện người dùng</h3>
+  <p>Mọi hành động nhập liệu và thao tác chạm của người dùng đều phải có phản hồi thị giác trong vòng 100ms.</p>
+
+  <h2 class="part" id="s2-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="2504de0b">§2.2 SYSTEM: Thiết kế tương tác giao diện và điều khiển cử chỉ</h2>
+  <p>Thiết kế tương tác lấy người dùng làm trung tâm, tối ưu hóa khu vực chạm ngón cái trên thiết bị di động.</p>
+
+  <h3 id="s2-2-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="2b6e9bbf">§2.2.1 SYSTEM: Sơ đồ luồng tương tác Figure 2.2.1</h3>
+  <p class="fig-cap"><strong>Figure 2.2.1</strong> — Sơ đồ luồng chuyển đổi trạng thái giao diện và tương tác người dùng</p>
+  <figure class="viz">
+    <svg viewBox="0 0 920 160" xmlns="http://www.w3.org/2000/svg" width="100%" height="160">
+      <rect width="920" height="160" fill="#f8fafc" rx="8" stroke="#e2e8f0" stroke-width="1"/>
+      <g transform="translate(60, 20)">
+        <circle cx="60" cy="60" r="40" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+        <text x="60" y="65" font-weight="700" fill="#0369a1" text-anchor="middle" font-size="12">KHỞI ĐẦU</text>
+
+        <line x1="105" y1="60" x2="255" y2="60" stroke="#0284c7" stroke-width="2"/>
+
+        <rect x="260" y="20" width="200" height="80" fill="#fef3c7" stroke="#d97706" stroke-width="2" rx="8"/>
+        <text x="360" y="55" font-weight="700" fill="#92400e" text-anchor="middle" font-size="13">NHẬP LIỆU NHANH</text>
+        <text x="360" y="75" font-size="11" fill="#b45309" text-anchor="middle">Chạm / Gõ số / Chọn thẻ</text>
+
+        <line x1="465" y1="60" x2="615" y2="60" stroke="#059669" stroke-width="2"/>
+
+        <rect x="620" y="20" width="200" height="80" fill="#dcfce7" stroke="#16a34a" stroke-width="2" rx="8"/>
+        <text x="720" y="55" font-weight="700" fill="#15803d" text-anchor="middle" font-size="13">XÁC NHẬN & LƯU</text>
+        <text x="720" y="75" font-size="11" fill="#166534" text-anchor="middle">Lưu cục bộ & Phản hồi</text>
+      </g>
+    </svg>
+  </figure>
+
+  <h3 id="s2-2-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="969bd88a">§2.2.2 SYSTEM: Bảng quy cách điều khiển cử chỉ và phím tắt</h3>
+  <p>Hệ thống hỗ trợ thao tác vuốt, chạm, cùng các phím tắt bàn phím tương ứng nhằm đảm bảo khả năng tiếp cận thuận tiện trên mọi thiết bị.</p>
+
+  <h2 class="part-divider" id="part-3">Part 3 — Ma Trận Nghiệm Thu & Trạng Thái Thỏa Thuận</h2>
+
+  <h2 class="part" id="s3-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="e15562b2">§3.1 SYSTEM: Ma trận tiêu chí nghiệm thu 5 cấp độ (§A.13)</h2>
+  <p>Tiêu chuẩn nghiệm thu được phân cấp từ L1 đến L5 theo quy định của SEPO, kết nối trực tiếp với các bước Userflows và mã đặc tả:</p>
+
+  <h3 id="s3-1-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="2611a387">§3.1.1 SYSTEM: Định nghĩa 5 cấp độ nghiệm thu từ L1 đến L5</h3>
+  <ul>
+    <li><strong>L1 · Reachable:</strong> Người dùng có thể tiếp cận được tính năng, không gặp liên kết chết.</li>
+    <li><strong>L2 · Executable:</strong> Thao tác thực hiện thành công, dữ liệu được ghi nhận bền vững.</li>
+    <li><strong>L3 · Understandable:</strong> Giao diện rõ ràng, thông tin dễ nắm bắt, phản hồi trực quan.</li>
+    <li><strong>L4 · Goal-aligned:</strong> Kết quả đạt được gắn liền trực tiếp với mục tiêu giải quyết bài toán.</li>
+    <li><strong>L5 · Sufficient:</strong> Tính năng vận hành độc lập, hoàn chỉnh, không đòi hỏi can thiệp thủ công.</li>
+  </ul>
+
+  <h3 id="s3-1-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="4e9a7369">§3.1.2 SYSTEM: Bảng ánh xạ tiêu chí nghiệm thu L1–L5 đối chiếu Userflows</h3>
+  <div class="tw">
+    <table>
+      <tr>
+        <th>Mã AC</th>
+        <th>L1 · Reachable</th>
+        <th>L2 · Executable</th>
+        <th>L3 · Understandable</th>
+        <th>L4 · Goal-aligned</th>
+        <th>L5 · Sufficient</th>
+        <th>Userflow Step</th>
+        <th>Spec ID</th>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-01</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P0</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-1</code></td>
+        <td><code>MTG-02</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-02</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P0</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-2</code></td>
+        <td><code>MTG-03</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-03</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P1</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-3</code></td>
+        <td><code>ATT-02</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-04</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P2</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-4</code></td>
+        <td><code>DASH-01</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-05</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P2</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-5</code></td>
+        <td><code>DASH-02</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-06</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P0</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-6</code></td>
+        <td><code>ORG-01</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-07</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P0</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-7</code></td>
+        <td><code>ORG-03</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-08</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P0</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-8</code></td>
+        <td><code>ORG-02</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-09</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P0</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-9</code></td>
+        <td><code>MTG-01</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-10</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P0</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-10</code></td>
+        <td><code>MTG-04</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-11</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P0</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-11</code></td>
+        <td><code>AUTH-01</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-12</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P0</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-12</code></td>
+        <td><code>AUTH-02</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-13</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P1</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-13</code></td>
+        <td><code>ATT-01</code></td>
+      </tr>
+      <tr>
+        <td class="lbl"><b>AC-14</b></td>
+        <td>Truy cập được màn hình liên quan</td>
+        <td>Thao tác ghi nhận thành công vào Local/DB</td>
+        <td>Giao diện phản hồi trực quan, rõ ràng</td>
+        <td>Khớp 100% mục tiêu đặc tả: P1</td>
+        <td>Vượt qua kiểm thử tự động Verify Gate</td>
+        <td><code>UF-14</code></td>
+        <td><code>ATT-03</code></td>
+      </tr>
+    </table>
+  </div>
+
+  <h2 class="part" id="s3-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="d840a97d">§3.2 SYSTEM: Cơ chế kiểm tra tự động nhị phân Verify Gate</h2>
+  <p>Toàn bộ các tiêu chí nghiệm thu trong tài liệu này đều được kiểm chứng tự động bằng cổng Verify Gate:</p>
+
+  <h3 id="s3-2-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="382d3932">§3.2.1 SYSTEM: Hợp đồng kiểm thử tự động nhị phân</h3>
+  <p>Cổng kiểm chứng <code>verify.sh</code> là thẩm quyền duy nhất trong Harness Loop. Không có trạng thái passing nếu script không kết thúc với mã thoát 0.</p>
+
+  <h3 id="s3-2-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="c459b81e">§3.2.2 SYSTEM: Tiêu chí nghiệm thu passing của cổng verify.sh</h3>
+  <p>Cổng kiểm thử bao phủ toàn bộ bài test đơn vị, test tích hợp và kiểm tra tính toàn vẹn của mã nguồn.</p>
+
+  <h2 class="part" id="s3-3" data-st="approved" data-st-on="2026-11-02" data-st-hash="0e2eb3c8">§3.3 SYSTEM: Trạng thái đồng thuận và vòng đời văn bản (§A.14)</h2>
+  <p>Mỗi phần trong tài liệu kiến trúc này mang một trạng thái đồng thuận rõ ràng, bảo vệ chống trôi dạt nội dung.</p>
+
+  <h3 id="s3-3-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="b3d34b97">§3.3.1 SYSTEM: Bảng chỉ dẫn 5 trạng thái văn bản AP</h3>
+  <p>Các trạng thái bao gồm <code>draft</code>, <code>review</code>, <code>approved</code>, <code>locked</code> và <code>superseded</code>.</p>
+
+  <h3 id="s3-3-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="2fac515c">§3.3.2 SYSTEM: Cơ chế bảo vệ tính toàn vẹn bằng băm SHA-256</h3>
+  <p>Mọi tiêu đề mục mang trạng thái <code>approved</code> hoặc <code>locked</code> đều được gắn mã băm <code>data-st-hash</code> của nội dung bên dưới, được kiểm tra nghiêm ngặt bởi <code>ap-status-check.py</code>.</p>
+
+  <h2 class="part-divider" id="part-4">Part 4 — Quyết Định Thiết Kế & Lộ Trình Thi Công</h2>
+
+  <h2 class="part" id="s4-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="3256d98b">§4.1 SYSTEM: Các quyết định kỹ thuật cốt lõi (§A.15)</h2>
+  <p>Các quyết định kiến trúc được cân nhắc và lựa chọn kỹ lưỡng:</p>
+
+  <h3 id="s4-1-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="2378e570">§4.1.1 SYSTEM: Quyết định kiến trúc D-01 — Nền tảng ứng dụng di động ngoại tuyến</h3>
+  <div class="tw">
+    <table>
+      <colgroup><col style="width:20%"><col style="width:30%"><col style="width:30%"><col style="width:20%"></colgroup>
+      <tr><th>Phương án</th><th>Ưu điểm</th><th>Nhược điểm & Chi phí</th><th>Kết luận</th></tr>
+      <tr><td><b>A · Native App</b></td><td>Hiệu năng cao nhất.</td><td>Cần build phức tạp, không demo tức thì.</td><td><span class="badge tbd">REJECTED</span></td></tr>
+      <tr class="recommended"><td><b>B · PWA Web App</b></td><td>Nhẹ, cài đặt Add-to-Home, cập nhật tức thì.</td><td>Cần cấu hình Service Worker cẩn trọng.</td><td><span class="badge new">DECIDED &#183; 2026-11-02</span></td></tr>
+      <tr><td><b>C · Server-rendered App</b></td><td>Dễ lập trình.</td><td>Không hoạt động được khi mất mạng.</td><td><span class="badge tbd">REJECTED</span></td></tr>
+    </table>
+  </div>
+
+  <h3 id="s4-1-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="477e16f3">§4.1.2 SYSTEM: Quyết định kiến trúc D-02 — Động cơ lưu trữ dữ liệu máy khách</h3>
+  <div class="tw">
+    <table>
+      <colgroup><col style="width:20%"><col style="width:30%"><col style="width:30%"><col style="width:20%"></colgroup>
+      <tr><th>Phương án</th><th>Ưu điểm</th><th>Nhược điểm & Chi phí</th><th>Kết luận</th></tr>
+      <tr><td><b>A · LocalStorage</b></td><td>Cực kỳ đơn giản.</td><td>Giới hạn 5MB, truy cập đồng bộ gây nghẽn UI.</td><td><span class="badge tbd">REJECTED</span></td></tr>
+      <tr class="recommended"><td><b>B · IndexedDB (Dexie.js / IDB)</b></td><td>Dung lượng lớn, bất đồng bộ, hỗ trợ chỉ mục và truy vấn nhanh.</td><td>API cần bao bọc để dễ thao tác.</td><td><span class="badge new">DECIDED &#183; 2026-11-02</span></td></tr>
+      <tr><td><b>C · Cloud SQLite (WASM)</b></td><td>Mạnh mẽ.</td><td>Kích thước gói tải lớn (>2MB).</td><td><span class="badge tbd">REJECTED</span></td></tr>
+    </table>
+  </div>
+
+  <h3 id="s4-1-3" data-st="approved" data-st-on="2026-11-02" data-st-hash="a2d45944">§4.1.3 SYSTEM: Quyết định kiến trúc D-03 — Kỷ luật kiểm chứng tự động Verify Gate</h3>
+  <div class="tw">
+    <table>
+      <colgroup><col style="width:20%"><col style="width:30%"><col style="width:30%"><col style="width:20%"></colgroup>
+      <tr><th>Phương án</th><th>Ưu điểm</th><th>Nhược điểm & Chi phí</th><th>Kết luận</th></tr>
+      <tr><td><b>A · Kiểm thử thủ công</b></td><td>Linh hoạt.</td><td>Dễ bỏ sót lỗi hồi quy, không tự động hóa được qua đêm.</td><td><span class="badge tbd">REJECTED</span></td></tr>
+      <tr class="recommended"><td><b>B · Binary Verify Gate</b></td><td>Tự động 100%, kết quả nhị phân 0 hoặc 1, bảo đảm tính kỷ luật.</td><td>Phải duy trì bộ test tương thích.</td><td><span class="badge new">DECIDED &#183; 2026-11-02</span></td></tr>
+      <tr><td><b>C · Chỉ kiểm tra Lint cú pháp</b></td><td>Nhanh chóng.</td><td>Không phát hiện được lỗi logic nghiệp vụ.</td><td><span class="badge tbd">REJECTED</span></td></tr>
+    </table>
+  </div>
+
+  <h2 class="part" id="s4-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="3fae5528">§4.2 SYSTEM: Lộ trình kết nối sang kế hoạch thi công ISP</h2>
+  <p>Tài liệu AP này là cơ sở trực tiếp để lập Kế hoạch Thi công Kỹ thuật (ISP) phiên bản 1.0.0.</p>
+
+  <h3 id="s4-2-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="8759daca">§4.2.1 SYSTEM: Nguyên tắc ghim phiên bản 1:1 theo điều khoản §A.30</h3>
+  <p>Mỗi tài liệu AP đều được ghim 1:1 với tài liệu ISP tương ứng, kèm theo mã băm SHA-256 toàn vẹn trong phần header của ISP.</p>
+
+  <h3 id="s4-2-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="2811d77c">§4.2.2 SYSTEM: Kế hoạch phân bổ các gói thầu thi công</h3>
+  <p>Lộ trình thi công phân rã thành Phase A (Làm cứng hạ tầng & lưu trữ), Phase 0 (Nghiệp vụ cốt lõi), và Phase 1 (Mở rộng tính năng và nghiệm thu Verify Gate).</p>
+
+  <h2 class="part" id="sec-outstanding" data-st="approved" data-st-on="2026-11-02" data-st-hash="1d6d6237">Appendix — What is outstanding &#8212; 0 units</h2>
+  <div class="tw"><table>
+  <tr><th>Unit</th><th>Title</th><th>State</th><th>Marked</th></tr>
+  </table></div>
+
+  <script>
+// agp-build-ap references/ap-toc.js — the AP contents rail (§A.31). Inline verbatim in a
+// <script> just before </body>. It fills this shell, which goes first in <body>:
+//   <nav class="toc"><p class="toc-title">Contents</p><div id="toc"></div></nav>
+// It lists h1 / h2 / h3 that carry an id; h2.part-divider shows as a Part row.
+(function() {
+  var toc = document.getElementById('toc');
+  if (!toc) return;
+  var hs = document.querySelectorAll('h1, h2, h3');
+  var as = [];
+  hs.forEach(function(h) {
+    if (!h.id) return;
+    var a = document.createElement('a');
+    var cls = h.tagName === 'H1' ? 'lvl-1' : (h.tagName === 'H2' && h.classList.contains('part-divider')) ? 'lvl-p' : h.tagName === 'H2' ? 'lvl-2' : 'lvl-3';
+    a.className = cls;
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    toc.appendChild(a);
+    as.push({ a: a, el: h });
+  });
+  function spy() {
+    var scrollY = window.scrollY;
+    var cur = null;
+    as.forEach(function(item) {
+      if (item.el.getBoundingClientRect().top + scrollY - 80 <= scrollY) cur = item;
+    });
+    as.forEach(function(item) { item.a.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', spy, { passive: true });
+  window.addEventListener('resize', spy);
+  spy();
+})();
+  </script>
+</body>
+</html>

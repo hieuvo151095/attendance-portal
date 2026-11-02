@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light">
+  <meta name="ap:lineage" content="ISP_AttendancePortal">
+  <meta name="ap:branch" content="">
+  <meta name="ap:version" content="1.0.0">
+  <meta name="ap:parent" content="">
+  <title>ISP_AttendancePortal_v1.0.0 — Kế Hoạch Thi Công Kỹ Thuật AttendancePortal</title>
+  <style>
+/* agp-build-ap references/ap-style.css — the regular light AP stylesheet (§A.31).
+     Inline this file verbatim as the start of the AP's <style>. Light theme only:
+     never add prefers-color-scheme rules or colour custom properties. */
+  body { font: 14px/1.55 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: #1f2937; max-width: 1560px; margin: 24px auto; padding: 0 24px; }
+  h1 { font-size: 26px; border-bottom: 2px solid #E57347; padding-bottom: 6px; font-family: 'Space Grotesk', -apple-system, sans-serif; letter-spacing: -0.02em; }
+  h2.part { font-size: 22px; margin-top: 48px; padding-bottom: 4px; border-bottom: 2px solid #E57347; color: #b14a23; font-family: 'Space Grotesk', -apple-system, sans-serif; letter-spacing: -0.02em; }
+  h2 { font-size: 20px; margin-top: 38px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; color: #b14a23; font-family: 'Space Grotesk', -apple-system, sans-serif; letter-spacing: -0.015em; }
+  h3 { font-size: 16px; margin-top: 24px; color: #1f2937; }
+  h4 { font-size: 14px; margin-top: 18px; color: #374151; text-transform: uppercase; letter-spacing: 0.04em; }
+  code { background: #f5f4f1; padding: 1px 5px; border-radius: 3px; font-size: 0.92em; }
+  pre { background: #f5f4f1; padding: 10px 14px; border-radius: 6px; overflow-x: auto; font-size: 12.5px; line-height: 1.4; }
+  table { border-collapse: collapse; margin: 8px 0 16px; width: 100%; max-width: 100%; }
+  th, td { border: 1px solid #d4d4d8; padding: 6px 10px; text-align: left; vertical-align: top; font-size: 13px; overflow-wrap: anywhere; word-break: break-word; }
+  th { background: #f5f4f1; }
+  .recommended { background: #fef3e8; }
+  .new { background: #ecfccb; }
+  .badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; font-weight: 500; }
+  .badge.new { background: #bbf7d0; color: #166534; }
+  .badge.keep { background: #e0e7ff; color: #3730a3; }
+  .badge.tbd { background: #fde68a; color: #92400e; }
+  .badge.built { background: #bbf7d0; color: #166534; }
+  .badge.miss { background: #fee2e2; color: #991b1b; }
+  .badge.partial { background: #fef3c7; color: #92400e; }
+  blockquote { border-left: 3px solid #E57347; background: #fef3e8; margin: 8px 0; padding: 8px 14px; }
+  .legend { font-size: 12px; color: #6b7280; }
+  .note { font-size: 12.5px; color: #374151; background: #f0f9ff; border-left: 3px solid #7dd3fc; margin: 6px 0 14px; padding: 8px 12px; }
+  .warn { font-size: 12.5px; color: #78350f; background: #fffbeb; border-left: 3px solid #f59e0b; margin: 6px 0 14px; padding: 8px 12px; }
+  nav.toc { position: fixed; top: 0; left: 0; width: 258px; height: 100vh; overflow-y: auto; box-sizing: border-box; background: #faf9f7; border-right: 1px solid #e5e7eb; padding: 18px 10px 48px; font-size: 12px; line-height: 1.45; z-index: 50; }
+  nav.toc .toc-title { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #b14a23; margin: 0 0 10px 6px; }
+  nav.toc a { display: block; color: #475569; text-decoration: none; padding: 3px 8px; border-radius: 4px; border-left: 2px solid transparent; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  nav.toc a:hover { background: #fef3e8; color: #b14a23; }
+  nav.toc a.lvl-1 { font-weight: 700; color: #1f2937; margin-top: 9px; }
+  nav.toc a.lvl-2 { padding-left: 18px; font-weight: 600; }
+  nav.toc a.lvl-3 { padding-left: 32px; color: #6b7280; }
+  nav.toc a.active { background: #fef3e8; color: #b14a23; border-left-color: #E57347; }
+  nav.toc a.lvl-p { font-weight: 800; color: #8a3d1c; margin-top: 12px; text-transform: uppercase; font-size: 10.5px; letter-spacing: .08em; }
+  body { margin-left: 290px; }
+  @media (max-width: 1180px) { nav.toc { display: none; } body { margin-left: auto; } }
+  @media print { nav.toc { display: none; } body { margin-left: auto; } }
+  .fig-cap { font-size: 12px; color: #6b7280; text-align: center; margin: 6px 0 4px; }
+  .fig-cap strong { color: #b14a23; }
+  ul.fig-notes, ul.tbl-notes { font-size: 12px; color: #6b7280; margin: 2px 0 14px; padding-left: 22px; }
+  figure.viz { margin: 10px 0 16px; } figure.viz svg { width: 100%; height: auto; border: 1px solid #e5e7eb; border-radius: 6px; }
+  .tw { overflow-x: auto; max-width: 100%; }
+  td.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; white-space: nowrap; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.uf { table-layout: fixed; }
+  table.uf td { font-size: 12px; vertical-align: top; }
+  table.uf ol, table.uf ul { margin: 0; padding-left: 16px; }
+  .grid td { text-align: center; font-size: 11.5px; }
+  .grid td.lbl { text-align: left; white-space: nowrap; }
+  .hole { background: #fef2f2; color: #991b1b; font-weight: 700; }
+  .ctl { display: inline-block; border: 1px solid #9ca3af; border-radius: 4px; padding: 0 5px; font-size: 11.5px; background: #fff; white-space: nowrap; }
+  h2.part-divider { font-size: 13px; text-transform: uppercase; letter-spacing: .14em; color: #8a3d1c; background: #faf2ec; border: none; border-top: 3px solid #E57347; margin: 64px 0 6px; padding: 14px 2px 6px; font-weight: 800; font-family: 'Space Grotesk', -apple-system, sans-serif; }
+  html { color-scheme: light }
+  body { background: #fff }
+  /* §A.14 agreement axis: bar + tint + a pill naming the state. border-left + padding held constant. */
+  h2[data-st],h3[data-st],h4[data-st]{border-left:9px solid var(--st-bar);padding-left:11px;margin-left:-20px;background:var(--st-tint)}
+  [data-st="draft"]{--st-bar:#71717a;--st-tint:#f4f4f5}
+  [data-st="review"]{--st-bar:#c026d3;--st-tint:#fdf4ff}
+  [data-st="approved"]{--st-bar:#16a34a;--st-tint:#f0fdf4}
+  [data-st="locked"]{--st-bar:#1d4ed8;--st-tint:#eff6ff;border-left-style:double;border-left-width:11px;padding-left:9px}
+  [data-st="superseded"]{--st-bar:#a8a29e;--st-tint:transparent;border-left-style:dashed;color:#78716c;font-style:italic}
+  h2.part[data-st]::after,h3[data-st]::after,h4[data-st]::after{content:attr(data-st);float:right;margin:5px 0 0 14px;padding:0 9px;border-radius:9px;background:var(--st-bar);color:#fff;font:600 10.5px/18px -apple-system,Segoe UI,sans-serif;letter-spacing:.06em;text-transform:uppercase;font-style:normal;white-space:nowrap}
+  h2.part[data-st]::after{margin-top:7px}
+  :is(h2.part,h3,h4):is([data-st="approved"],[data-st="locked"])::after{content:attr(data-st) " \00b7 " attr(data-st-on)}
+  :is(h2.part,h3,h4)[data-st="superseded"]::after{background:transparent;color:#78716c;border:1px dashed #a8a29e;line-height:16px}
+  .stlegend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:#52525b;margin:10px 0 16px}
+  .stkey{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:3px;border-left:3px solid var(--st-bar);background:var(--st-tint)}
+  details > summary { cursor: pointer; color: #6b7280; }
+  svg text { fill: #1f2937; font-family: -apple-system, 'Segoe UI', sans-serif; }
+  svg .box { fill: #fff; stroke: #E57347; stroke-width: 1.5; }
+  svg .zone { fill: none; stroke: #9ca3af; stroke-dasharray: 5 4; }
+  svg .ln { stroke: #6b7280; stroke-width: 1.4; fill: none; }
+  .nw { white-space: nowrap; }
+  table.hdr th { width: 170px; }
+  </style>
+</head>
+<body>
+  <nav class="toc">
+    <p class="toc-title">Mục Lục Thi Công</p>
+    <div id="toc"></div>
+  </nav>
+
+  <h1 id="title">AttendancePortal Implementation Strategy Plan (ISP) v1.0.0</h1>
+
+  <table class="hdr">
+    <tr><th>Văn bản</th><td>Kế hoạch Thi công Kỹ thuật & Đặc tả Triển khai (ISP)</td></tr>
+    <tr><th>Phiên bản</th><td>v1.0.0 (Khớp 1:1 với AP v1.0.0 theo điều khoản §A.30)</td></tr>
+    <tr><th>Tệp AP được ghim</th><td><code>AP_AttendancePortal_v1.0.0.html</code></td></tr>
+    <tr><th>Mã SHA-256 của AP</th><td><code>a5d9087b1d61e25e4919fb3120879edde3b5056ab32738c5b2761bacd8e03492</code></td></tr>
+    <tr><th>Cổng kiểm chứng</th><td>Verify Gate (<code>verify.sh</code>) &#183; Kỷ luật kiểm chứng nhị phân</td></tr>
+    <tr><th>Nền tảng thi công</th><td>TypeScript + Vite + Web PWA (Offline-First)</td></tr>
+  </table>
+
+  <div class="stlegend">
+    <span class="stkey" data-st="approved">APPROVED</span> Kế hoạch thi công đã duyệt
+    <span class="stkey" data-st="locked">LOCKED</span> Đã khóa và gắn với bài test tự động
+  </div>
+
+  <h2 class="part-divider" id="part-1">Part 1 — Kiểm Soát & Thứ Tự Thi Công Ưu Tiên</h2>
+
+  <h2 class="part" id="s1-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="2471b0ca">§1.1 SYSTEM: Ghim AP, Phạm vi & Cách đọc bước thi công</h2>
+  <p>Kế hoạch thi công kỹ thuật này hiện thực hóa toàn bộ các yêu cầu kiến trúc được mô tả trong tài liệu <code>AP_AttendancePortal_v1.0.0.html</code> (Mã băm SHA-256: <code>a5d9087b1d61e25e4919fb3120879edde3b5056ab32738c5b2761bacd8e03492</code>). Mọi bước thi công đều có điểm chạm mã nguồn cụ thể, hành động kỹ thuật rõ ràng và lệnh kiểm chứng tự động.</p>
+
+  <h3 id="s1-1-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="0debaca0">§1.1.1 SYSTEM: Bảng quy ước trạng thái và điểm chạm mã nguồn</h3>
+  <div class="tw">
+    <table>
+      <colgroup><col style="width:20%"><col style="width:25%"><col style="width:55%"></colgroup>
+      <tr><th>Ký hiệu trạng thái</th><th>Tên trạng thái</th><th>Ý nghĩa & Tiêu chuẩn chuyển trạng thái</th></tr>
+      <tr><td><span class="badge built">ok · Đạt</span></td><td>Đã hoàn thành</td><td>Mã nguồn đã viết xong, vượt qua bài kiểm tra tự động với mã thoát 0.</td></tr>
+      <tr><td><span class="badge partial">pa · Làm dở</span></td><td>Đang thi công</td><td>Đã tạo cấu trúc nhưng chưa xong toàn bộ logic hoặc chưa có bài test.</td></tr>
+      <tr><td><span class="badge miss">no · Chưa làm</span></td><td>Chưa khởi công</td><td>Nằm trong lộ trình thi công, chuẩn bị nạp vào feature list.</td></tr>
+    </table>
+  </div>
+
+  <h3 id="s1-1-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="ff523b0f">§1.1.2 SYSTEM: Đường găng kỹ thuật và luồng phụ thuộc</h3>
+  <p>Thứ tự triển khai bắt buộc tuân theo đường găng kiến trúc:</p>
+  <ol>
+    <li><strong>Phase A:</strong> Thiết lập hạ tầng khung, mô hình dữ liệu (Types) và động cơ lưu trữ IndexedDB/LocalStorage.</li>
+    <li><strong>Phase 0:</strong> Hiện thực hóa các tính năng nghiệp vụ cốt lõi, thành phần giao diện chính và xử lý sự kiện.</li>
+    <li><strong>Phase 1:</strong> Hoàn thiện các tính năng phụ trợ, làm mượt trải nghiệm người dùng và khóa Verify Gate.</li>
+  </ol>
+
+  <h2 class="part" id="s1-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="cab84cbf">§1.2 SYSTEM: Bảng pha thi công (Phases A, 0, 1) (§A.30)</h2>
+  <p>Toàn bộ khối lượng công việc được phân rã thành 3 giai đoạn kỹ thuật rõ ràng:</p>
+
+  <h3 id="s1-2-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="228c3ed2">§1.2.1 SYSTEM: Danh mục các pha thi công kỹ thuật</h3>
+  <div class="tw">
+    <table>
+      <colgroup><col style="width:15%"><col style="width:30%"><col style="width:25%"><col style="width:30%"></colgroup>
+      <tr><th>Pha thi công</th><th>Tên phân việc kỹ thuật</th><th>Nội dung trọng tâm</th><th>Đầu ra chính</th></tr>
+      <tr><td><b>Phase A</b></td><td>Hạ tầng & Lưu trữ máy khách</td><td>Cấu trúc ứng dụng, Types, Schema CSDL</td><td>Bộ khung dự án & Tầng lưu trữ</td></tr>
+      <tr><td><b>Phase 0</b></td><td>Nghiệp vụ cốt lõi</td><td>Component giao diện chính, State hooks</td><td>Luồng thao tác hoàn chỉnh</td></tr>
+      <tr><td><b>Phase 1</b></td><td>Mở rộng & Verify Gate</td><td>Tối ưu PWA, Offline cache, Tự động hóa test</td><td>Sản phẩm hoàn chỉnh đạt chuẩn kiểm chứng</td></tr>
+    </table>
+  </div>
+
+  <h3 id="s1-2-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="5c08b94d">§1.2.2 SYSTEM: Tổng kết hạng mục và số lượng bước kỹ thuật</h3>
+  <p>Mỗi pha thi công chứa các bước chi tiết có điểm chạm tệp (Touchpoint <code>repo:path:line</code>) và tiêu chí nghiệm thu rõ ràng.</p>
+
+  <h2 class="part-divider" id="part-2">Part 2 — Chi Tiết Thi Công Từng Phân Hệ Kỹ Thuật</h2>
+
+  <h2 class="part" id="s2-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="b862f64c">§2.1 Phase A: Thiết lập hạ tầng và mô hình dữ liệu</h2>
+  <p>Xây dựng nền móng ứng dụng và tách rời hoàn toàn các định nghĩa dữ liệu.</p>
+
+  <h3 id="s2-1-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="74009a08">§2.1.1 Phase A: Bảng các bước thi công hạ tầng</h3>
+  <div class="tw">
+    <table>
+      <colgroup><col style="width:12%"><col style="width:28%"><col style="width:35%"><col style="width:15%"><col style="width:10%"></colgroup>
+      <tr><th>Mã bước</th><th>Điểm chạm (Touchpoint)</th><th>Hành động kỹ thuật</th><th>Kiểm chứng</th><th>Trạng thái</th></tr>
+      <tr><td><b>SA.01</b></td><td><code>repo:package.json:1</code></td><td>Khởi tạo dự án Vite + TypeScript + Tailwind CSS</td><td><code>npm run build</code></td><td><span class="badge built">ok</span></td></tr>
+      <tr><td><b>SA.02</b></td><td><code>repo:src/types/index.ts:1</code></td><td>Định nghĩa các interface dữ liệu cốt lõi</td><td><code>tsc --noEmit</code></td><td><span class="badge built">ok</span></td></tr>
+      <tr><td><b>SA.03</b></td><td><code>repo:src/services/db.ts:1</code></td><td>Khởi tạo cơ sở dữ liệu IndexedDB / LocalStorage</td><td>Unit test storage</td><td><span class="badge built">ok</span></td></tr>
+    </table>
+  </div>
+
+  <h3 id="s2-1-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="1bad9662">§2.1.2 Phase A: Quy tắc an toàn lưu trữ và kiểu dữ liệu</h3>
+  <p>Toàn bộ các trường dữ liệu đều được khai báo kiểu tường minh (TypeScript strict mode), không sử dụng kiểu <code>any</code>.</p>
+
+  <h2 class="part" id="s2-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="19c500b4">§2.2 Phase 0: Hiện thực hóa các tính năng nghiệp vụ cốt lõi</h2>
+  <p>Triển khai các màn hình chính và bộ xử lý logic người dùng.</p>
+
+  <h3 id="s2-2-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="00e99252">§2.2.1 Phase 0: Bảng các bước thi công nghiệp vụ chính</h3>
+  <div class="tw">
+    <table>
+      <colgroup><col style="width:12%"><col style="width:28%"><col style="width:35%"><col style="width:15%"><col style="width:10%"></colgroup>
+      <tr><th>Mã bước</th><th>Điểm chạm (Touchpoint)</th><th>Hành động kỹ thuật</th><th>Kiểm chứng</th><th>Trạng thái</th></tr>
+      <tr><td><b>S0.01</b></td><td><code>repo:src/components/Header.tsx:1</code></td><td>Tạo thanh tiêu đề, lời chào và các nút điều hướng</td><td>Render test Header</td><td><span class="badge built">ok</span></td></tr>
+      <tr><td><b>S0.02</b></td><td><code>repo:src/components/QuickEntry.tsx:1</code></td><td>Xây dựng cụm nhập liệu nhanh / phím số</td><td>Input test</td><td><span class="badge built">ok</span></td></tr>
+      <tr><td><b>S0.03</b></td><td><code>repo:src/components/MainView.tsx:1</code></td><td>Hiển thị danh sách dữ liệu chính và trạng thái rỗng</td><td>List render test</td><td><span class="badge built">ok</span></td></tr>
+    </table>
+  </div>
+
+  <h3 id="s2-2-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="ebf7cf22">§2.2.2 Phase 0: Cơ chế xử lý lỗi và tính toàn vẹn trạng thái</h3>
+  <p>Mọi thao tác thay đổi dữ liệu đều được bọc trong giao dịch (transaction) để đảm bảo không xảy ra hiện tượng mất dữ liệu cục bộ.</p>
+
+  <h2 class="part" id="s2-3" data-st="approved" data-st-on="2026-11-02" data-st-hash="57e1e233">§2.3 Phase 1: Mở rộng tính năng và hoàn thiện kiểm chứng</h2>
+  <p>Hoàn thiện trải nghiệm người dùng, cấu hình PWA và kết nối kiểm thử Verify Gate.</p>
+
+  <h3 id="s2-3-1" data-st="approved" data-st-on="2026-11-02" data-st-hash="909100e5">§2.3.1 Phase 1: Bảng các bước thi công hoàn thiện và Verify Gate</h3>
+  <div class="tw">
+    <table>
+      <colgroup><col style="width:12%"><col style="width:28%"><col style="width:35%"><col style="width:15%"><col style="width:10%"></colgroup>
+      <tr><th>Mã bước</th><th>Điểm chạm (Touchpoint)</th><th>Hành động kỹ thuật</th><th>Kiểm chứng</th><th>Trạng thái</th></tr>
+      <tr><td><b>S1.01</b></td><td><code>repo:public/manifest.json:1</code></td><td>Cấu hình PWA manifest và biểu tượng hiển thị</td><td>Lighthouse check</td><td><span class="badge built">ok</span></td></tr>
+      <tr><td><b>S1.02</b></td><td><code>repo:src/sw.ts:1</code></td><td>Đăng ký Service Worker và cache tĩnh</td><td>Offline load test</td><td><span class="badge built">ok</span></td></tr>
+      <tr><td><b>S1.03</b></td><td><code>repo:verify.sh:1</code></td><td>Gắn toàn bộ kịch bản kiểm thử vào cổng Verify Gate</td><td><code>./verify.sh</code> exit 0</td><td><span class="badge built">ok</span></td></tr>
+    </table>
+  </div>
+
+  <h3 id="s2-3-2" data-st="approved" data-st-on="2026-11-02" data-st-hash="02bf3262">§2.3.2 Phase 1: Kỷ luật kiểm thử nhị phân khép kín</h3>
+  <p>Tính năng chỉ được đóng dấu passing khi toàn bộ bài kiểm tra vượt qua và script kết thúc với mã thoát 0.</p>
+
+  <h2 class="part" id="sec-outstanding" data-st="approved" data-st-on="2026-11-02" data-st-hash="1d6d6237">Appendix — What is outstanding &#8212; 0 units</h2>
+  <div class="tw"><table>
+  <tr><th>Unit</th><th>Title</th><th>State</th><th>Marked</th></tr>
+  </table></div>
+
+  <script>
+// agp-build-ap references/ap-toc.js — the AP contents rail (§A.31). Inline verbatim in a
+// <script> just before </body>. It fills this shell, which goes first in <body>:
+//   <nav class="toc"><p class="toc-title">Contents</p><div id="toc"></div></nav>
+// It lists h1 / h2 / h3 that carry an id; h2.part-divider shows as a Part row.
+(function() {
+  var toc = document.getElementById('toc');
+  if (!toc) return;
+  var hs = document.querySelectorAll('h1, h2, h3');
+  var as = [];
+  hs.forEach(function(h) {
+    if (!h.id) return;
+    var a = document.createElement('a');
+    var cls = h.tagName === 'H1' ? 'lvl-1' : (h.tagName === 'H2' && h.classList.contains('part-divider')) ? 'lvl-p' : h.tagName === 'H2' ? 'lvl-2' : 'lvl-3';
+    a.className = cls;
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    toc.appendChild(a);
+    as.push({ a: a, el: h });
+  });
+  function spy() {
+    var scrollY = window.scrollY;
+    var cur = null;
+    as.forEach(function(item) {
+      if (item.el.getBoundingClientRect().top + scrollY - 80 <= scrollY) cur = item;
+    });
+    as.forEach(function(item) { item.a.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', spy, { passive: true });
+  window.addEventListener('resize', spy);
+  spy();
+})();
+  </script>
+</body>
+</html>
