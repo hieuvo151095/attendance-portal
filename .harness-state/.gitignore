@@ -1,0 +1,4 @@
+# Bỏ qua tệp nhật ký thực thi & tiến trình tạm thời
+.harness/logs/
+*.pid
+*.tmp

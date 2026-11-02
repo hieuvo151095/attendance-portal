@@ -1,0 +1,21 @@
+{
+  "name": "Attendance Portal",
+  "mode": "new",
+  "lang": "vi",
+  "created": "2026-11-02",
+  "repo_root": "..",
+  "max_lines": 600,
+  "prefixes": {
+    "MTG": "Điểm danh cuộc họp",
+    "CC": "Chấm công vào ra",
+    "TB": "Thiết bị và tích hợp",
+    "NV": "Tổ chức và nhân sự"
+  },
+  "code_roots": [],
+  "doc_roots": [],
+  "source_priority": {
+    "desired": "tài liệu yêu cầu trong raw/specs/ (bản mới hơn thắng)",
+    "current": "chưa có code"
+  },
+  "_doc": "Đọc bởi tools/lint_wiki.py. Ghi đè mặc định bằng các khoá: page_types, orphan_exempt, gap_levels, doc_levels, log_ops, spec_id_suffix, generated_dirs. Xem SCHEMA.md."
+}

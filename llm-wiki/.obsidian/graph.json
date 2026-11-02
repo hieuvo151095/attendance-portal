@@ -1,0 +1,31 @@
+{
+  "collapse-filter": false,
+  "search": "-path:tools",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": true,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    { "query": "path:pages/overview", "color": { "a": 1, "rgb": 14701138 } },
+    { "query": "path:pages/flows",    "color": { "a": 1, "rgb": 16750848 } },
+    { "query": "path:pages/screens",  "color": { "a": 1, "rgb": 3381759 } },
+    { "query": "path:pages/entities", "color": { "a": 1, "rgb": 5025616 } },
+    { "query": "path:pages/concepts", "color": { "a": 1, "rgb": 10233776 } },
+    { "query": "path:pages/sources",  "color": { "a": 1, "rgb": 10395294 } },
+    { "query": "path:raw",            "color": { "a": 1, "rgb": 12434877 } },
+    { "query": "file:index OR file:log OR file:SCHEMA OR file:OBSIDIAN", "color": { "a": 1, "rgb": 2236962 } }
+  ],
+  "collapse-display": false,
+  "showArrow": true,
+  "textFadeMultiplier": -1,
+  "nodeSizeMultiplier": 1.2,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": true,
+  "centerStrength": 0.5,
+  "repelStrength": 12,
+  "linkStrength": 1,
+  "linkDistance": 220,
+  "scale": 1,
+  "close": false
+}

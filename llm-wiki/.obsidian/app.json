@@ -1,0 +1,13 @@
+{
+  "useMarkdownLinks": true,
+  "newLinkFormat": "relative",
+  "alwaysUpdateLinks": true,
+  "attachmentFolderPath": "raw/assets",
+  "newFileLocation": "folder",
+  "newFileFolderPath": "pages",
+  "userIgnoreFilters": ["tools/"],
+  "showUnsupportedFiles": true,
+  "readableLineLength": true,
+  "propertiesInDocument": "visible",
+  "strictLineBreaks": false
+}

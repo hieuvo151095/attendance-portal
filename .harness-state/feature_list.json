@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "app_id": "attendance-portal",
+  "app_name": "Attendance Portal",
+  "features": [
+    {
+      "id": "CC-01",
+      "name": "Ghi nhận thời điểm Check-in vào cơ quan đầu ngày, gắn nhãn ca làm việc và trạng thái đi làm đúng giờ / muộn",
+      "description": "Đặc tả: Ghi nhận thời điểm Check-in vào cơ quan đầu ngày, gắn nhãn ca làm việc và trạng thái đi làm đúng giờ / muộn. ; Áp dụng cho toàn cơ quan/doanh nghiệp/bệnh viện",
+      "priority": "P1",
+      "state": "pending",
+      "spec_file": "llm-wiki/pages/entities/attendance-record.md",
+      "spec_path": "llm-wiki/pages/entities/attendance-record.md",
+      "spec_line": 18,
+      "created_at": "2026-11-02T08:09:09Z",
+      "updated_at": "2026-11-02T08:09:09Z"
+    },
+    {
+      "id": "CC-02",
+      "name": "Ghi nhận thời điểm Check-out rời cơ quan cuối ngày, tính toán tổng số giờ làm việc thực tế",
+      "description": "Đặc tả: Ghi nhận thời điểm Check-out rời cơ quan cuối ngày, tính toán tổng số giờ làm việc thực tế. ; Tự động ghép cặp với Check-in gần nhất trong ca",
+      "priority": "P1",
+      "state": "pending",
+      "spec_file": "llm-wiki/pages/entities/attendance-record.md",
+      "spec_path": "llm-wiki/pages/entities/attendance-record.md",
+      "spec_line": 19,
+      "created_at": "2026-11-02T08:09:09Z",
+      "updated_at": "2026-11-02T08:09:09Z"
+    },
+    {
+      "id": "MTG-04",
+      "name": "Widget thống kê trực quan tỷ lệ chuyên cần (% tham dự, số người vắng mặt, số người đi muộn) và nút xuất báo cáo Excel/PDF",
+      "description": "Đặc tả: Báo cáo chuyên cần cuộc họp tự động tổng hợp danh sách: có mặt đúng giờ, đi muộn, vắng mặt có phép, vắng mặt không phép. ; Cập nhật thời gian thực ngay trên màn hình giám sát",
+      "priority": "P0",
+      "state": "pending",
+      "spec_file": "llm-wiki/pages/entities/meeting.md",
+      "spec_path": "llm-wiki/pages/entities/meeting.md",
+      "spec_line": 21,
+      "created_at": "2026-11-02T08:09:09Z",
+      "updated_at": "2026-11-02T08:09:09Z"
+    },
+    {
+      "id": "TB-01",
+      "name": "Thiết bị Hikvision truyền tải sự kiện nhận diện qua giao thức ISAPI hoặc webhook thời gian thực kèm mã nhân viên, độ chính xác nhận diện và ảnh chụp log",
+      "description": "Đặc tả: Thiết bị Hikvision truyền tải sự kiện nhận diện qua giao thức ISAPI hoặc webhook thời gian thực kèm mã nhân viên, độ chính xác nhận diện và ảnh chụp log. ; Cần cơ chế buffer lưu tạm khi mất kết nối mạng",
+      "priority": "P1",
+      "state": "pending",
+      "spec_file": "llm-wiki/pages/entities/device.md",
+      "spec_path": "llm-wiki/pages/entities/device.md",
+      "spec_line": 18,
+      "created_at": "2026-11-02T08:09:09Z",
+      "updated_at": "2026-11-02T08:09:09Z"
+    },
+    {
+      "id": "MTG-01",
+      "name": "Cuộc họp bắt buộc có tiêu đề, phòng họp chỉ định, thời điểm bắt đầu - kết thúc dự kiến và danh sách thành viên được triệu tập",
+      "description": "Đặc tả: Cuộc họp bắt buộc có tiêu đề, phòng họp chỉ định, thời điểm bắt đầu - kết thúc dự kiến và danh sách thành viên được triệu tập. ; Hỗ trợ thiết lập người bắt buộc và người tùy chọn",
+      "priority": "P0",
+      "state": "pending",
+      "spec_file": "llm-wiki/pages/entities/meeting.md",
+      "spec_path": "llm-wiki/pages/entities/meeting.md",
+      "spec_line": 18,
+      "created_at": "2026-11-02T08:09:09Z",
+      "updated_at": "2026-11-02T08:09:09Z"
+    },
+    {
+      "id": "MTG-02",
+      "name": "Khi đại biểu thực hiện Check-in tại phòng họp, hệ thống tự động đối chiếu thời điểm ghi nhận với mốc bắt đầu cuộc họp để gắn nhãn đúng giờ hoặc đi muộn",
+      "description": "Đặc tả: Khi đại biểu thực hiện Check-in tại phòng họp, hệ thống tự động đối chiếu thời điểm ghi nhận với mốc bắt đầu cuộc họp để gắn nhãn đúng giờ hoặc đi muộn. ; Áp dụng ngưỡng dung sai cho phép (ví dụ: trong vòng 5 phút)",
+      "priority": "P0",
+      "state": "pending",
+      "spec_file": "llm-wiki/pages/entities/meeting.md",
+      "spec_path": "llm-wiki/pages/entities/meeting.md",
+      "spec_line": 19,
+      "created_at": "2026-11-02T08:09:09Z",
+      "updated_at": "2026-11-02T08:09:09Z"
+    },
+    {
+      "id": "MTG-03",
+      "name": "Khi đại biểu thực hiện Check-out hoặc khi cuộc họp kết thúc, hệ thống ghi nhận thời điểm rời phòng họp để tính thời lượng tham gia thực tế",
+      "description": "Đặc tả: Khi đại biểu thực hiện Check-out hoặc khi cuộc họp kết thúc, hệ thống ghi nhận thời điểm rời phòng họp để tính thời lượng tham gia thực tế. ; Kiểm tra về sớm nếu check-out trước khi kết thúc cuộc họp",
+      "priority": "P0",
+      "state": "pending",
+      "spec_file": "llm-wiki/pages/entities/meeting.md",
+      "spec_path": "llm-wiki/pages/entities/meeting.md",
+      "spec_line": 20,
+      "created_at": "2026-11-02T08:09:09Z",
+      "updated_at": "2026-11-02T08:09:09Z"
+    },
+    {
+      "id": "TB-02",
+      "name": "Đầu đọc thẻ vật lý truyền mã UID thẻ ngay khi nhân viên chạm thẻ vào vùng nhận diện trên thiết bị hoặc camera",
+      "description": "Đặc tả: Bản ghi điểm danh qua thẻ vật lý phải lưu kèm mã định danh thẻ (Card UID/Badge ID) và mã thiết bị tiếp nhận. ; Chống trùng lặp sự kiện trong khoảng thời gian ngắn",
+      "priority": "P1",
+      "state": "pending",
+      "spec_file": "llm-wiki/pages/entities/device.md",
+      "spec_path": "llm-wiki/pages/entities/device.md",
+      "spec_line": 19,
+      "created_at": "2026-11-02T08:09:09Z",
+      "updated_at": "2026-11-02T08:09:09Z"
+    },
+    {
+      "id": "NV-01",
+      "name": "Mỗi nhân viên có mã định danh duy nhất (Employee ID), họ tên, chức danh, phòng ban và các dữ liệu định danh phần cứng (mã thẻ vật lý, Face token Hikvision, mẫu vân tay)",
+      "description": "Đặc tả: Mỗi nhân viên có mã định danh duy nhất (Employee ID), họ tên, chức danh, phòng ban và các dữ liệu định danh phần cứng (mã thẻ vật lý, Face token Hikvision, mẫu vân tay). ; Dữ liệu sinh trắc học được mã hóa an toàn",
+      "priority": "P1",
+      "state": "pending",
+      "spec_file": "llm-wiki/pages/entities/employee.md",
+      "spec_path": "llm-wiki/pages/entities/employee.md",
+      "spec_line": 18,
+      "created_at": "2026-11-02T08:09:09Z",
+      "updated_at": "2026-11-02T08:09:09Z"
+    },
+    {
+      "id": "NV-02",
+      "name": "Cơ cấu tổ chức linh hoạt cho 3 mô hình hoạt động: Cơ quan nhà nước/Uỷ ban phường (Khối/Phòng/Ban), Doanh nghiệp/Nhà máy (Phân xưởng/Tổ đội/Văn phòng), Bệnh viện (Khoa/Phòng khám/Kíp trực)",
+      "description": "Đặc tả: Cơ cấu tổ chức linh hoạt cho 3 mô hình hoạt động: Cơ quan nhà nước/Uỷ ban phường (Khối/Phòng/Ban), Doanh nghiệp/Nhà máy (Phân xưởng/Tổ đội/Văn phòng), Bệnh viện (Khoa/Phòng khám/Kíp trực). ; Hỗ trợ phân quyền đại biểu theo đơn vị",
+      "priority": "P1",
+      "state": "pending",
+      "spec_file": "llm-wiki/pages/entities/employee.md",
+      "spec_path": "llm-wiki/pages/entities/employee.md",
+      "spec_line": 19,
+      "created_at": "2026-11-02T08:09:09Z",
+      "updated_at": "2026-11-02T08:09:09Z"
+    }
+  ]
+}

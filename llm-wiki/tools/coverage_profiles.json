@@ -1,0 +1,68 @@
+{
+ "_doc": "Profile của coverage (skill llm-wiki), dạng dữ liệu. {name} = tên SQL của subject, {alias} = mọi alias (đã escape, nối bằng |). Mẫu là regex Python. Thêm stack khác bằng wiki.json → coverage.custom_profiles cùng khuôn.",
+ "sql": {
+  "discover": [
+   {"re": "(?i)\\bcreate\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(?:\"?public\"?\\.)?\"?([A-Za-z_]\\w*)\"?", "kind": "table", "name": 1}
+  ],
+  "facts": [
+   {"re": "(?i)\\binsert\\s+into\\s+(?:\"?public\"?\\.)?\"?{name}\"?(?![\\w.])", "verb": "create"},
+   {"re": "(?i)\\bmerge\\s+into\\s+(?:\"?public\"?\\.)?\"?{name}\"?(?![\\w.])", "verb": "change"},
+   {"re": "(?i)\\bupdate\\s+(?:only\\s+)?(?:\"?public\"?\\.)?\"?{name}\"?(?:\\s+(?:as\\s+)?(?!set\\b)\\w+)?\\s+set\\b", "verb": "change"},
+   {"re": "(?i)\\bdelete\\s+from\\s+(?:only\\s+)?(?:\"?public\"?\\.)?\"?{name}\"?(?![\\w.])", "verb": "delete"},
+   {"re": "(?i)\\btruncate\\s+(?:table\\s+)?(?:only\\s+)?(?:\"?public\"?\\.)?\"?{name}\"?(?![\\w.])", "verb": "delete"}
+  ],
+  "read": [
+   "(?i)\\b(?:from|join)\\s+(?:only\\s+)?(?:\"?public\"?\\.)?\"?{name}\"?(?![\\w])"
+  ],
+  "schema": [
+   "(?i)\\b(?:create|alter|drop)\\s+table\\b[^;]{0,80}?\\b{name}\\b",
+   "(?i)\\b(?:create\\s+(?:unique\\s+)?index|create\\s+policy|drop\\s+policy|alter\\s+policy|comment\\s+on|grant|revoke|create\\s+trigger)\\b[^;]{0,200}?\\b{name}\\b",
+   "(?i)\\breferences\\s+(?:\"?public\"?\\.)?\"?{name}\"?\\b",
+   "(?i)\\bon\\s+(?:\"?public\"?\\.)?\"?{name}\"?\\s*\\(",
+   "(?i)\\btable_name\\s*=\\s*'{name}'",
+   "(?i)\\btablename\\s*=\\s*'{name}'"
+  ],
+  "function_block": "(?is)\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+([\\w.\"]+)[\\s\\S]*?\\$(\\w*)\\$([\\s\\S]*?)\\$\\2\\$"
+ },
+ "drizzle": {
+  "discover": [
+   {"re": "export\\s+const\\s+(\\w+)\\s*(?::\\s*[^=;]{1,80})?=\\s*(?:pg|mysql|sqlite)Table\\(\\s*['\"]([A-Za-z_]\\w*)['\"]", "kind": "table", "name": 2, "alias": 1}
+  ],
+  "self_test": "(?:pg|mysql|sqlite)Table\\(\\s*['\"]",
+  "facts": [
+   {"re": "\\.insert\\(\\s*(?:\\w+\\.)?(?:{alias})\\s*\\)", "verb": "create"},
+   {"re": "\\.update\\(\\s*(?:\\w+\\.)?(?:{alias})\\s*\\)", "verb": "change"},
+   {"re": "\\.delete\\(\\s*(?:\\w+\\.)?(?:{alias})\\s*\\)", "verb": "delete"}
+  ],
+  "read": [
+   "\\.from\\(\\s*(?:\\w+\\.)?(?:{alias})\\b",
+   "[jJ]oin\\(\\s*(?:\\w+\\.)?(?:{alias})\\b",
+   "\\b(?:{alias})\\.\\w+",
+   "\\b(?:{alias})\\s*[,)]",
+   "\\bquery\\.(?:{alias})\\.find"
+  ],
+  "schema": [
+   "(?:pg|mysql|sqlite)Table\\(\\s*['\"]{name}['\"]",
+   "\\brelations\\(\\s*(?:{alias})\\b",
+   "\\breferences\\(\\s*\\(\\)\\s*=>\\s*(?:{alias})\\b"
+  ],
+  "import": [
+   "^\\s*(?:import|export)\\b[^\\n]*\\b(?:{alias})\\b",
+   "^\\s*(?:{alias})\\s*,?\\s*$",
+   "^\\s*(?:\\w+\\s*,\\s*)*(?:{alias})\\s*(?:,\\s*\\w+\\s*)*,?\\s*(?:\\}\\s*from\\b.*)?$"
+  ],
+  "alias_rename": "(?:import|export)\\s*(?:type\\s+)?\\{[^}]*?\\b({alias})\\s+as\\s+([A-Za-z_$][\\w$]*)"
+ },
+ "noise": {
+  "ui_extensions": [".tsx", ".jsx", ".vue", ".svelte", ".html"],
+  "sql_keywords": "(?i)\\b(select|insert|update|delete|from|join|where|into|values|set|returning|truncate|merge)\\b",
+  "string_re": "'(?:[^'\\\\\\n]|\\\\.)*'|\"(?:[^\"\\\\\\n]|\\\\.)*\"|`(?:[^`\\\\]|\\\\.)*`",
+  "log_call_re": "\\b(?:console|logger|this\\.logger|log)\\.(?:log|info|warn|error|debug)\\s*\\("
+ },
+ "design_uncovered": {
+  "cron_or_queue": "@(?:Cron|Interval|Timeout|Process|OnEvent|EventPattern|MessagePattern)\\(|\\bcron\\.schedule\\(|\\bnew\\s+(?:Worker|Queue)\\(",
+  "cache_or_redis": "\\b(?:redis|cache|cacheManager|this\\.redis)\\.(?:set|del|hset|hdel|incr|decr|expire|setex|lpush|rpush|sadd|srem)\\(",
+  "outbound_http": "\\bfetch\\(|\\baxios\\.(?:get|post|put|patch|delete|request)\\(|\\bthis\\.httpService\\.",
+  "read_only_sql": "(?i)\\bselect\\b[\\s\\S]{0,400}?\\bfrom\\b"
+ }
+}
