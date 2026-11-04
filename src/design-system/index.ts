@@ -7,3 +7,4 @@ export * from './Card';
 export * from './TextField';
 export * from './PasswordField';
 export * from './Tag';
+export * from './PopupModal';

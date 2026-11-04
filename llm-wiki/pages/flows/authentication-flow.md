@@ -29,7 +29,7 @@ Cung cấp cổng xác thực an toàn cho người quản trị cơ quan khách
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
 | AUTH-01 | P0 | Xác thực tài khoản đơn vị do Finviet cấp và cô lập dữ liệu | Đã triển khai xác thực tài khoản đơn vị và phân quyền cô lập | MATCH | repo:src/services/auth.ts:1 |
-| AUTH-02 | P0 | Quản lý phiên làm việc, bắt buộc đổi mật khẩu lần đầu | Chưa triển khai | MISSING | - |
+| AUTH-02 | P0 | Quản lý phiên làm việc, bắt buộc đổi mật khẩu lần đầu | Đã hoàn thành modal đổi mật khẩu lần đầu và kiểm soát phức tạp | MATCH | repo:src/pages/auth/ChangePasswordModal.tsx:1 |
 
 ## Liên quan
 - [Tài khoản đơn vị](../entities/tenant-account.md)

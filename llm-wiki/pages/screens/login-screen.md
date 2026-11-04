@@ -6,7 +6,7 @@ sources:
 spec_ids: [AUTH-01, AUTH-02]
 apps: [web]
 route_ids: [/login]
-status: partial
+status: built
 updated: 2026-11-04
 ---
 
@@ -24,13 +24,13 @@ Màn hình xác thực danh tính dành cho quản trị viên cơ quan khách h
 | Mã | Yêu cầu | Trạng thái |
 |---|---|---|
 | AUTH-01 | Form đăng nhập gồm ô nhập Username (hoặc Mã đơn vị) và Mật khẩu; nút "Đăng nhập" theo biến màu `--bl-bg`/`--focus` của Design System | BUILT |
-| AUTH-02 | Modal yêu cầu đổi mật khẩu lần đầu khi phát hiện tài khoản dùng mật khẩu mặc định của Finviet | MISSING |
+| AUTH-02 | Modal yêu cầu đổi mật khẩu lần đầu khi phát hiện tài khoản dùng mật khẩu mặc định của Finviet | BUILT |
 
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
 | AUTH-01 | P0 | Giao diện đăng nhập tài khoản đơn vị và quản lý token | Đã hoàn thành màn hình đăng nhập chuẩn Design System | MATCH | repo:src/pages/auth/Login.tsx:1 |
-| AUTH-02 | P0 | Modal bắt buộc đổi mật khẩu lần đầu | Chưa triển khai | MISSING | - |
+| AUTH-02 | P0 | Modal bắt buộc đổi mật khẩu lần đầu | Đã hoàn thành modal đổi mật khẩu lần đầu chuẩn PopupModal Design System | MATCH | repo:src/pages/auth/ChangePasswordModal.tsx:1 |
 
 ## Liên quan
 - [Tài khoản đơn vị](../entities/tenant-account.md)

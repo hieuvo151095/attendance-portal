@@ -9,6 +9,7 @@ import {
   Tag,
   Icon
 } from '../../design-system';
+import { ChangePasswordModal } from './ChangePasswordModal';
 import { authService, INITIAL_TENANTS } from '../../services/auth';
 import { AuthSession, OrganizationType } from '../../types/auth';
 
@@ -30,6 +31,8 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState(false);
   const [currentSession, setCurrentSession] = useState<AuthSession | null>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordSuccessMessage, setPasswordSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     // Kiểm tra phiên đăng nhập hiện tại nếu có
@@ -64,6 +67,9 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
       if (result.success && result.session) {
         setCurrentSession(result.session);
+        if (result.requirePasswordChange) {
+          setShowPasswordModal(true);
+        }
         if (onLoginSuccess) {
           onLoginSuccess(result.session);
         }
@@ -111,6 +117,12 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             </p>
           </div>
 
+          {passwordSuccessMessage && (
+            <InlineNotice tone="success" style={{ marginBottom: '16px' }}>
+              {passwordSuccessMessage}
+            </InlineNotice>
+          )}
+
           <div style={styles.sessionBox}>
             <div style={styles.sessionRow}>
               <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>Đơn vị quản trị:</span>
@@ -129,6 +141,24 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               <StatusTag tone={orgMeta.tone}>{orgMeta.label}</StatusTag>
             </div>
 
+            {currentSession.tenant.contactName && (
+              <div style={styles.sessionRow}>
+                <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>Người phụ trách:</span>
+                <span className="body-sm-medium" style={{ color: 'var(--text-body)' }}>
+                  {currentSession.tenant.contactName}
+                </span>
+              </div>
+            )}
+
+            {currentSession.tenant.contactPhone && (
+              <div style={styles.sessionRow}>
+                <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>Hotline / SĐT:</span>
+                <span className="body-sm-medium" style={{ color: 'var(--text-body)' }}>
+                  {currentSession.tenant.contactPhone}
+                </span>
+              </div>
+            )}
+
             <div style={styles.sessionRow}>
               <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>Mã phiên (Token ID):</span>
               <span className="body-mono-xs" style={{ color: 'var(--text-subtle)', wordBreak: 'break-all' }}>
@@ -136,10 +166,28 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
               </span>
             </div>
 
-            {currentSession.tenant.isDefaultPassword && (
-              <InlineNotice tone="warning" style={{ marginTop: '16px' }}>
-                <strong>Yêu cầu bảo mật:</strong> Đơn vị đang sử dụng mật khẩu mặc định khởi tạo của Finviet. Hệ thống sẽ yêu cầu cập nhật mật khẩu mới trước khi thực hiện các tác vụ điểm danh chính thức (AUTH-02).
+            {currentSession.tenant.isDefaultPassword ? (
+              <InlineNotice
+                tone="warning"
+                style={{ marginTop: '16px' }}
+                action={
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowPasswordModal(true)}
+                    icon="key"
+                  >
+                    Đổi mật khẩu ngay
+                  </Button>
+                }
+              >
+                <strong>Yêu cầu bảo mật:</strong> Đơn vị đang sử dụng mật khẩu mặc định của Finviet. Vui lòng đổi mật khẩu mới để bảo vệ an toàn hệ thống.
               </InlineNotice>
+            ) : (
+              <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <StatusTag tone="success" icon="circle-check">
+                  Mật khẩu an toàn đã được cập nhật
+                </StatusTag>
+              </div>
             )}
           </div>
 
@@ -147,12 +195,34 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             <Button
               variant="secondary"
               block
+              onClick={() => setShowPasswordModal(true)}
+              icon="key"
+            >
+              Cập nhật mật khẩu & Hồ sơ
+            </Button>
+            <Button
+              variant="ghost"
               onClick={handleLogout}
               icon="right-from-bracket"
             >
               Đăng xuất
             </Button>
           </div>
+
+          <ChangePasswordModal
+            open={showPasswordModal}
+            session={currentSession}
+            isFirstLogin={currentSession.tenant.isDefaultPassword}
+            onClose={() => setShowPasswordModal(false)}
+            onSuccess={(updatedSession) => {
+              setCurrentSession(updatedSession);
+              setShowPasswordModal(false);
+              setPasswordSuccessMessage('Đã cập nhật mật khẩu mới và hồ sơ người đại diện thành công!');
+              if (onLoginSuccess) {
+                onLoginSuccess(updatedSession);
+              }
+            }}
+          />
         </div>
       </div>
     );

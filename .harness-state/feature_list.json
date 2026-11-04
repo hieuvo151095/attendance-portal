@@ -20,12 +20,12 @@
       "name": "Modal yêu cầu đổi mật khẩu lần đầu khi phát hiện tài khoản dùng mật khẩu mặc định của Finviet",
       "description": "Đặc tả: Khi đăng nhập lần đầu với mật khẩu mặc định của Finviet, hệ thống yêu cầu đổi mật khẩu mới. Hỗ trợ cập nhật thông tin người đại diện và hotline hỗ trợ của đơn vị. ; Tự động hết hạn phiên sau thời gian không hoạt động",
       "priority": "P0",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/tenant-account.md",
       "spec_path": "llm-wiki/pages/entities/tenant-account.md",
       "spec_line": 19,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T04:50:09Z"
     },
     {
       "id": "ORG-01",

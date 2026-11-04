@@ -277,6 +277,154 @@ class AuthService {
   }
 
   /**
+   * Đổi mật khẩu tài khoản đơn vị (AUTH-02: Đổi mật khẩu lần đầu hoặc định kỳ)
+   */
+  public async changePassword(
+    tenantId: string,
+    currentPassword: string,
+    newPassword: string,
+    profile?: { contactName?: string; contactPhone?: string }
+  ): Promise<{ success: boolean; error?: string; session?: AuthSession }> {
+    const tenants = this.getTenants();
+    const tenantIndex = tenants.findIndex((t) => t.id === tenantId);
+
+    if (tenantIndex === -1) {
+      return { success: false, error: 'Không tìm thấy tài khoản đơn vị trong hệ thống' };
+    }
+
+    const tenant = tenants[tenantIndex];
+
+    // 1. Xác thực mật khẩu hiện tại
+    if (tenant.passwordHash !== hashPassword(currentPassword)) {
+      return { success: false, error: 'Mật khẩu hiện tại không chính xác' };
+    }
+
+    // 2. Kiểm tra mật khẩu mới không được trùng mật khẩu cũ
+    if (currentPassword === newPassword) {
+      return {
+        success: false,
+        error: 'Mật khẩu mới không được trùng với mật khẩu hiện tại hoặc mật khẩu mặc định'
+      };
+    }
+
+    // 3. Kiểm tra độ phức tạp mật khẩu: tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số
+    if (newPassword.length < 8) {
+      return { success: false, error: 'Mật khẩu mới bắt buộc phải có tối thiểu 8 ký tự' };
+    }
+
+    if (!/[A-Z]/.test(newPassword)) {
+      return { success: false, error: 'Mật khẩu mới phải chứa ít nhất 1 chữ in hoa (A-Z)' };
+    }
+
+    if (!/[a-z]/.test(newPassword)) {
+      return { success: false, error: 'Mật khẩu mới phải chứa ít nhất 1 chữ in thường (a-z)' };
+    }
+
+    if (!/[0-9]/.test(newPassword)) {
+      return { success: false, error: 'Mật khẩu mới phải chứa ít nhất 1 chữ số (0-9)' };
+    }
+
+    // 4. Cập nhật mật khẩu mới và gỡ bỏ cờ mật khẩu mặc định
+    tenant.passwordHash = hashPassword(newPassword);
+    tenant.isDefaultPassword = false;
+    tenant.updatedAt = new Date().toISOString();
+
+    // 5. Cập nhật thông tin người đại diện và hotline nếu có
+    if (profile?.contactName !== undefined) {
+      tenant.contactName = profile.contactName.trim();
+    }
+    if (profile?.contactPhone !== undefined) {
+      tenant.contactPhone = profile.contactPhone.trim();
+    }
+
+    tenants[tenantIndex] = tenant;
+    this.saveTenants(tenants);
+
+    // 6. Cập nhật phiên làm việc hiện tại
+    const currentSession = this.getCurrentSession();
+    let updatedSession: AuthSession;
+
+    if (currentSession && currentSession.tenant.id === tenantId) {
+      updatedSession = {
+        ...currentSession,
+        tenant: {
+          ...currentSession.tenant,
+          isDefaultPassword: false,
+          contactName: tenant.contactName,
+          contactPhone: tenant.contactPhone
+        }
+      };
+      this.saveSession(updatedSession);
+    } else {
+      const now = Date.now();
+      const token = `fv_att_${tenant.id}_${now}_${Math.random().toString(36).substring(2, 10)}`;
+      updatedSession = {
+        token,
+        tenant: {
+          id: tenant.id,
+          username: tenant.username,
+          orgName: tenant.orgName,
+          orgType: tenant.orgType,
+          isDefaultPassword: false,
+          contactName: tenant.contactName,
+          contactPhone: tenant.contactPhone
+        },
+        expiresAt: new Date(now + SESSION_EXPIRY_MS).toISOString()
+      };
+      this.saveSession(updatedSession);
+    }
+
+    return {
+      success: true,
+      session: updatedSession
+    };
+  }
+
+  /**
+   * Cập nhật thông tin người phụ trách & hotline hỗ trợ của đơn vị (AUTH-02)
+   */
+  public async updateTenantProfile(
+    tenantId: string,
+    profile: { contactName?: string; contactPhone?: string }
+  ): Promise<{ success: boolean; error?: string; session?: AuthSession }> {
+    const tenants = this.getTenants();
+    const tenantIndex = tenants.findIndex((t) => t.id === tenantId);
+
+    if (tenantIndex === -1) {
+      return { success: false, error: 'Không tìm thấy tài khoản đơn vị' };
+    }
+
+    const tenant = tenants[tenantIndex];
+    if (profile.contactName !== undefined) {
+      tenant.contactName = profile.contactName.trim();
+    }
+    if (profile.contactPhone !== undefined) {
+      tenant.contactPhone = profile.contactPhone.trim();
+    }
+    tenant.updatedAt = new Date().toISOString();
+
+    tenants[tenantIndex] = tenant;
+    this.saveTenants(tenants);
+
+    const currentSession = this.getCurrentSession();
+    let updatedSession: AuthSession | undefined;
+
+    if (currentSession && currentSession.tenant.id === tenantId) {
+      updatedSession = {
+        ...currentSession,
+        tenant: {
+          ...currentSession.tenant,
+          contactName: tenant.contactName,
+          contactPhone: tenant.contactPhone
+        }
+      };
+      this.saveSession(updatedSession);
+    }
+
+    return { success: true, session: updatedSession };
+  }
+
+  /**
    * Đảm bảo nguyên tắc cô lập dữ liệu đa cơ quan (Multi-tenancy isolation).
    * Bất kỳ thao tác đọc hoặc ghi dữ liệu nào đều phải thuộc phạm vi của đơn vị hiện tại.
    */
