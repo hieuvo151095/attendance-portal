@@ -24,7 +24,7 @@ Thực thể `Thẻ nhân viên` (Employee Card) đại diện cho thẻ vật l
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| ORG-03 | P0 | Quản lý cấp phát, liên kết và thu hồi thẻ vật lý nhân viên | Chưa triển khai | MISSING | - |
+| ORG-03 | P0 | Quản lý cấp phát, liên kết và thu hồi thẻ vật lý nhân viên | Đã hoàn thành quản lý mã thẻ UID, liên kết nhân sự, tạm khóa/mở khóa và cấp đổi thẻ mới khi mất | MATCH | repo:src/services/card.ts:1, repo:src/pages/organization/CardManagementModal.tsx:1 |
 
 ## Liên quan
 - [Phân hệ Tổ chức và nhân sự](../overview/module-organization.md)

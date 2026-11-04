@@ -56,12 +56,12 @@
       "name": "Quản lý mã UID vật lý của thẻ, ngày liên kết, trạng thái thẻ (Đang hoạt động, Tạm khóa, Đã hủy)",
       "description": "Đặc tả: Quản lý mã UID vật lý của thẻ, ngày liên kết, trạng thái thẻ (Đang hoạt động, Tạm khóa, Đã hủy). Mỗi thẻ tại một thời điểm chỉ liên kết với duy nhất một nhân viên. Khi nhân viên mất thẻ, hệ thống cho phép hủy thẻ cũ và liên kết mã thẻ mới ngay lập tức. ; Kế thừa logic liên kết thẻ từ ECO Card",
       "priority": "P0",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/employee-card.md",
       "spec_path": "llm-wiki/pages/entities/employee-card.md",
       "spec_line": 18,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T05:39:43Z"
     },
     {
       "id": "MTG-01",

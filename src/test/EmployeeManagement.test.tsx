@@ -22,7 +22,7 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
     render(<EmployeeManagement tenantId={ubndTenant} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Quản Lý Hồ Sơ Nhân Sự')).toBeInTheDocument();
+      expect(screen.getByText(/Quản Lý Hồ Sơ Nhân Sự/i)).toBeInTheDocument();
     });
 
     expect(screen.getByText('Tổng nhân sự')).toBeInTheDocument();

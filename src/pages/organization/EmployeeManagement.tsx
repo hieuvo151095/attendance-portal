@@ -12,11 +12,14 @@ import {
 } from '../../design-system';
 import { Employee } from '../../types/employee';
 import { Department } from '../../types/organization';
+import { EmployeeCard } from '../../types/card';
 import { employeeService } from '../../services/employee';
 import { departmentService } from '../../services/department';
+import { cardService } from '../../services/card';
 import { EmployeeModal } from './EmployeeModal';
 import { CameraSyncModal } from './CameraSyncModal';
 import { ExcelImportModal } from './ExcelImportModal';
+import { CardManagementModal } from './CardManagementModal';
 
 export interface EmployeeManagementProps {
   tenantId: string;
@@ -25,12 +28,14 @@ export interface EmployeeManagementProps {
 export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId }) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [cards, setCards] = useState<EmployeeCard[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDeptId, setSelectedDeptId] = useState('');
   const [faceIdStatusFilter, setFaceIdStatusFilter] = useState<string>('all');
+  const [cardStatusFilter, setCardStatusFilter] = useState<string>('all');
 
   // Modals
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
@@ -41,10 +46,13 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
 
   const [excelModalOpen, setExcelModalOpen] = useState(false);
 
+  const [cardModalOpen, setCardModalOpen] = useState(false);
+  const [employeeForCard, setEmployeeForCard] = useState<Employee | null>(null);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [deptList, empList] = await Promise.all([
+      const [deptList, empList, cardList] = await Promise.all([
         departmentService.getDepartmentsByTenant(tenantId),
         employeeService.getEmployeesByTenant(tenantId, {
           departmentId: selectedDeptId || undefined,
@@ -55,10 +63,12 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
               : faceIdStatusFilter === 'pending'
               ? 'pending'
               : undefined
-        })
+        }),
+        cardService.getCardsByTenant(tenantId)
       ]);
       setDepartments(deptList);
       setEmployees(empList);
+      setCards(cardList);
     } catch (err) {
       console.error('Failed to load employee data:', err);
     } finally {
@@ -70,9 +80,28 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
     loadData();
   }, [loadData]);
 
+  // Active card map per employee
+  const activeCardMap = new Map<string, EmployeeCard>();
+  cards.forEach((c) => {
+    if (c.status !== 'revoked') {
+      activeCardMap.set(c.employeeId, c);
+    }
+  });
+
+  // Filter employees by card status if selected
+  const filteredEmployees = employees.filter((emp) => {
+    if (cardStatusFilter === 'all') return true;
+    const card = activeCardMap.get(emp.id);
+    if (cardStatusFilter === 'active') return card?.status === 'active';
+    if (cardStatusFilter === 'locked') return card?.status === 'locked';
+    if (cardStatusFilter === 'none') return !card;
+    return true;
+  });
+
   // Statistics
   const totalCount = employees.length;
   const enrolledCount = employees.filter((e) => e.faceIdStatus === 'enrolled').length;
+  const activeCardCount = employees.filter((e) => activeCardMap.get(e.id)?.status === 'active').length;
   const pendingCount = employees.filter((e) => e.faceIdStatus === 'pending').length;
 
   const departmentMap = new Map<string, string>();
@@ -91,6 +120,11 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
   const handleOpenSyncCamera = (emp: Employee) => {
     setEmployeeToSyncCamera(emp);
     setCameraSyncModalOpen(true);
+  };
+
+  const handleOpenCardModal = (emp: Employee) => {
+    setEmployeeForCard(emp);
+    setCardModalOpen(true);
   };
 
   const handleDeleteEmployee = async (emp: Employee) => {
@@ -114,6 +148,13 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
     { value: 'all', label: 'Tất cả trạng thái Face ID' },
     { value: 'enrolled', label: 'Đã có Face ID từ Camera' },
     { value: 'pending', label: 'Chờ lấy mẫu tại Camera' }
+  ];
+
+  const cardFilterOptions = [
+    { value: 'all', label: 'Tất cả trạng thái thẻ' },
+    { value: 'active', label: 'Đã cấp thẻ (Đang hoạt động)' },
+    { value: 'locked', label: 'Thẻ đang tạm khóa' },
+    { value: 'none', label: 'Chưa có thẻ vật lý' }
   ];
 
   const columns = [
@@ -169,6 +210,27 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
         )
     },
     {
+      key: 'cardUid',
+      title: 'Thẻ RFID/NFC (ORG-03)',
+      width: '180px',
+      render: (emp: Employee) => {
+        const card = activeCardMap.get(emp.id);
+        if (!card) {
+          return <EmptyValue italic>Chưa cấp thẻ</EmptyValue>;
+        }
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)' }}>
+            <Tag variant="code">{card.cardUid}</Tag>
+            {card.status === 'active' ? (
+              <StatusTag tone="success" label="Hoạt động" />
+            ) : (
+              <StatusTag tone="warning" label="Tạm khóa" icon="lock" />
+            )}
+          </div>
+        );
+      }
+    },
+    {
       key: 'cameraSyncInfo',
       title: 'Đồng bộ Camera',
       width: '200px',
@@ -193,9 +255,15 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
       title: 'Thao tác',
       align: 'right' as const,
       actions: true,
-      width: '140px',
+      width: '170px',
       render: (emp: Employee) => (
         <div style={{ display: 'flex', gap: 'var(--space-4)', justifyContent: 'flex-end' }}>
+          <IconButton
+            icon="id-badge"
+            label="Quản lý thẻ nhân viên"
+            size="sm"
+            onClick={() => handleOpenCardModal(emp)}
+          />
           <IconButton
             icon="camera"
             label="Đồng bộ Face ID từ Camera Hikvision"
@@ -225,16 +293,16 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <h1 className="h2" style={{ margin: 0, color: 'var(--text-heading)' }}>
-            Quản Lý Hồ Sơ Nhân Sự
+            Quản Lý Hồ Sơ Nhân Sự & Thẻ Điểm Danh
           </h1>
           <p className="body-sm" style={{ margin: 'var(--space-4) 0 0', color: 'var(--text-subtle)' }}>
-            Đặc tả ORG-02: Quản lý mã nhân viên, CCCD, chức danh, phòng ban và dữ liệu nhận diện khuôn mặt (Face ID) từ Camera AI Hikvision.
+            Quản lý mã nhân viên, phòng ban, nhận diện khuôn mặt Face ID và thẻ vật lý RFID/NFC theo đặc tả ORG-01, ORG-02 và ORG-03.
           </p>
         </div>
       </div>
 
       {/* Summary StatCards */}
-      <StatCard.Group columns={3}>
+      <StatCard.Group columns={4}>
         <StatCard
           label="Tổng nhân sự"
           value={totalCount}
@@ -246,6 +314,12 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
           value={enrolledCount}
           icon="circle-check"
           tone="success"
+        />
+        <StatCard
+          label="Đã cấp thẻ RFID/NFC"
+          value={activeCardCount}
+          icon="id-badge"
+          tone="info"
         />
         <StatCard
           label="Chờ lấy mẫu tại Camera"
@@ -274,7 +348,7 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
             placeholder="Tìm theo tên, mã NV, CCCD, chức danh..."
             value={searchTerm}
             onChange={(val) => setSearchTerm(val)}
-            style={{ minWidth: '280px' }}
+            style={{ minWidth: '260px' }}
           />
 
           <SelectField
@@ -287,6 +361,12 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
             options={faceIdFilterOptions}
             value={faceIdStatusFilter}
             onChange={(val) => setFaceIdStatusFilter(val)}
+          />
+
+          <SelectField
+            options={cardFilterOptions}
+            value={cardStatusFilter}
+            onChange={(val) => setCardStatusFilter(val)}
           />
         </div>
 
@@ -311,7 +391,7 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
       {/* Employees Data Table */}
       <DataTable
         columns={columns}
-        rows={employees}
+        rows={filteredEmployees}
         rowKey="id"
         emptyText={
           loading
@@ -321,7 +401,7 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
         emptyIcon="users"
         footer={
           <span>
-            Hiển thị <b>{employees.length}</b> cán bộ nhân sự
+            Hiển thị <b>{filteredEmployees.length}</b> cán bộ nhân sự
           </span>
         }
       />
@@ -347,6 +427,14 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
         open={excelModalOpen}
         onClose={() => setExcelModalOpen(false)}
         tenantId={tenantId}
+        onSuccess={loadData}
+      />
+
+      <CardManagementModal
+        open={cardModalOpen}
+        onClose={() => setCardModalOpen(false)}
+        tenantId={tenantId}
+        employee={employeeForCard}
         onSuccess={loadData}
       />
     </div>
