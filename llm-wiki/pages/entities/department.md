@@ -24,7 +24,7 @@ Thực thể `Phòng ban` (Department / Division) đại diện cho một đơn 
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| ORG-01 | P0 | Quản lý cây cơ cấu phòng ban / đơn vị đa mô hình | Chưa triển khai | MISSING | - |
+| ORG-01 | P0 | Quản lý cây cơ cấu phòng ban / đơn vị đa mô hình | Đã hoàn thành quản lý cơ cấu phòng ban, mã định danh và cây phân cấp | MATCH | repo:src/services/department.ts:1 |
 
 ## Liên quan
 - [Phân hệ Tổ chức và nhân sự](../overview/module-organization.md)

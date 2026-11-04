@@ -32,12 +32,12 @@
       "name": "Mỗi phòng ban có mã định danh, tên phòng ban, cấp quản lý trực thuộc và người phụ trách phòng ban",
       "description": "Đặc tả: Mỗi phòng ban có mã định danh, tên phòng ban, cấp quản lý trực thuộc và người phụ trách phòng ban. Cho phép thiết lập cây phân cấp cha - con linh hoạt. ; Dùng làm tiêu chí lọc báo cáo và triệu tập đại biểu họp",
       "priority": "P0",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/department.md",
       "spec_path": "llm-wiki/pages/entities/department.md",
       "spec_line": 18,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T04:55:25Z"
     },
     {
       "id": "ORG-02",

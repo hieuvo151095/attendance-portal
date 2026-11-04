@@ -28,7 +28,7 @@ Thiết lập toàn bộ dữ liệu nền tảng gồm cơ cấu phòng ban, da
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| ORG-01 | P0 | Thiết lập và quản lý cơ cấu phòng ban | Chưa triển khai | MISSING | - |
+| ORG-01 | P0 | Thiết lập và quản lý cơ cấu phòng ban | Đã hoàn thành quản lý cơ cấu phòng ban và phân cấp trực thuộc | MATCH | repo:src/pages/organization/DepartmentManagement.tsx:1 |
 | ORG-02 | P0 | Quản lý danh sách nhân viên, import Excel và tải ảnh chân dung | Chưa triển khai | MISSING | - |
 | ORG-03 | P0 | Cấp phát và quản lý liên kết thẻ nhân viên vật lý | Chưa triển khai | MISSING | - |
 

@@ -13,6 +13,7 @@ export interface ButtonProps {
   href?: string;
   onClick?: (e: React.MouseEvent<HTMLElement>) => void;
   type?: 'button' | 'submit' | 'reset';
+  title?: string;
   'aria-label'?: string;
   children?: React.ReactNode;
   className?: string;
@@ -31,6 +32,7 @@ export const Button: React.FC<ButtonProps> = ({
   href,
   onClick,
   type = 'button',
+  title,
   'aria-label': ariaLabel,
   children,
   className = '',
@@ -79,6 +81,7 @@ export const Button: React.FC<ButtonProps> = ({
         href={href}
         onClick={onClick}
         style={style}
+        title={title}
         aria-label={ariaLabel}
       >
         {content}
@@ -97,6 +100,7 @@ export const Button: React.FC<ButtonProps> = ({
       }
       onClick={onClick}
       style={style}
+      title={title}
       aria-label={ariaLabel}
     >
       {content}
