@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Login } from './pages/auth/Login';
 import { DepartmentManagement } from './pages/organization/DepartmentManagement';
 import { EmployeeManagement } from './pages/organization/EmployeeManagement';
+import { MeetingManagement } from './pages/meeting/MeetingManagement';
 import { Button, Tag, Icon } from './design-system';
 import { authService } from './services/auth';
 import { AuthSession } from './types/auth';
 
 export const App: React.FC = () => {
   const [session, setSession] = useState<AuthSession | null>(null);
-  const [currentTab, setCurrentTab] = useState<'employees' | 'departments' | 'session'>('employees');
+  const [currentTab, setCurrentTab] = useState<'meetings' | 'employees' | 'departments' | 'session'>('meetings');
 
   useEffect(() => {
     const existing = authService.getCurrentSession();
@@ -81,6 +82,15 @@ export const App: React.FC = () => {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Button
+            variant={currentTab === 'meetings' ? 'secondary' : 'ghost'}
+            active={currentTab === 'meetings'}
+            onClick={() => setCurrentTab('meetings')}
+            icon="calendar-check"
+          >
+            Cuộc Họp
+          </Button>
+
+          <Button
             variant={currentTab === 'employees' ? 'secondary' : 'ghost'}
             active={currentTab === 'employees'}
             onClick={() => setCurrentTab('employees')}
@@ -119,7 +129,9 @@ export const App: React.FC = () => {
 
       {/* Main Content Area */}
       <main style={{ padding: '24px 16px', maxWidth: '1440px', margin: '0 auto' }}>
-        {currentTab === 'employees' ? (
+        {currentTab === 'meetings' ? (
+          <MeetingManagement tenantId={session.tenant.id} />
+        ) : currentTab === 'employees' ? (
           <EmployeeManagement tenantId={session.tenant.id} />
         ) : currentTab === 'departments' ? (
           <DepartmentManagement session={session} />

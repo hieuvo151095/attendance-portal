@@ -68,12 +68,12 @@
       "name": "Cuộc họp bắt buộc có tiêu đề, tên phòng họp, thời điểm bắt đầu - kết thúc dự kiến và danh sách đại biểu được triệu tập (đại biểu bắt buộc, đại biểu tùy chọn)",
       "description": "Đặc tả: Cuộc họp bắt buộc có tiêu đề, tên phòng họp, thời điểm bắt đầu - kết thúc dự kiến và danh sách đại biểu được triệu tập (đại biểu bắt buộc, đại biểu tùy chọn). ; Hỗ trợ chọn nhanh đại biểu theo phòng ban",
       "priority": "P0",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/meeting.md",
       "spec_path": "llm-wiki/pages/entities/meeting.md",
       "spec_line": 18,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T06:09:11Z"
     },
     {
       "id": "MTG-02",

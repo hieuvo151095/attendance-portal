@@ -29,7 +29,7 @@ Thực thể `Cuộc họp` (Meeting) đại diện cho một sự kiện hội 
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| MTG-01 | P0 | Thiết lập lịch họp, phòng họp, triệu tập danh sách đại biểu | Chưa triển khai | MISSING | - |
+| MTG-01 | P0 | Thiết lập lịch họp, phòng họp, triệu tập danh sách đại biểu | Đã hoàn thành lên lịch họp, phòng họp, thời gian và triệu tập đại biểu theo phòng ban | MATCH | repo:src/services/meeting.ts:1, repo:src/pages/meeting/MeetingModal.tsx:1 |
 | MTG-02 | P0 | Điểm danh trực tiếp tại phòng họp qua Face ID / Thẻ vật lý | Chưa triển khai | MISSING | - |
 | MTG-03 | P0 | Ghi nhận Check-out rời phòng họp và tính toán thời gian tham dự | Chưa triển khai | MISSING | - |
 | MTG-04 | P0 | Báo cáo chuyên cần và xuất biên bản cuộc họp PDF/Excel | Chưa triển khai | MISSING | - |

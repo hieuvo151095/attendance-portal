@@ -29,7 +29,7 @@ Tự động hóa hoàn toàn quy trình tổ chức và điểm danh cuộc h�
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| MTG-01 | P0 | Thiết lập lịch họp, phòng họp và triệu tập danh sách đại biểu | Chưa triển khai | MISSING | - |
+| MTG-01 | P0 | Thiết lập lịch họp, phòng họp và triệu tập danh sách đại biểu | Đã hoàn thành lên lịch họp, phòng họp, thời gian và triệu tập đại biểu theo phòng ban | MATCH | repo:src/services/meeting.ts:1, repo:src/pages/meeting/MeetingModal.tsx:1 |
 | MTG-02 | P0 | Màn hình Live roll-call điểm danh thời gian thực tại phòng họp | Chưa triển khai | MISSING | - |
 | MTG-03 | P0 | Điểm danh Check-out và chốt kết thúc cuộc họp | Chưa triển khai | MISSING | - |
 | MTG-04 | P0 | Xuất biên bản và báo cáo chuyên cần cuộc họp dạng PDF/Excel | Chưa triển khai | MISSING | - |
