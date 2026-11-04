@@ -6,8 +6,8 @@ sources:
 spec_ids: [AUTH-01, AUTH-02]
 apps: [web]
 route_ids: [/login]
-status: missing
-updated: 2026-11-02
+status: partial
+updated: 2026-11-04
 ---
 
 # Màn hình đăng nhập
@@ -18,18 +18,18 @@ Màn hình xác thực danh tính dành cho quản trị viên cơ quan khách h
 ## App / route / file code
 | App | Route | File |
 |---|---|---|
-| web | `/login` | - |
+| web | `/login` | repo:src/pages/auth/Login.tsx:1 |
 
 ## Yêu cầu spec
 | Mã | Yêu cầu | Trạng thái |
 |---|---|---|
-| AUTH-01 | Form đăng nhập gồm ô nhập Username (hoặc Mã đơn vị) và Mật khẩu; nút "Đăng nhập" theo biến màu `--bl-bg`/`--focus` của Design System | MISSING |
+| AUTH-01 | Form đăng nhập gồm ô nhập Username (hoặc Mã đơn vị) và Mật khẩu; nút "Đăng nhập" theo biến màu `--bl-bg`/`--focus` của Design System | BUILT |
 | AUTH-02 | Modal yêu cầu đổi mật khẩu lần đầu khi phát hiện tài khoản dùng mật khẩu mặc định của Finviet | MISSING |
 
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| AUTH-01 | P0 | Giao diện đăng nhập tài khoản đơn vị và quản lý token | Chưa triển khai | MISSING | - |
+| AUTH-01 | P0 | Giao diện đăng nhập tài khoản đơn vị và quản lý token | Đã hoàn thành màn hình đăng nhập chuẩn Design System | MATCH | repo:src/pages/auth/Login.tsx:1 |
 | AUTH-02 | P0 | Modal bắt buộc đổi mật khẩu lần đầu | Chưa triển khai | MISSING | - |
 
 ## Liên quan

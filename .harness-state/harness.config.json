@@ -15,7 +15,7 @@
     }
   },
   "verify": {
-    "command": "echo '❌ Cần cấu hình kịch bản kiểm thử dự án trong harness.config.json' >&2 && exit 1"
+    "command": "npm test && npm run build"
   },
   "created_at": "2026-11-02T08:04:03Z"
 }

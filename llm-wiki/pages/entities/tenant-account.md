@@ -25,7 +25,7 @@ Thực thể `Tài khoản đơn vị` (Tenant Account) đại diện cho tài k
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| AUTH-01 | P0 | Đăng nhập tài khoản đơn vị với username/password do Finviet cấp, cô lập dữ liệu | Chưa triển khai | MISSING | - |
+| AUTH-01 | P0 | Đăng nhập tài khoản đơn vị với username/password do Finviet cấp, cô lập dữ liệu | Đã hoàn thành đăng nhập đa đơn vị, token phiên và cô lập dữ liệu | MATCH | repo:src/services/auth.ts:1 |
 | AUTH-02 | P0 | Quản lý phiên làm việc, đổi mật khẩu và hồ sơ đơn vị | Chưa triển khai | MISSING | - |
 
 ## Liên quan

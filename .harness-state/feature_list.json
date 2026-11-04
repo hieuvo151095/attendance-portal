@@ -8,12 +8,12 @@
       "name": "Tài khoản đơn vị gồm tên đăng nhập (username/mã đơn vị), mật khẩu mã hóa, tên cơ quan và loại hình đơn vị",
       "description": "Đặc tả: Tài khoản đơn vị gồm tên đăng nhập (username/mã đơn vị), mật khẩu mã hóa, tên cơ quan và loại hình đơn vị. Đăng nhập thành công cấp mã token phiên làm việc, giới hạn dữ liệu xem và chỉnh sửa duy nhất trong phạm vi đơn vị đó. ; Bảo đảm nguyên tắc đa khách hàng (multi-tenancy)",
       "priority": "P0",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/tenant-account.md",
       "spec_path": "llm-wiki/pages/entities/tenant-account.md",
       "spec_line": 18,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T04:42:30Z"
     },
     {
       "id": "AUTH-02",

@@ -1,0 +1,170 @@
+@import "../../Design System/tokens.css";
+@import "../../Design System/components/bundle.css";
+
+/* Inter Font Face definitions mapping to Design System fonts */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/Design System/fonts/Inter-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/Design System/fonts/Inter-Medium.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/Design System/fonts/Inter-SemiBold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/Design System/fonts/Inter-Bold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('/Design System/fonts/Inter-Black.woff2') format('woff2');
+}
+
+/* Base resets & layout */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  background-color: var(--bg-canvas);
+  color: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Extension for Design System: Text Input Fields (TextField & PasswordField) */
+.ecomd-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+}
+
+.ecomd-field__label {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.ecomd-field__required {
+  color: var(--semantic-danger);
+}
+
+.ecomd-field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.ecomd-text-input {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: var(--space-10) var(--space-16);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-body);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-8);
+  outline: none;
+  transition: border-color .15s, background-color .15s, box-shadow .15s;
+}
+
+.ecomd-text-input:focus,
+.ecomd-text-input.is-focus {
+  background: var(--bg-surface);
+  border-color: var(--eco-blue-strong);
+  box-shadow: 0 0 0 2px rgba(0, 112, 206, 0.2);
+}
+
+.ecomd-text-input.has-prefix {
+  padding-left: 38px;
+}
+
+.ecomd-text-input.has-suffix {
+  padding-right: 38px;
+}
+
+.ecomd-text-input.is-error {
+  border-color: var(--semantic-danger);
+}
+
+.ecomd-text-input.is-error:focus {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.ecomd-field__prefix-icon {
+  position: absolute;
+  left: var(--space-12);
+  color: var(--text-subtle);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ecomd-field__suffix-btn {
+  position: absolute;
+  right: var(--space-8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-24);
+  height: var(--size-24);
+  border: none;
+  background: transparent;
+  color: var(--text-subtle);
+  cursor: pointer;
+  border-radius: var(--radius-4);
+}
+
+.ecomd-field__suffix-btn:hover {
+  color: var(--text-heading);
+}
+
+.ecomd-field__helper {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-subtle);
+  margin-top: 2px;
+}
+
+.ecomd-field__error {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--semantic-danger);
+  margin-top: 2px;
+}
