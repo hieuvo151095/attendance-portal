@@ -15,7 +15,7 @@ Thực thể `Nhân viên` (Employee) đại diện cho một cán bộ, công c
 ## Thuộc tính / quy tắc nghiệp vụ
 | Mã | Quy tắc | Ghi chú |
 |---|---|---|
-| ORG-02 | Mỗi nhân viên có mã nhân viên duy nhất (Employee ID), họ tên, số CCCD/hộ chiếu, chức danh/vị trí công tác, phòng ban trực thuộc, email, số điện thoại và ảnh chân dung nhận diện khuôn mặt (Face ID). Hỗ trợ import danh sách từ Excel và tải ảnh chân dung hàng loạt. | Tự động đồng bộ sang hệ sinh thái nhận diện Face ID |
+| ORG-02 | Mỗi nhân viên có mã nhân viên duy nhất (Employee ID), họ tên, số CCCD/hộ chiếu, chức danh/vị trí công tác, phòng ban trực thuộc, email, số điện thoại và ảnh chân dung nhận diện khuôn mặt (Face ID). Ảnh chân dung và dữ liệu Face ID được đồng bộ từ thiết bị camera sang và lưu trữ trên Portal khi người dùng thiết lập trên camera. | Tự động đồng bộ sang hệ sinh thái nhận diện Face ID |
 
 ## Quan hệ
 - Thuộc về một [Phòng ban](department.md).
@@ -26,7 +26,7 @@ Thực thể `Nhân viên` (Employee) đại diện cho một cán bộ, công c
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| ORG-02 | P0 | Quản lý hồ sơ nhân sự, import Excel và nạp ảnh Face ID | Chưa triển khai | MISSING | - |
+| ORG-02 | P0 | Quản lý hồ sơ nhân sự, import Excel và nạp ảnh Face ID từ camera | Đã hoàn thành quản lý nhân viên, đồng bộ ảnh chân dung Face ID từ Camera Hikvision và import Excel | MATCH | repo:src/services/employee.ts:1, repo:src/pages/organization/EmployeeManagement.tsx:1 |
 
 ## Liên quan
 - [Phân hệ Tổ chức và nhân sự](../overview/module-organization.md)

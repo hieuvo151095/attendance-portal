@@ -17,7 +17,7 @@ Thiết lập toàn bộ dữ liệu nền tảng gồm cơ cấu phòng ban, da
 |---|---|---|---|---|---|
 | 1 | Quản trị nhân sự | [Màn hình quản lý nhân viên](../screens/employee-management-screen.md) | Tạo mới hoặc import cơ cấu phòng ban từ file Excel | Cây phòng ban được cập nhật vào hệ thống | ORG-01 |
 | 2 | Quản trị nhân sự | [Màn hình quản lý nhân viên](../screens/employee-management-screen.md) | Thêm nhân viên hoặc tải file Excel danh sách nhân viên | Danh sách nhân viên được tạo, gắn vào phòng ban tương ứng | ORG-02 |
-| 3 | Quản trị nhân sự | [Màn hình quản lý nhân viên](../screens/employee-management-screen.md) | Nạp ảnh chân dung nhân viên (chụp trực tiếp hoặc tải file ảnh) | Dữ liệu Face ID sẵn sàng nạp xuống camera Hikvision | ORG-02 |
+| 3 | Nhân sự & Camera | [Màn hình quản lý nhân viên](../screens/employee-management-screen.md) | Thiết lập Face ID tại camera Hikvision; ảnh chân dung và trạng thái được đồng bộ và lưu trữ về Portal | Dữ liệu Face ID và ảnh chân dung sẵn sàng phục vụ điểm danh và đối soát | ORG-02 |
 | 4 | Quản trị nhân sự | [Màn hình quản lý nhân viên](../screens/employee-management-screen.md) | Nhập hoặc quẹt mã UID thẻ vật lý để gán vào nhân viên | Thẻ nhân viên được kích hoạt, liên kết với nhân sự | ORG-03 |
 
 ## Quy tắc chặn / validation

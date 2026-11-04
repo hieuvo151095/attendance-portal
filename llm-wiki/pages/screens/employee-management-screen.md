@@ -18,20 +18,20 @@ Màn hình quản lý danh mục phòng ban, danh sách nhân sự của cơ qua
 ## App / route / file code
 | App | Route | File |
 |---|---|---|
-| web | `/employees` | repo:src/pages/organization/DepartmentManagement.tsx:1 |
+| web | `/employees` | repo:src/pages/organization/DepartmentManagement.tsx:1, repo:src/pages/organization/EmployeeManagement.tsx:1 |
 
 ## Yêu cầu spec
 | Mã | Yêu cầu | Trạng thái |
 |---|---|---|
 | ORG-01 | Cây chọn và bộ lọc theo Phòng ban / Phân xưởng / Khoa phòng | BUILT |
-| ORG-02 | Bảng danh sách nhân viên, nút Import Excel, nút nạp ảnh chân dung Face ID và xem trước ảnh | MISSING |
+| ORG-02 | Bảng danh sách nhân viên, nút Import Excel, nút nạp ảnh chân dung Face ID và xem trước ảnh | BUILT |
 | ORG-03 | Modal gán mã thẻ vật lý (RFID/NFC) cho nhân viên và thao tác thu hồi / hủy thẻ khi mất | MISSING |
 
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
 | ORG-01 | P0 | Giao diện quản lý cây cơ cấu phòng ban | Đã hoàn thành cây phân cấp và giao diện quản lý phòng ban | MATCH | repo:src/pages/organization/DepartmentManagement.tsx:1 |
-| ORG-02 | P0 | Bảng nhân viên, chức năng import Excel và nạp ảnh Face ID | Chưa triển khai | MISSING | - |
+| ORG-02 | P0 | Bảng nhân viên, chức năng import Excel và nạp ảnh Face ID | Đã hoàn thành bảng danh sách nhân viên, modal đồng bộ Face ID từ Camera và import Excel | MATCH | repo:src/pages/organization/EmployeeManagement.tsx:1 |
 | ORG-03 | P0 | Giao diện cấp phát, đổi thẻ và thu hồi thẻ vật lý | Chưa triển khai | MISSING | - |
 
 ## Liên quan

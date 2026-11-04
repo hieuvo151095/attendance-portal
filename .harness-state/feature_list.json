@@ -44,12 +44,12 @@
       "name": "Mỗi nhân viên có mã nhân viên duy nhất (Employee ID), họ tên, số CCCD/hộ chiếu, chức danh/vị trí công tác, phòng ban trực thuộc, email, số điện thoại và ảnh chân dung nhận diện khuôn mặt (Face ID)",
       "description": "Đặc tả: Mỗi nhân viên có mã nhân viên duy nhất (Employee ID), họ tên, số CCCD/hộ chiếu, chức danh/vị trí công tác, phòng ban trực thuộc, email, số điện thoại và ảnh chân dung nhận diện khuôn mặt (Face ID). Hỗ trợ import danh sách từ Excel và tải ảnh chân dung hàng loạt. ; Tự động đồng bộ sang hệ sinh thái nhận diện Face ID",
       "priority": "P0",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/employee.md",
       "spec_path": "llm-wiki/pages/entities/employee.md",
       "spec_line": 18,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T05:09:21Z"
     },
     {
       "id": "ORG-03",
