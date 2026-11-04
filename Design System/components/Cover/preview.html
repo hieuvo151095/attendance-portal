@@ -1,0 +1,74 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="vi">
+<head><meta charset="utf-8"><title>Cover</title>
+<style>
+  html,body{margin:0;}
+  .cover{position:relative;width:960px;height:288px;overflow:hidden;background:var(--bg-canvas);}
+  .cover svg{position:absolute;inset:0;}
+  .tile{fill:var(--bg-surface);stroke:var(--border-default);stroke-width:1;}
+  .r12{rx:var(--radius-12);}
+  .b-blue{fill:var(--eco-blue-strong);}
+  .b-deep{fill:var(--eco-blue-deep);}
+  .b-gold{fill:var(--eco-yellow-strong);}
+  .b-success{fill:var(--semantic-success);}
+  .text{position:absolute;left:40px;bottom:36px;max-width:440px;}
+  .name{margin:0;font-family:var(--font-sans);font-weight:900;font-size:64px;line-height:.95;letter-spacing:-1.6px;color:var(--text-heading);}
+  .tagline{margin:16px 0 0;font-family:var(--font-sans);font-size:14px;line-height:20px;color:var(--text-subtle);}
+</style></head>
+<body>
+<div class="cover">
+  <svg width="960" height="288" viewBox="0 0 960 288" aria-hidden="true">
+    <!--
+      blocks: eco-blue-strong 108x168 (2x3 tiles), eco-blue-deep 108x108 bleeding top, eco-yellow-strong pill 108x48, semantic-success 48x48; tiles in surface with border hairline.
+      arrangement: flush modular grid right of x=480, pitch space-48 + space-12, slab merged like the 5-up StatCard row; deep block bleeds off the top edge.
+      pattern: "geometric, modular, dense UI" - the system is cards on a canvas (radius-12, border, no shadow), so the pattern is a field of card tiles.
+      scales: tile space-48, gap space-12, corners radius-12, pill radius-full (half of 48).
+    -->
+    <rect class="tile r12" x="492.5" y="-23.5" width="47" height="47"/>
+    <rect class="tile r12" x="552.5" y="-23.5" width="47" height="47"/>
+    <rect class="tile r12" x="612.5" y="-23.5" width="47" height="47"/>
+    <rect class="tile r12" x="672.5" y="-23.5" width="47" height="47"/>
+    <rect class="tile r12" x="732.5" y="-23.5" width="47" height="47"/>
+    <rect class="tile r12" x="792.5" y="-23.5" width="47" height="47"/>
+    <rect class="b-deep r12" x="852" y="-24" width="108" height="108"/>
+    <rect class="tile r12" x="492.5" y="36.5" width="47" height="47"/>
+    <rect class="tile r12" x="552.5" y="36.5" width="47" height="47"/>
+    <rect class="tile r12" x="612.5" y="36.5" width="47" height="47"/>
+    <rect class="tile r12" x="672.5" y="36.5" width="47" height="47"/>
+    <rect class="b-blue r12" x="732" y="36" width="108" height="168"/>
+    <rect class="tile r12" x="492.5" y="96.5" width="47" height="47"/>
+    <rect class="b-gold" style="rx:24px" x="552" y="96" width="108" height="48"/>
+    <rect class="tile r12" x="672.5" y="96.5" width="47" height="47"/>
+    <rect class="tile r12" x="852.5" y="96.5" width="47" height="47"/>
+    <rect class="tile r12" x="912.5" y="96.5" width="47" height="47"/>
+    <rect class="tile r12" x="492.5" y="156.5" width="47" height="47"/>
+    <rect class="tile r12" x="552.5" y="156.5" width="47" height="47"/>
+    <rect class="tile r12" x="612.5" y="156.5" width="47" height="47"/>
+    <rect class="tile r12" x="672.5" y="156.5" width="47" height="47"/>
+    <rect class="tile r12" x="852.5" y="156.5" width="47" height="47"/>
+    <rect class="b-success r12" x="912" y="156" width="48" height="48"/>
+    <rect class="tile r12" x="492.5" y="216.5" width="47" height="47"/>
+    <rect class="tile r12" x="552.5" y="216.5" width="47" height="47"/>
+    <rect class="tile r12" x="612.5" y="216.5" width="47" height="47"/>
+    <rect class="tile r12" x="672.5" y="216.5" width="47" height="47"/>
+    <rect class="tile r12" x="732.5" y="216.5" width="47" height="47"/>
+    <rect class="tile r12" x="792.5" y="216.5" width="47" height="47"/>
+    <rect class="tile r12" x="852.5" y="216.5" width="47" height="47"/>
+    <rect class="tile r12" x="912.5" y="216.5" width="47" height="47"/>
+    <rect class="tile r12" x="492.5" y="276.5" width="47" height="47"/>
+    <rect class="tile r12" x="552.5" y="276.5" width="47" height="47"/>
+    <rect class="tile r12" x="612.5" y="276.5" width="47" height="47"/>
+    <rect class="tile r12" x="672.5" y="276.5" width="47" height="47"/>
+    <rect class="tile r12" x="732.5" y="276.5" width="47" height="47"/>
+    <rect class="tile r12" x="792.5" y="276.5" width="47" height="47"/>
+    <rect class="tile r12" x="852.5" y="276.5" width="47" height="47"/>
+    <rect class="tile r12" x="912.5" y="276.5" width="47" height="47"/>
+  </svg>
+  <div class="text">
+    <h1 class="name">[DS] ECO ME<br>DASHBOARD</h1>
+    <p class="tagline">Quản trị trường học: sáng, dày dữ liệu, một màu xanh.</p>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!-- @dsCard group="Nền tảng" height=460 subtitle="Font Awesome 6 Free · Solid — chọn icon, cỡ, màu" -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Icon</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body { background: var(--bg-canvas); font-family: var(--font-sans); color: var(--text-body); }
+  .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; height: 100vh; }
+  .stagewrap { display: flex; align-items: center; justify-content: center; padding: var(--space-24); min-width: 0; overflow: auto; background-image: radial-gradient(var(--border-default) 1px, transparent 1px); background-size: 16px 16px; }
+  .stage { max-width: 100%; display: flex; justify-content: center; }
+  .stage--fill { width: 100%; }
+  .panel { overflow-y: auto; background: var(--bg-canvas); border-left: 1px solid var(--border-default); }
+  @media (max-width: 720px) { .wrap { grid-template-columns: 1fr; grid-template-rows: auto 1fr; } .panel { border-left: none; border-top: 1px solid var(--border-default); } }
+  .grp { padding: var(--space-12) var(--space-16) var(--space-8); background: var(--bg-surface); border-bottom: 1px solid var(--border-default); }
+  .gt { margin: 0 0 var(--space-4); color: var(--text-heading); }
+  .ctl { min-height: 40px; display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); padding: var(--space-6) 0; box-sizing: border-box; color: var(--text-subtle); border-top: 1px solid var(--border-subtle); }
+  .gt + .ctl { border-top: none; }
+  .ctl--col { flex-direction: column; align-items: stretch; gap: var(--space-8); }
+  .ctl select, .ctl input[type=text] { box-sizing: border-box; height: 30px; width: 156px; padding: 0 var(--space-8); border: 1px solid var(--border-default); border-radius: var(--radius-8); background: var(--bg-subtle); color: var(--text-body); font: inherit; outline: none; }
+  .ctl select:focus, .ctl input[type=text]:focus { box-shadow: 0 0 0 2px var(--eco-blue-strong); background: var(--bg-surface); }
+  .seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: var(--radius-8); background: var(--bg-muted); }
+  .ctl--col .seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); }
+  .seg button { min-height: 26px; padding: 0 var(--space-10); border: 0; border-radius: var(--radius-6); background: transparent; color: var(--text-subtle); font: inherit; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--bg-surface); color: var(--text-heading); box-shadow: var(--shadow-xs); }
+  .ctl input[type=checkbox] { appearance: none; -webkit-appearance: none; position: relative; flex: none; width: 36px; height: 20px; margin: 0; border-radius: var(--radius-full); background: var(--border-strong); cursor: pointer; transition: background .15s; }
+  .ctl input[type=checkbox]::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg-surface); box-shadow: var(--shadow-sm); transition: transform .15s; }
+  .ctl input[type=checkbox]:checked { background: var(--eco-blue-strong); }
+  .ctl input[type=checkbox]:checked::after { transform: translateX(16px); }
+  .ctl input[type=checkbox]:focus-visible { outline: 2px solid var(--eco-blue-strong); outline-offset: 2px; }
+  label.ctl { cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+
+  var h = React.createElement, D = ECOMD;
+  function useS(v) { return React.useState(v); }
+  function Seg(p) {
+    return h('div', { className: (p.options.length > 3 ? 'ctl ctl--col' : 'ctl') + ' body-sm' }, p.label,
+      h('div', { className: 'seg', role: 'group', 'aria-label': p.label }, p.options.map(function (o) {
+        return h('button', { key: o, type: 'button', className: 'body-xs-medium', 'aria-pressed': p.s[0] === o, onClick: function () { p.s[1](o); } }, o);
+      })));
+  }
+  function Tog(p) { return h('label', { className: 'ctl body-sm' }, p.label, h('input', { type: 'checkbox', checked: p.s[0], onChange: function (e) { p.s[1](e.target.checked); } })); }
+  function Txt(p) { return h('label', { className: 'ctl body-sm' }, p.label, h('input', { type: 'text', className: 'body-sm', value: p.s[0], onChange: function (e) { p.s[1](e.target.value); } })); }
+  function Pick(p) { return h('label', { className: 'ctl body-sm' }, p.label, h('select', { className: 'body-sm', value: p.s[0], onChange: function (e) { p.s[1](e.target.value); } }, p.options.map(function (o) { return h('option', { key: o, value: o }, o); }))); }
+  function Grp(p) { return h('div', { className: 'grp' }, h('p', { className: 'gt body-sm-semibold' }, p.title), p.children); }
+  function Shell(stage, panel, fill) {
+    return h('div', { className: 'wrap' },
+      h('div', { className: 'stagewrap' }, h('div', { className: 'stage' + (fill ? ' stage--fill' : '') }, stage)),
+      h('div', { className: 'panel' }, panel));
+  }
+  var ICONS = D.Icon.names();
+
+
+  var COLORS = ['text-subtle', 'text-muted', 'text-heading', 'eco-blue-strong', 'semantic-success', 'semantic-warning', 'semantic-danger'];
+  function App() {
+    var name = useS('chalkboard-user'), size = useS('16'), color = useS('text-subtle'), q = useS('');
+    var list = ICONS.filter(function (n) { return !q[0] || n.indexOf(q[0]) >= 0; });
+    var stage = h('div', { style: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-16)', width: '100%' } },
+      h(D.Icon, { name: name[0], size: +size[0], color: 'var(--' + color[0] + ')' }),
+      h('div', { className: 'code', style: { color: 'var(--text-subtle)' } }, name[0]),
+      h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(40px, 1fr))', gap: 'var(--space-4)', width: '100%', maxWidth: 520 } },
+        list.map(function (n) {
+          return h('button', { key: n, type: 'button', title: n, onClick: function () { name[1](n); }, style: { height: 40, border: '1px solid ' + (n === name[0] ? 'var(--eco-blue-strong)' : 'var(--border-default)'), borderRadius: 'var(--radius-8)', background: 'var(--bg-surface)', color: 'var(--text-subtle)', cursor: 'pointer' } }, h(D.Icon, { name: n, size: 16 }));
+        })));
+    return Shell(stage, [
+      h(Grp, { key: 1, title: 'Icon' }, h(Txt, { label: 'Lọc tên', s: q }), h(Pick, { label: 'Tên', s: name, options: ICONS })),
+      h(Grp, { key: 2, title: 'Hiển thị' }, h(Seg, { label: 'Cỡ (px)', s: size, options: ['12', '14', '16', '20'] }), h(Pick, { label: 'Màu', s: color, options: COLORS }))
+    ], true);
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>

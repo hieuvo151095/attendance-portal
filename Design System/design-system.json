@@ -1,0 +1,345 @@
+{
+ "v": 3,
+ "layout": "files",
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-27T08:05:00Z"
+ },
+ "title": "[DS] ECO ME DASHBOARD",
+ "namespace": "ECOMD",
+ "libraries": [
+  {
+   "name": "react",
+   "version": "18",
+   "global": "React"
+  },
+  {
+   "name": "react-dom",
+   "version": "18",
+   "global": "ReactDOM"
+  }
+ ],
+ "sections": {},
+ "groups": [
+  "Icons",
+  "Fonts"
+ ],
+ "assetGroups": {
+  "Icons": {
+   "name": "Icons",
+   "tile": "s",
+   "order": [
+    "bars.svg",
+    "bell.svg",
+    "book-bookmark.svg",
+    "book-open.svg",
+    "box-archive.svg",
+    "bullhorn.svg",
+    "calendar-check.svg",
+    "calendar-days.svg",
+    "camera.svg",
+    "chalkboard-user.svg",
+    "chalkboard.svg",
+    "chart-pie.svg",
+    "chevron-down.svg",
+    "clipboard-list.svg",
+    "clock.svg",
+    "coins.svg",
+    "comment-dots.svg",
+    "comments.svg",
+    "credit-card.svg",
+    "ellipsis-vertical.svg",
+    "file-invoice-dollar.svg",
+    "file-lines.svg",
+    "filter.svg",
+    "graduation-cap.svg",
+    "id-badge.svg",
+    "images.svg",
+    "layer-group.svg",
+    "magnifying-glass.svg",
+    "percent.svg",
+    "plus.svg",
+    "receipt.svg",
+    "scale-balanced.svg",
+    "school.svg",
+    "sliders.svg",
+    "square-poll-vertical.svg",
+    "toggle-on.svg",
+    "user-check.svg",
+    "user-clock.svg",
+    "user-shield.svg",
+    "user-tie.svg",
+    "utensils.svg"
+   ],
+   "files": {
+    "bars.svg": {
+     "name": "bars.svg",
+     "blob": "e00ea59df0f4d1ddfc188138b98a8c46",
+     "size": 398,
+     "type": "image/svg+xml"
+    },
+    "bell.svg": {
+     "name": "bell.svg",
+     "blob": "f0f49f1cb574215c326b6c01a9213d84",
+     "size": 504,
+     "type": "image/svg+xml"
+    },
+    "book-bookmark.svg": {
+     "name": "book-bookmark.svg",
+     "blob": "25b09c3133470ee8edd8cbeb602fc002",
+     "size": 409,
+     "type": "image/svg+xml"
+    },
+    "book-open.svg": {
+     "name": "book-open.svg",
+     "blob": "b4e12b084cda8e7a9f0e46b51a1373b0",
+     "size": 565,
+     "type": "image/svg+xml"
+    },
+    "box-archive.svg": {
+     "name": "box-archive.svg",
+     "blob": "dd29204190a8f8c6b22ea71105daab71",
+     "size": 384,
+     "type": "image/svg+xml"
+    },
+    "bullhorn.svg": {
+     "name": "bullhorn.svg",
+     "blob": "65197de44c9f67e92e71747a486935b0",
+     "size": 558,
+     "type": "image/svg+xml"
+    },
+    "calendar-check.svg": {
+     "name": "calendar-check.svg",
+     "blob": "a7ddc0b6c07ce320167c7d138fbd1ff1",
+     "size": 497,
+     "type": "image/svg+xml"
+    },
+    "calendar-days.svg": {
+     "name": "calendar-days.svg",
+     "blob": "564a1778585e26e6fe62f4edf5aa3ef6",
+     "size": 988,
+     "type": "image/svg+xml"
+    },
+    "camera.svg": {
+     "name": "camera.svg",
+     "blob": "f3cb1ea142efa8c4750a6f83f3baca26",
+     "size": 359,
+     "type": "image/svg+xml"
+    },
+    "chalkboard-user.svg": {
+     "name": "chalkboard-user.svg",
+     "blob": "36c968ed086bca1cb0d039485860357e",
+     "size": 522,
+     "type": "image/svg+xml"
+    },
+    "chalkboard.svg": {
+     "name": "chalkboard.svg",
+     "blob": "b6e463c29a615b14c2e4850c57691b5d",
+     "size": 358,
+     "type": "image/svg+xml"
+    },
+    "chart-pie.svg": {
+     "name": "chart-pie.svg",
+     "blob": "45abf2098ec68d521221791968bc82c8",
+     "size": 457,
+     "type": "image/svg+xml"
+    },
+    "chevron-down.svg": {
+     "name": "chevron-down.svg",
+     "blob": "cdff8fb17a3c6a0199bcb437a9d05b8a",
+     "size": 269,
+     "type": "image/svg+xml"
+    },
+    "clipboard-list.svg": {
+     "name": "clipboard-list.svg",
+     "blob": "f5f7655f14146bd70c441a0f4ce46aa1",
+     "size": 579,
+     "type": "image/svg+xml"
+    },
+    "clock.svg": {
+     "name": "clock.svg",
+     "blob": "c6cf892c1d1086dcc0c9d1727c4d9749",
+     "size": 285,
+     "type": "image/svg+xml"
+    },
+    "coins.svg": {
+     "name": "coins.svg",
+     "blob": "c8a93a35251a8b80dd7ad3cdda92d950",
+     "size": 1502,
+     "type": "image/svg+xml"
+    },
+    "comment-dots.svg": {
+     "name": "comment-dots.svg",
+     "blob": "a1f5e4d21f2b96bdeaee95b36503f2a5",
+     "size": 604,
+     "type": "image/svg+xml"
+    },
+    "comments.svg": {
+     "name": "comments.svg",
+     "blob": "351193a2f861b458398a3dd43fec4351",
+     "size": 837,
+     "type": "image/svg+xml"
+    },
+    "credit-card.svg": {
+     "name": "credit-card.svg",
+     "blob": "f7a9b0b5bfc85a36a4b21b0bf48068ae",
+     "size": 425,
+     "type": "image/svg+xml"
+    },
+    "ellipsis-vertical.svg": {
+     "name": "ellipsis-vertical.svg",
+     "blob": "d66d14f359efb6570f2ac083b2bb0ffe",
+     "size": 231,
+     "type": "image/svg+xml"
+    },
+    "file-invoice-dollar.svg": {
+     "name": "file-invoice-dollar.svg",
+     "blob": "2f0f6c5ad81bf216145506114665eca1",
+     "size": 1282,
+     "type": "image/svg+xml"
+    },
+    "file-lines.svg": {
+     "name": "file-lines.svg",
+     "blob": "1fa6ab8c64e60ba851ee0cdad5f3615b",
+     "size": 508,
+     "type": "image/svg+xml"
+    },
+    "filter.svg": {
+     "name": "filter.svg",
+     "blob": "99027d7dabbb2042a0f84cd3167c06b0",
+     "size": 321,
+     "type": "image/svg+xml"
+    },
+    "graduation-cap.svg": {
+     "name": "graduation-cap.svg",
+     "blob": "78920a7a52992adfa86819b88c1a89f0",
+     "size": 860,
+     "type": "image/svg+xml"
+    },
+    "id-badge.svg": {
+     "name": "id-badge.svg",
+     "blob": "2f446b5d578da110e4c3e4de19d26676",
+     "size": 443,
+     "type": "image/svg+xml"
+    },
+    "images.svg": {
+     "name": "images.svg",
+     "blob": "9a96311408e4dbf42a0a0015c7b9e63a",
+     "size": 638,
+     "type": "image/svg+xml"
+    },
+    "layer-group.svg": {
+     "name": "layer-group.svg",
+     "blob": "5c2305dc3d5e217e265fc102459bb4a3",
+     "size": 730,
+     "type": "image/svg+xml"
+    },
+    "magnifying-glass.svg": {
+     "name": "magnifying-glass.svg",
+     "blob": "fe30f8e3fb10017cad5772fc886355f0",
+     "size": 333,
+     "type": "image/svg+xml"
+    },
+    "percent.svg": {
+     "name": "percent.svg",
+     "blob": "7015345ad260643e4257ab921323981f",
+     "size": 312,
+     "type": "image/svg+xml"
+    },
+    "plus.svg": {
+     "name": "plus.svg",
+     "blob": "003edc5b303658a6cea1daec5af067d5",
+     "size": 302,
+     "type": "image/svg+xml"
+    },
+    "receipt.svg": {
+     "name": "receipt.svg",
+     "blob": "75c8b193985cc36e7a51790923cfc034",
+     "size": 768,
+     "type": "image/svg+xml"
+    },
+    "scale-balanced.svg": {
+     "name": "scale-balanced.svg",
+     "blob": "547847a8275e356e4fa95c8796c2f7d2",
+     "size": 856,
+     "type": "image/svg+xml"
+    },
+    "school.svg": {
+     "name": "school.svg",
+     "blob": "7d39162bd980dc181c5578e449def1a4",
+     "size": 915,
+     "type": "image/svg+xml"
+    },
+    "sliders.svg": {
+     "name": "sliders.svg",
+     "blob": "5d5b883c03fe9fdff35bd9b5c674f52c",
+     "size": 828,
+     "type": "image/svg+xml"
+    },
+    "square-poll-vertical.svg": {
+     "name": "square-poll-vertical.svg",
+     "blob": "3c4947de78faea68170786dbfb39f9fb",
+     "size": 498,
+     "type": "image/svg+xml"
+    },
+    "toggle-on.svg": {
+     "name": "toggle-on.svg",
+     "blob": "795eaf3f5d2d0c90eb2da88da04d902b",
+     "size": 236,
+     "type": "image/svg+xml"
+    },
+    "user-check.svg": {
+     "name": "user-check.svg",
+     "blob": "79a4e2d55c856c5593046747bee37947",
+     "size": 428,
+     "type": "image/svg+xml"
+    },
+    "user-clock.svg": {
+     "name": "user-clock.svg",
+     "blob": "1eeec5952d1b2e84d61460c8b3ae27e6",
+     "size": 475,
+     "type": "image/svg+xml"
+    },
+    "user-shield.svg": {
+     "name": "user-shield.svg",
+     "blob": "4490fcd889ef633c19045ee7224b5a20",
+     "size": 556,
+     "type": "image/svg+xml"
+    },
+    "user-tie.svg": {
+     "name": "user-tie.svg",
+     "blob": "ca312db0f59bc79b46d75b6f5e952cd7",
+     "size": 513,
+     "type": "image/svg+xml"
+    },
+    "utensils.svg": {
+     "name": "utensils.svg",
+     "blob": "35cc26811ec62b01bfe3cb9dc4ebc785",
+     "size": 696,
+     "type": "image/svg+xml"
+    }
+   }
+  },
+  "Fonts": {
+   "name": "Fonts",
+   "tile": "s",
+   "order": [],
+   "files": {}
+  }
+ },
+ "blobs": {},
+ "docs": {
+  "readme": "project/README.md",
+  "sections": [
+   "project/Quy-uoc-token.md",
+   "project/Quy-uoc-so.md",
+   "project/Thay-doi.md"
+  ]
+ },
+ "lastChange": {
+  "by": "Claude",
+  "at": "2026-11-02T09:40:00Z",
+  "via": "Claude chat",
+  "note": "v2.5.1: sửa lề ô số có đơn vị. v2.5.0: thêm affix đơn vị, chip, timeline, bảng is-fit cho các màn con Tài chính (v2.4.0: biểu mẫu, lưới tiết học, bảng is-dense)."
+ }
+}
