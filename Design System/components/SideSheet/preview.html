@@ -1,0 +1,82 @@
+<!-- @dsCard group="Bảng điều khiển & Hộp thoại" height=680 subtitle="Bảng trượt cạnh phải cho tạo mới & chỉnh sửa chi tiết" -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SideSheet Preview</title>
+<link rel="stylesheet" href="../../tokens.css" />
+<link rel="stylesheet" href="../bundle.css" />
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; font-family: var(--font-sans); background: var(--bg-canvas); }
+  .screen-demo {
+    width: 1000px;
+    height: 600px;
+    margin: 32px auto;
+    position: relative;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-12);
+    background: var(--bg-surface);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lg);
+  }
+  .screen-header {
+    padding: var(--space-16) var(--space-20);
+    border-bottom: 1px solid var(--border-default);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .screen-content {
+    flex: 1;
+    padding: var(--space-20);
+    background: var(--bg-canvas);
+  }
+</style>
+</head>
+<body>
+  <div class="screen-demo">
+    <div class="screen-header">
+      <h2 class="title-md">Quản Lý Nhân Sự & Thẻ</h2>
+      <button class="ecomd-btn ecomd-btn--primary">Thêm nhân sự mới</button>
+    </div>
+    <div class="screen-content">
+      <p class="body-sm">Danh sách nhân sự hiển thị trong khung màn hình chính cố định...</p>
+    </div>
+
+    <!-- Example SideSheet -->
+    <div class="ecomd-sidesheet-overlay" style="position: absolute;">
+      <div class="ecomd-sidesheet" style="width: 480px;">
+        <div class="ecomd-sidesheet__header">
+          <div class="ecomd-sidesheet__heading">
+            <div class="ecomd-sidesheet__icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            <div>
+              <h3 class="ecomd-sidesheet__title">Thêm Nhân Sự Mới</h3>
+              <p class="ecomd-sidesheet__desc">Tạo hồ sơ và gán Face ID từ camera</p>
+            </div>
+          </div>
+        </div>
+        <div class="ecomd-sidesheet__body">
+          <div class="ecomd-sidesheet__section">
+            <span class="ecomd-sidesheet__section-label">Thông tin cơ bản</span>
+            <div class="ecomd-field">
+              <label class="ecomd-field__label">Họ và tên</label>
+              <input type="text" class="ecomd-field__input" value="Nguyễn Văn A" />
+            </div>
+          </div>
+        </div>
+        <div class="ecomd-sidesheet__footer">
+          <button class="ecomd-btn ecomd-btn--ghost">Đóng</button>
+          <div class="ecomd-sidesheet__actions">
+            <button class="ecomd-btn ecomd-btn--primary">Lưu nhân sự</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

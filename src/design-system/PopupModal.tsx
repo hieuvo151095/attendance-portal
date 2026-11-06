@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon, IconName } from './Icon';
 import { IconButton } from './IconButton';
 import { Button } from './Button';
@@ -114,10 +115,11 @@ export const PopupModal: React.FC<PopupModalProps> & {
     }
   };
 
-  return (
+  const modalContent = (
     <div
       className={`ecomd-modal-overlay ${inline ? 'is-inline' : ''}`}
       onMouseDown={handleOverlayMouseDown}
+      style={{ zIndex: 2000 }}
     >
       <div
         className={`ecomd-modal ${className}`}
@@ -162,6 +164,12 @@ export const PopupModal: React.FC<PopupModalProps> & {
       </div>
     </div>
   );
+
+  if (inline || typeof document === 'undefined') {
+    return modalContent;
+  }
+
+  return createPortal(modalContent, document.body);
 };
 
 PopupModal.Section = ({ label, children, className = '', style = {} }) => {

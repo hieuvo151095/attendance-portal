@@ -2,20 +2,28 @@ import React, { useState, useEffect } from 'react';
 import {
   Button,
   InlineNotice,
-  Card,
   Icon,
   Tag,
-  PopupModal
+  PopupModal,
+  DataTable,
+  DataTableColumn,
+  SearchField,
+  StatCard,
+  EmptyValue
 } from '../../design-system';
 import { departmentService } from '../../services/department';
 import { authService } from '../../services/auth';
 import { Department, DepartmentTreeNode } from '../../types/organization';
 import { AuthSession } from '../../types/auth';
-import { DepartmentTreeSelector } from './DepartmentTreeSelector';
 import { DepartmentModal } from './DepartmentModal';
 
 export interface DepartmentManagementProps {
   session?: AuthSession | null;
+}
+
+export interface DepartmentRow extends Department {
+  level: number;
+  hasChildren?: boolean;
 }
 
 export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ session: propsSession }) => {
@@ -27,6 +35,9 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Search Filter State
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -104,7 +115,187 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
     }
   };
 
+  // Flatten hierarchical tree nodes preserving preorder traversal
+  const flattenTree = (
+    nodes: DepartmentTreeNode[],
+    term: string
+  ): DepartmentRow[] => {
+    const dfs = (treeList: DepartmentTreeNode[], level: number): DepartmentRow[] => {
+      let rows: DepartmentRow[] = [];
+      for (const node of treeList) {
+        rows.push({
+          ...node,
+          level,
+          hasChildren: Boolean(node.children && node.children.length > 0)
+        });
+        if (node.children && node.children.length > 0) {
+          rows = rows.concat(dfs(node.children, level + 1));
+        }
+      }
+      return rows;
+    };
+
+    let flat = dfs(nodes, 0);
+
+    const normalizedTerm = term.trim().toLowerCase();
+    if (normalizedTerm) {
+      flat = flat.filter((d) => {
+        const matchName = d.name.toLowerCase().includes(normalizedTerm);
+        const matchCode = d.code.toLowerCase().includes(normalizedTerm);
+        const matchManager = d.managerName && d.managerName.toLowerCase().includes(normalizedTerm);
+        const matchPhone = d.managerPhone && d.managerPhone.includes(normalizedTerm);
+        return matchName || matchCode || matchManager || matchPhone;
+      });
+    }
+
+    return flat;
+  };
+
+  const filteredRows = flattenTree(treeNodes, searchTerm);
   const totalEmployees = departments.reduce((sum, d) => sum + (d.employeeCount || 0), 0);
+  // Only count the main (root) departments, not subs
+  const mainDepartmentsCount = departments.filter((d) => !d.parentId).length;
+
+  // Redesigned Columns matching user requirements:
+  // 1. Tên phòng ban + Mã phòng ban
+  // 2. Người phụ trách + Số điện thoại
+  // 3. Số nhân sự (guaranteed spacing between number and text)
+  // 4. Thao tác (three-dots icon dropdown with NO standalone "+ Thêm con" button)
+  const columns: DataTableColumn<DepartmentRow>[] = [
+    {
+      key: 'name_and_code',
+      title: 'Tên phòng ban & Mã định danh',
+      render: (dept: DepartmentRow) => {
+        const isSub = dept.level > 0;
+        return (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--space-8)',
+              paddingLeft: isSub ? `${dept.level * 24}px` : '0px'
+            }}
+          >
+            {isSub ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: 'var(--text-subtle)',
+                  flexShrink: 0
+                }}
+              >
+                <span style={{ fontSize: '13px', marginRight: '4px', opacity: 0.6 }}>└─</span>
+                <Icon name="layer-group" size={13} color="var(--text-subtle)" />
+              </div>
+            ) : (
+              <div
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: 'var(--radius-6)',
+                  backgroundColor: 'var(--eco-blue-subtle)',
+                  color: 'var(--eco-blue-strong)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <Icon name="building" size={14} />
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)', flexWrap: 'wrap' }}>
+              <span
+                className="body-sm-semibold"
+                style={{ color: 'var(--text-heading)' }}
+              >
+                {dept.name}
+              </span>
+              <Tag variant="code">{dept.code}</Tag>
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      key: 'manager_and_phone',
+      title: 'Người phụ trách & Số điện thoại',
+      render: (dept: DepartmentRow) => {
+        if (!dept.managerName) {
+          return <EmptyValue label="Chưa bổ nhiệm" />;
+        }
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Icon name="user-tie" size={13} color="var(--text-subtle)" />
+              <span className="body-sm-medium" style={{ color: 'var(--text-heading)' }}>
+                {dept.managerName}
+              </span>
+            </div>
+            {dept.managerPhone ? (
+              <span className="body-xs" style={{ color: 'var(--text-subtle)', paddingLeft: '19px' }}>
+                {dept.managerPhone}
+              </span>
+            ) : (
+              <span className="body-xs" style={{ color: 'var(--text-muted)', paddingLeft: '19px' }}>
+                Chưa có SĐT
+              </span>
+            )}
+          </div>
+        );
+      }
+    },
+    {
+      key: 'employeeCount',
+      title: 'Số nhân sự',
+      width: '140px',
+      render: (dept: DepartmentRow) => {
+        const count = dept.employeeCount || 0;
+        if (count > 0) {
+          return (
+            <Tag variant="default">
+              {`${count} nhân sự`}
+            </Tag>
+          );
+        }
+        return <EmptyValue label="0 nhân sự" />;
+      }
+    },
+    {
+      key: 'actions',
+      title: 'Thao tác',
+      align: 'right' as const,
+      actions: true,
+      width: '90px',
+      render: (dept: DepartmentRow) => (
+        <DataTable.RowAction
+          label="Thao tác"
+          items={[
+            {
+              icon: 'plus',
+              label: 'Thêm phòng ban con',
+              onClick: () => handleAddSub(dept)
+            },
+            {
+              icon: 'pen',
+              label: 'Chỉnh sửa phòng ban',
+              onClick: () => handleEdit(dept)
+            },
+            {
+              divider: true
+            },
+            {
+              icon: 'trash',
+              label: 'Xóa phòng ban',
+              tone: 'danger',
+              onClick: () => handleDelete(dept)
+            }
+          ]}
+        />
+      )
+    }
+  ];
 
   if (!session) {
     return (
@@ -117,99 +308,134 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
   }
 
   return (
-    <div className="department-management-view" style={styles.container}>
-      {/* Page Header */}
-      <div style={styles.header}>
+    <div
+      className="department-management-view"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        position: 'relative'
+      }}
+    >
+      {/* Page Header (OUTSIDE all sections) */}
+      <div
+        data-testid="department-page-header"
+        style={{
+          padding: '4px 0 16px',
+          flexShrink: 0,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}
+      >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span className="overline-xs" style={{ color: 'var(--eco-blue-strong)' }}>
-              TỔ CHỨC & NHÂN SỰ
-            </span>
-            <Tag variant="default">{session.tenant.orgName}</Tag>
-          </div>
           <h1 className="h3" style={{ margin: 0, color: 'var(--text-heading)' }}>
             Cơ Cấu Tổ Chức & Phòng Ban
           </h1>
-          <p className="body-sm" style={{ color: 'var(--text-subtle)', margin: '4px 0 0' }}>
+          <p className="body-sm" style={{ color: 'var(--text-subtle)', margin: 'var(--space-4) 0 0' }}>
             Thiết lập mã định danh, cấp quản lý trực thuộc cha - con và người phụ trách phòng ban
           </p>
         </div>
-
-        <Button
-          variant="primary"
-          icon="plus"
-          onClick={handleOpenCreate}
-        >
-          Thêm phòng ban mới
-        </Button>
       </div>
 
-      {/* Notifications */}
-      {successMessage && (
-        <InlineNotice
-          tone="success"
-          style={{ marginBottom: '16px' }}
-        >
-          {successMessage}
-        </InlineNotice>
-      )}
-
-      {errorMessage && (
-        <InlineNotice
-          tone="danger"
-          style={{ marginBottom: '16px' }}
-        >
-          {errorMessage}
-        </InlineNotice>
-      )}
-
-      {/* Thống kê nhanh */}
-      <div style={styles.statGrid}>
-        <div style={styles.statCard}>
-          <div style={styles.statIconBox}>
-            <Icon name="layer-group" size={18} color="var(--eco-blue-strong)" />
-          </div>
-          <div>
-            <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>Tổng số phòng ban / bộ phận</div>
-            <div className="h4" style={{ margin: 0, color: 'var(--text-heading)' }}>
-              {departments.length}
-            </div>
-          </div>
-        </div>
-
-        <div style={styles.statCard}>
-          <div style={styles.statIconBox}>
-            <Icon name="users" size={18} color="var(--semantic-success)" />
-          </div>
-          <div>
-            <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>Tổng nhân sự trực thuộc</div>
-            <div className="h4" style={{ margin: 0, color: 'var(--text-heading)' }}>
-              {totalEmployees}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Cây phòng ban */}
-      <Card
-        title="Sơ Đồ Phân Cấp Phòng Ban"
-        description="Mỗi phòng ban có mã định danh duy nhất dùng để lọc báo cáo và triệu tập đại biểu họp"
+      {/* Main Body Card */}
+      <div
+        className="dashboard-card"
+        style={{
+          backgroundColor: 'var(--bg-surface)',
+          border: '1px solid var(--border-default)',
+          borderRadius: 'var(--radius-12)',
+          padding: '22px',
+          boxShadow: 'var(--shadow-xs)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-16)'
+        }}
       >
-        {loading ? (
-          <div style={{ padding: '24px', textAlign: 'center' }}>
-            <span className="body-sm" style={{ color: 'var(--text-subtle)' }}>
-              Đang tải danh sách cơ cấu phòng ban...
-            </span>
-          </div>
-        ) : (
-          <DepartmentTreeSelector
-            nodes={treeNodes}
-            onAddSubDepartment={handleAddSub}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
+        {/* Notifications */}
+        {successMessage && (
+          <InlineNotice
+            tone="success"
+            style={{ marginBottom: '8px' }}
+          >
+            {successMessage}
+          </InlineNotice>
         )}
-      </Card>
+
+        {errorMessage && (
+          <InlineNotice
+            tone="danger"
+            style={{ marginBottom: '8px' }}
+          >
+            {errorMessage}
+          </InlineNotice>
+        )}
+
+        {/* Quick Stat Cards: Only 2 cards, main departments only */}
+        <StatCard.Group columns={2}>
+          <StatCard
+            label="Tổng số phòng ban"
+            value={mainDepartmentsCount}
+            icon="layer-group"
+            tone="neutral"
+          />
+          <StatCard
+            label="Tổng nhân sự trực thuộc"
+            value={totalEmployees}
+            icon="users"
+            tone="success"
+          />
+        </StatCard.Group>
+
+        {/* Search & Action Toolbar */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 'var(--space-12)',
+            flexWrap: 'wrap'
+          }}
+        >
+          <SearchField
+            placeholder="Tìm phòng ban theo tên, mã định danh, người phụ trách..."
+            value={searchTerm}
+            onChange={(val) => setSearchTerm(val)}
+            width={360}
+          />
+
+          <Button
+            variant="primary"
+            icon="plus"
+            onClick={handleOpenCreate}
+          >
+            Thêm phòng ban mới
+          </Button>
+        </div>
+
+        {/* Redesigned Department DataTable */}
+        <DataTable
+          columns={columns}
+          rows={filteredRows}
+          rowKey="id"
+          pagination={{
+            pageSize: 10,
+            showTotal: (total, range) => (
+              <span>
+                Hiển thị <b>{total === 0 ? 0 : range[0]} - {range[1]}</b> trên <b>{total}</b> phòng ban / bộ phận
+              </span>
+            )
+          }}
+          emptyText={
+            loading
+              ? 'Đang tải danh sách cơ cấu phòng ban...'
+              : 'Không tìm thấy phòng ban nào phù hợp với từ khóa tìm kiếm.'
+          }
+          emptyIcon="building"
+        />
+      </div>
 
       {/* Modal Thêm / Sửa phòng ban */}
       {modalOpen && (
@@ -258,45 +484,4 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
       )}
     </div>
   );
-};
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    maxWidth: '1000px',
-    margin: '0 auto',
-    padding: '24px 16px'
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '20px',
-    flexWrap: 'wrap',
-    gap: '16px'
-  },
-  statGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-    gap: '16px',
-    marginBottom: '20px'
-  },
-  statCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '14px',
-    padding: '16px',
-    backgroundColor: 'var(--bg-surface)',
-    border: '1px solid var(--border-default)',
-    borderRadius: 'var(--radius-8)'
-  },
-  statIconBox: {
-    width: '40px',
-    height: '40px',
-    borderRadius: 'var(--radius-8)',
-    backgroundColor: 'var(--bg-subtle)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0
-  }
 };

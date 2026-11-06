@@ -80,96 +80,96 @@
       "name": "Khi đại biểu thực hiện Check-in tại phòng họp qua Face ID hoặc quẹt thẻ, hệ thống đối soát tức thì với danh sách triệu tập, ghi nhận thời điểm và hiển thị ảnh đối soát",
       "description": "Đặc tả: Khi đại biểu thực hiện Check-in tại phòng họp qua Face ID hoặc quẹt thẻ, hệ thống đối soát tức thì với danh sách triệu tập, ghi nhận thời điểm và hiển thị ảnh đối soát. ; Cập nhật ngay trên màn hình Live roll-call",
       "priority": "P0",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/meeting.md",
       "spec_path": "llm-wiki/pages/entities/meeting.md",
       "spec_line": 19,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T09:31:22Z"
     },
     {
       "id": "MTG-03",
       "name": "Khi đại biểu thực hiện Check-out hoặc khi người chủ trì bấm kết thúc cuộc họp, hệ thống chốt danh sách và tính thời lượng tham dự thực tế",
       "description": "Đặc tả: Khi đại biểu thực hiện Check-out hoặc khi người chủ trì bấm kết thúc cuộc họp, hệ thống chốt danh sách và tính thời lượng tham dự thực tế. ; Đánh dấu các trường hợp về sớm trước khi tan họp",
       "priority": "P0",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/meeting.md",
       "spec_path": "llm-wiki/pages/entities/meeting.md",
       "spec_line": 20,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T09:46:52Z"
     },
     {
       "id": "MTG-04",
       "name": "Biên bản và báo cáo chuyên cần tự động tổng hợp tỷ lệ tham dự (% có mặt, số người đi muộn, số người vắng mặt)",
       "description": "Đặc tả: Biên bản và báo cáo chuyên cần tự động tổng hợp tỷ lệ tham dự (% có mặt, số người đi muộn, số người vắng mặt); hỗ trợ xuất file PDF và Excel có chữ ký số hoặc dấu mộc lưu hồ sơ. ; Báo cáo chốt dữ liệu bất biến sau khi kết thúc họp",
       "priority": "P0",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/meeting.md",
       "spec_path": "llm-wiki/pages/entities/meeting.md",
       "spec_line": 21,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T09:59:26Z"
     },
     {
       "id": "ATT-01",
       "name": "Khung ca làm việc gồm: Giờ bắt đầu ca sáng (mặc định 07:30), giờ kết thúc ca sáng (11:30), giờ bắt đầu ca chiều (13:30), giờ tan ca chiều (17:00), và dung sai cho phép đi muộn (mặc định 10 phút)",
       "description": "Đặc tả: Khung ca làm việc gồm: Giờ bắt đầu ca sáng (mặc định 07:30), giờ kết thúc ca sáng (11:30), giờ bắt đầu ca chiều (13:30), giờ tan ca chiều (17:00), và dung sai cho phép đi muộn (mặc định 10 phút). Nhân viên quét Check-in sau giờ bắt đầu + dung sai sẽ bị ghi nhận là Đi muộn kèm số phút muộn. ; Áp dụng mặc định cho toàn cơ quan",
       "priority": "P1",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/work-shift.md",
       "spec_path": "llm-wiki/pages/entities/work-shift.md",
       "spec_line": 18,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T10:03:56Z"
     },
     {
       "id": "ATT-02",
       "name": "Bản ghi chấm công cơ quan lưu thời điểm quét tại cổng, phương thức và tự động phân loại là Check-in đầu ngày hoặc Check-out tan ca",
       "description": "Đặc tả: Bản ghi chấm công cơ quan lưu thời điểm quét tại cổng, phương thức và tự động phân loại là Check-in đầu ngày hoặc Check-out tan ca. ; Đối chiếu với khung ca làm việc chuẩn",
       "priority": "P1",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/attendance-record.md",
       "spec_path": "llm-wiki/pages/entities/attendance-record.md",
       "spec_line": 20,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T10:07:24Z"
     },
     {
       "id": "ATT-03",
       "name": "Bảng theo dõi chấm công ngày: Danh sách nhân viên, giờ đến, giờ về, số phút đi muộn và nhãn trạng thái (Đúng giờ / Muộn / Vắng)",
       "description": "Đặc tả: Bảng theo dõi chấm công ngày: Danh sách nhân viên, giờ đến, giờ về, số phút đi muộn và nhãn trạng thái (Đúng giờ / Muộn / Vắng) ; Trạng thái: MISSING",
       "priority": "P1",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/sources/portal-architecture-decisions-2026-11-02.md",
       "spec_path": "llm-wiki/pages/sources/portal-architecture-decisions-2026-11-02.md",
       "spec_line": 49,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T12:35:41Z"
     },
     {
       "id": "DASH-01",
       "name": "Tổng hợp danh mục các cuộc họp đã kết thúc trong kỳ: Tên cuộc họp, thời gian thực tế, tỷ lệ đại biểu có mặt (% chuyên cần), số đại biểu vắng, liên kết tải nhanh biên bản họp",
       "description": "Đặc tả: Tổng hợp danh mục các cuộc họp đã kết thúc trong kỳ: Tên cuộc họp, thời gian thực tế, tỷ lệ đại biểu có mặt (% chuyên cần), số đại biểu vắng, liên kết tải nhanh biên bản họp. ; Không hiển thị cuộc họp đang diễn ra",
       "priority": "P1",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/attendance-summary.md",
       "spec_path": "llm-wiki/pages/entities/attendance-summary.md",
       "spec_line": 18,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T13:35:29Z"
     },
     {
       "id": "DASH-02",
       "name": "Widget biểu đồ xu hướng hiện diện toàn cơ quan theo ngày/tuần/tháng: Tỷ lệ đúng giờ, tỷ lệ đi muộn, tỷ lệ vắng mặt và so sánh giữa các phòng ban",
       "description": "Đặc tả: Thống kê xu hướng hiện diện toàn cơ quan: Tổng số nhân sự, tỷ lệ đúng giờ, tỷ lệ đi muộn, tỷ lệ vắng mặt; biểu đồ chuyên cần so sánh giữa các phòng ban. ; Cập nhật theo chu kỳ ngày, tuần, tháng",
       "priority": "P1",
-      "state": "pending",
+      "state": "passing",
       "spec_file": "llm-wiki/pages/entities/attendance-summary.md",
       "spec_path": "llm-wiki/pages/entities/attendance-summary.md",
       "spec_line": 19,
       "created_at": "2026-11-02T10:09:53Z",
-      "updated_at": "2026-11-02T10:09:53Z"
+      "updated_at": "2026-11-04T13:46:52Z"
     }
   ]
 }

@@ -18,11 +18,14 @@ export const Tag: React.FC<TagProps> = ({
   className = '',
   style = {}
 }) => {
+  const typeClass =
+    variant === 'code' ? 'code' : variant === 'default' ? 'body-xs' : 'body-xs-semibold';
+
   const classNames = [
     'ecomd-tag',
     `ecomd-tag--${variant}`,
     pill ? 'is-pill' : '',
-    variant === 'code' ? 'body-mono-xs' : 'body-xs-medium',
+    typeClass,
     className
   ]
     .filter(Boolean)
@@ -69,7 +72,7 @@ export const StatusTag: React.FC<StatusTagProps> = ({
 
   return (
     <span
-      className={`ecomd-status-tag ecomd-status-tag--${tone} body-xs-medium ${className}`}
+      className={`ecomd-status ecomd-status--${tone} ecomd-status-tag ecomd-status-tag--${tone} body-xs-medium ${className}`}
       style={style}
     >
       {iconName && <Icon name={iconName} size={12} />}

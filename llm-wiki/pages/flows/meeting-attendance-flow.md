@@ -4,7 +4,7 @@ type: flow
 sources:
   - pages/sources/portal-architecture-decisions-2026-11-02.md
 spec_ids: [MTG-01, MTG-02, MTG-03, MTG-04]
-updated: 2026-11-02
+updated: 2026-11-04
 ---
 
 # Luồng điểm danh cuộc họp
@@ -30,9 +30,9 @@ Tự động hóa hoàn toàn quy trình tổ chức và điểm danh cuộc h�
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
 | MTG-01 | P0 | Thiết lập lịch họp, phòng họp và triệu tập danh sách đại biểu | Đã hoàn thành lên lịch họp, phòng họp, thời gian và triệu tập đại biểu theo phòng ban | MATCH | repo:src/services/meeting.ts:1, repo:src/pages/meeting/MeetingModal.tsx:1 |
-| MTG-02 | P0 | Màn hình Live roll-call điểm danh thời gian thực tại phòng họp | Chưa triển khai | MISSING | - |
-| MTG-03 | P0 | Điểm danh Check-out và chốt kết thúc cuộc họp | Chưa triển khai | MISSING | - |
-| MTG-04 | P0 | Xuất biên bản và báo cáo chuyên cần cuộc họp dạng PDF/Excel | Chưa triển khai | MISSING | - |
+| MTG-02 | P0 | Màn hình Live roll-call điểm danh thời gian thực tại phòng họp | Đã hoàn thành màn hình Live roll-call đối soát ảnh Face ID/thẻ và tính dung sai trễ/về sớm | MATCH | repo:src/services/meeting.ts:446, repo:src/pages/meeting/MeetingLiveScreen.tsx:1 |
+| MTG-03 | P0 | Điểm danh Check-out và chốt kết thúc cuộc họp | Đã hoàn thành ghi nhận Check-out, tính thời lượng, phát hiện về sớm và chốt biên bản bất biến | MATCH | repo:src/services/meeting.ts:580, repo:src/pages/meeting/MeetingLiveScreen.tsx:1 |
+| MTG-04 | P0 | Xuất biên bản và báo cáo chuyên cần cuộc họp dạng PDF/Excel | Đã hoàn thành tổng hợp chuyên cần, niêm phong dấu mộc số Finviet SHA-256, xuất Excel (.csv UTF-8 BOM) và in PDF chuẩn NĐ 30/2020 | MATCH | repo:src/services/report.ts:1, repo:src/pages/meeting/MeetingReportModal.tsx:1 |
 
 ## Liên quan
 - [Cuộc họp](../entities/meeting.md)

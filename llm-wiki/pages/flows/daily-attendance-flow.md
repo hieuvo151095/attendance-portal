@@ -4,7 +4,7 @@ type: flow
 sources:
   - pages/sources/portal-architecture-decisions-2026-11-02.md
 spec_ids: [ATT-01, ATT-02, ATT-03]
-updated: 2026-11-02
+updated: 2026-11-04
 ---
 
 # Luồng chấm công vào ra cơ quan
@@ -28,9 +28,9 @@ Quản lý chu trình vào cơ quan đầu ngày và tan ca ra về cuối ngày
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| ATT-01 | P1 | Cấu hình khung giờ ca hành chính chuẩn và dung sai đi muộn | Chưa triển khai | MISSING | - |
-| ATT-02 | P1 | Tiếp nhận sự kiện Check-in/Check-out hàng ngày từ cổng cơ quan | Chưa triển khai | MISSING | - |
-| ATT-03 | P1 | Bảng theo dõi Chấm công Ngày và phân loại Đúng giờ / Muộn / Vắng | Chưa triển khai | MISSING | - |
+| ATT-01 | P1 | Cấu hình khung giờ ca hành chính chuẩn và dung sai đi muộn | Đã hoàn thành cấu hình ca sáng, ca chiều, dung sai vào trễ/ra sớm và hàm tính số phút muộn | MATCH | repo:src/types/setting.ts:1, repo:src/services/setting.ts:1, repo:src/pages/setting/AttendanceSettingsModal.tsx:1 |
+| ATT-02 | P1 | Tiếp nhận sự kiện Check-in/Check-out hàng ngày từ cổng cơ quan | Đã hoàn thành tiếp nhận sự kiện quét cổng, phân loại Check-in/Check-out và lưu vết chi tiết | MATCH | repo:src/services/attendance.ts:1, repo:src/pages/attendance/QuickScanModal.tsx:1 |
+| ATT-03 | P1 | Bảng theo dõi Chấm công Ngày và phân loại Đúng giờ / Muộn / Vắng | Đã hoàn thành bảng theo dõi chấm công ngày, lọc phòng ban, trạng thái, thẻ chỉ số và xuất file Excel | MATCH | repo:src/pages/attendance/DailyAttendance.tsx:1, repo:src/services/attendance.ts:1 |
 
 ## Liên quan
 - [Ca làm việc](../entities/work-shift.md)

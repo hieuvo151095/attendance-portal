@@ -7,8 +7,10 @@ import {
   DataTable,
   Tag,
   StatusTag,
-  IconButton,
-  EmptyValue
+  EmptyValue,
+  Icon,
+  PopupModal,
+  InlineNotice
 } from '../../design-system';
 import { Employee } from '../../types/employee';
 import { Department } from '../../types/organization';
@@ -17,7 +19,6 @@ import { employeeService } from '../../services/employee';
 import { departmentService } from '../../services/department';
 import { cardService } from '../../services/card';
 import { EmployeeModal } from './EmployeeModal';
-import { CameraSyncModal } from './CameraSyncModal';
 import { ExcelImportModal } from './ExcelImportModal';
 import { CardManagementModal } from './CardManagementModal';
 
@@ -41,13 +42,12 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
 
-  const [cameraSyncModalOpen, setCameraSyncModalOpen] = useState(false);
-  const [employeeToSyncCamera, setEmployeeToSyncCamera] = useState<Employee | null>(null);
-
   const [excelModalOpen, setExcelModalOpen] = useState(false);
 
   const [cardModalOpen, setCardModalOpen] = useState(false);
   const [employeeForCard, setEmployeeForCard] = useState<Employee | null>(null);
+  const [empToDelete, setEmpToDelete] = useState<Employee | null>(null);
+  const [isDeletingEmp, setIsDeletingEmp] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -117,25 +117,27 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
     setEmployeeModalOpen(true);
   };
 
-  const handleOpenSyncCamera = (emp: Employee) => {
-    setEmployeeToSyncCamera(emp);
-    setCameraSyncModalOpen(true);
-  };
-
   const handleOpenCardModal = (emp: Employee) => {
     setEmployeeForCard(emp);
     setCardModalOpen(true);
   };
 
-  const handleDeleteEmployee = async (emp: Employee) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa nhân sự "${emp.fullName}" (${emp.employeeCode})?`)) {
-      try {
-        await employeeService.deleteEmployee(tenantId, emp.id);
-        loadData();
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Lỗi xóa nhân sự';
-        alert(msg);
-      }
+  const handleDeleteEmployee = (emp: Employee) => {
+    setEmpToDelete(emp);
+  };
+
+  const handleConfirmDeleteEmployee = async () => {
+    if (!empToDelete) return;
+    setIsDeletingEmp(true);
+    try {
+      await employeeService.deleteEmployee(tenantId, empToDelete.id);
+      setEmpToDelete(null);
+      loadData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Lỗi xóa nhân sự';
+      alert(msg);
+    } finally {
+      setIsDeletingEmp(false);
     }
   };
 
@@ -161,65 +163,177 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
     {
       key: 'fullName',
       title: 'Nhân viên',
-      width: '260px',
+      width: '220px',
       render: (emp: Employee) => (
         <DataTable.Person
           name={emp.fullName}
           avatar={emp.avatarUrl}
-          meta={emp.email || emp.phoneNumber || 'Chưa có thông tin liên hệ'}
+          meta={emp.gender === 'female' ? 'Nữ' : 'Nam'}
         />
       )
     },
     {
-      key: 'employeeCode',
-      title: 'Mã nhân viên',
-      width: '130px',
-      render: (emp: Employee) => <Tag variant="code">{emp.employeeCode}</Tag>
+      key: 'contact',
+      title: 'Liên lạc',
+      width: '210px',
+      render: (emp: Employee) => (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--text-body)', fontSize: '12px' }}>
+            <Icon name="envelope" size={13} style={{ color: 'var(--text-subtle)', flexShrink: 0 }} />
+            <span
+              style={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: '175px'
+              }}
+              title={emp.email || 'Chưa có email'}
+            >
+              {emp.email || <span style={{ color: 'var(--text-disabled)', fontStyle: 'italic' }}>Chưa có email</span>}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--text-body)', fontSize: '12px' }}>
+            <Icon name="phone" size={13} style={{ color: 'var(--text-subtle)', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-subtle)' }}>
+              {emp.phoneNumber || <span style={{ color: 'var(--text-disabled)', fontStyle: 'italic' }}>Chưa có SĐT</span>}
+            </span>
+          </div>
+        </div>
+      )
     },
     {
-      key: 'identityNumber',
-      title: 'Số CCCD',
-      width: '140px',
+      key: 'employeeCode',
+      title: 'Mã NV & CCCD',
+      width: '160px',
       render: (emp: Employee) => (
-        <span className="body-mono-xs">{emp.identityNumber}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 'var(--space-4)' }}>
+          <Tag variant="code">{emp.employeeCode}</Tag>
+          <span className="body-mono-xs" style={{ color: 'var(--text-subtle)' }}>
+            {emp.identityNumber}
+          </span>
+        </div>
       )
     },
     {
       key: 'position',
-      title: 'Chức danh',
-      width: '180px',
-      render: (emp: Employee) => emp.position
-    },
-    {
-      key: 'departmentId',
-      title: 'Phòng ban',
-      width: '180px',
+      title: 'Chức danh & Phòng ban',
+      width: '220px',
       render: (emp: Employee) => (
-        <span>{departmentMap.get(emp.departmentId) || 'Phòng ban khác'}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
+          <span className="body-sm-medium" style={{ color: 'var(--text-heading)' }}>
+            {emp.position}
+          </span>
+          <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>
+            {departmentMap.get(emp.departmentId) || 'Phòng ban khác'}
+          </span>
+        </div>
       )
     },
     {
-      key: 'faceIdStatus',
-      title: 'Trạng thái Face ID',
-      width: '170px',
-      render: (emp: Employee) =>
-        emp.faceIdStatus === 'enrolled' ? (
-          <StatusTag tone="success" label="Đã có Face ID" icon="circle-check" />
-        ) : (
-          <StatusTag tone="warning" label="Chờ lấy mẫu camera" icon="camera" />
-        )
+      key: 'attendanceMethods',
+      title: 'Hình thức điểm danh',
+      width: '180px',
+      render: (emp: Employee) => {
+        const card = activeCardMap.get(emp.id);
+        const hasCard = Boolean(card);
+        const hasFaceId = emp.faceIdStatus === 'enrolled';
+        const hasFingerprint = (emp.fingerprintStatus ?? 'enrolled') === 'enrolled';
+
+        const allowed = emp.allowedMethods || {
+          faceId: hasFaceId,
+          fingerprint: hasFingerprint,
+          card: hasCard
+        };
+
+        const methods = [];
+
+        // 1. Face ID: Chỉ hiển thị biểu tượng khi nhân viên đã có dữ liệu khuôn mặt từ Camera
+        if (hasFaceId) {
+          const isAllowed = allowed.faceId !== false;
+          methods.push({
+            key: 'faceId',
+            name: 'Khuôn mặt (Face ID)',
+            icon: 'camera' as const,
+            allowed: isAllowed,
+            statusText: isAllowed
+              ? 'Đang bật nhận diện Face ID qua Camera Hikvision'
+              : 'Đã có Face ID nhưng Quản trị viên tạm tắt'
+          });
+        }
+
+        // 2. Vân tay: Chỉ hiển thị biểu tượng khi nhân viên đã lấy mẫu vân tay
+        if (hasFingerprint) {
+          const isAllowed = allowed.fingerprint !== false;
+          methods.push({
+            key: 'fingerprint',
+            name: 'Vân tay',
+            icon: 'fingerprint' as const,
+            allowed: isAllowed,
+            statusText: isAllowed
+              ? 'Đang bật xác thực sinh trắc học vân tay'
+              : 'Đã có mẫu vân tay nhưng Quản trị viên tạm tắt'
+          });
+        }
+
+        // 3. Thẻ nhân viên: Chỉ hiển thị biểu tượng khi nhân viên ĐÃ ĐƯỢC CẤP THẺ vật lý
+        if (hasCard && card) {
+          const isAllowed = (allowed.card !== false) && card.status === 'active';
+          methods.push({
+            key: 'card',
+            name: 'Thẻ nhân viên',
+            icon: 'id-badge' as const,
+            allowed: isAllowed,
+            statusText: isAllowed
+              ? `Đang bật quẹt thẻ (${card.cardUid})`
+              : card.status === 'locked'
+              ? `Thẻ tạm khóa (${card.cardUid})`
+              : `Đã cấp thẻ (${card.cardUid}) nhưng Quản trị viên tạm tắt`
+          });
+        }
+
+        if (methods.length === 0) {
+          return <EmptyValue italic>Chưa kích hoạt</EmptyValue>;
+        }
+
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)' }}>
+            {methods.map((m) => (
+              <div
+                key={m.key}
+                title={`${m.name}: ${m.statusText}`}
+                data-testid={`method-${m.key}-${emp.id}`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 30,
+                  height: 30,
+                  borderRadius: 'var(--radius-6)',
+                  backgroundColor: m.allowed ? 'var(--primary-50)' : 'var(--bg-subtle)',
+                  color: m.allowed ? 'var(--primary-700)' : 'var(--text-disabled)',
+                  border: `1px solid ${m.allowed ? 'var(--primary-200)' : 'var(--border-neutral-subtle)'}`,
+                  opacity: m.allowed ? 1 : 0.45,
+                  cursor: 'default'
+                }}
+              >
+                <Icon name={m.icon} size={15} />
+              </div>
+            ))}
+          </div>
+        );
+      }
     },
     {
       key: 'cardUid',
-      title: 'Thẻ RFID/NFC (ORG-03)',
-      width: '180px',
+      title: 'Mã thẻ',
+      width: '160px',
       render: (emp: Employee) => {
         const card = activeCardMap.get(emp.id);
         if (!card) {
           return <EmptyValue italic>Chưa cấp thẻ</EmptyValue>;
         }
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 'var(--space-4)' }}>
             <Tag variant="code">{card.cardUid}</Tag>
             {card.status === 'active' ? (
               <StatusTag tone="success" label="Hoạt động" />
@@ -231,195 +345,203 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
       }
     },
     {
-      key: 'cameraSyncInfo',
-      title: 'Đồng bộ Camera',
-      width: '200px',
-      render: (emp: Employee) => {
-        if (!emp.cameraSyncInfo) {
-          return <EmptyValue italic>Chưa kết nối</EmptyValue>;
-        }
-        return (
-          <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>
-            <div style={{ color: 'var(--text-body)', fontWeight: 500 }}>
-              {emp.cameraSyncInfo.deviceName}
-            </div>
-            <div>
-              Khớp: <b>{emp.cameraSyncInfo.faceScore}%</b>
-            </div>
-          </div>
-        );
-      }
-    },
-    {
       key: 'actions',
       title: 'Thao tác',
       align: 'right' as const,
       actions: true,
-      width: '170px',
+      width: '90px',
       render: (emp: Employee) => (
-        <div style={{ display: 'flex', gap: 'var(--space-4)', justifyContent: 'flex-end' }}>
-          <IconButton
-            icon="id-badge"
-            label="Quản lý thẻ nhân viên"
-            size="sm"
-            onClick={() => handleOpenCardModal(emp)}
-          />
-          <IconButton
-            icon="camera"
-            label="Đồng bộ Face ID từ Camera Hikvision"
-            size="sm"
-            onClick={() => handleOpenSyncCamera(emp)}
-          />
-          <IconButton
-            icon="pen"
-            label="Chỉnh sửa hồ sơ"
-            size="sm"
-            onClick={() => handleOpenEditModal(emp)}
-          />
-          <IconButton
-            icon="trash"
-            label="Xóa nhân sự"
-            size="sm"
-            onClick={() => handleDeleteEmployee(emp)}
-          />
-        </div>
+        <DataTable.RowAction
+          label="Thao tác"
+          items={[
+            {
+              icon: 'id-badge',
+              label: 'Quản lý thẻ nhân viên',
+              onClick: () => handleOpenCardModal(emp)
+            },
+            {
+              icon: 'pen',
+              label: 'Chỉnh sửa hồ sơ',
+              onClick: () => handleOpenEditModal(emp)
+            },
+            {
+              divider: true
+            },
+            {
+              icon: 'trash',
+              label: 'Xóa nhân sự',
+              tone: 'danger',
+              onClick: () => handleDeleteEmployee(emp)
+            }
+          ]}
+        />
       )
     }
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-20)' }}>
-      {/* Page Title & Overview */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <div
+      className="employee-management-module"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        position: 'relative'
+      }}
+    >
+      {/* Page Title & Overview (OUTSIDE all sections) */}
+      <div
+        data-testid="employee-page-header"
+        style={{
+          padding: '4px 0 16px',
+          flexShrink: 0,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: 'var(--space-16)'
+        }}
+      >
         <div>
-          <h1 className="h2" style={{ margin: 0, color: 'var(--text-heading)' }}>
-            Quản Lý Hồ Sơ Nhân Sự & Thẻ Điểm Danh
+          <h1 className="h3" style={{ margin: 0, color: 'var(--text-heading)' }}>
+            Quản Lý Hồ Sơ Nhân Sự
           </h1>
           <p className="body-sm" style={{ margin: 'var(--space-4) 0 0', color: 'var(--text-subtle)' }}>
-            Quản lý mã nhân viên, phòng ban, nhận diện khuôn mặt Face ID và thẻ vật lý RFID/NFC theo đặc tả ORG-01, ORG-02 và ORG-03.
+            Quản lý thông tin nhân sự và hình thức điểm danh.
           </p>
         </div>
       </div>
 
-      {/* Summary StatCards */}
-      <StatCard.Group columns={4}>
-        <StatCard
-          label="Tổng nhân sự"
-          value={totalCount}
-          icon="users"
-          tone="neutral"
-        />
-        <StatCard
-          label="Đã đồng bộ Face ID từ Camera"
-          value={enrolledCount}
-          icon="circle-check"
-          tone="success"
-        />
-        <StatCard
-          label="Đã cấp thẻ RFID/NFC"
-          value={activeCardCount}
-          icon="id-badge"
-          tone="info"
-        />
-        <StatCard
-          label="Chờ lấy mẫu tại Camera"
-          value={pendingCount}
-          icon="camera"
-          tone="warning"
-        />
-      </StatCard.Group>
-
-      {/* Toolbar & Filters */}
       <div
+        className="dashboard-card"
         style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 'var(--space-12)',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: 'var(--space-16)',
           backgroundColor: 'var(--bg-surface)',
           border: '1px solid var(--border-default)',
-          borderRadius: 'var(--radius-12)'
+          borderRadius: 'var(--radius-12)',
+          padding: '22px',
+          boxShadow: 'var(--shadow-xs)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-16)'
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-12)', alignItems: 'center', flex: 1 }}>
-          <SearchField
-            placeholder="Tìm theo tên, mã NV, CCCD, chức danh..."
-            value={searchTerm}
-            onChange={(val) => setSearchTerm(val)}
-            style={{ minWidth: '260px' }}
+        {/* Summary StatCards */}
+        <StatCard.Group columns={4}>
+          <StatCard
+            label="Tổng nhân sự"
+            value={totalCount}
+            icon="users"
+            tone="neutral"
           />
+          <StatCard
+            label="Đã đồng bộ Face ID từ Camera"
+            value={enrolledCount}
+            icon="circle-check"
+            tone="success"
+          />
+          <StatCard
+            label="Đã cấp thẻ RFID/NFC"
+            value={activeCardCount}
+            icon="id-badge"
+            tone="info"
+          />
+          <StatCard
+            label="Chờ lấy mẫu tại Camera"
+            value={pendingCount}
+            icon="camera"
+            tone="warning"
+          />
+        </StatCard.Group>
 
-          <SelectField
-            options={departmentFilterOptions}
-            value={selectedDeptId}
-            onChange={(val) => setSelectedDeptId(val)}
-          />
+        {/* Toolbar & Filters */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 'var(--space-12)',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 'var(--space-16)',
+            backgroundColor: 'var(--bg-surface)',
+            border: '1px solid var(--border-default)',
+            borderRadius: 'var(--radius-12)'
+          }}
+        >
+          <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 'var(--space-12)', alignItems: 'center' }}>
+            <SearchField
+              placeholder="Tìm theo tên, mã NV, CCCD..."
+              value={searchTerm}
+              onChange={(val) => setSearchTerm(val)}
+              width={190}
+            />
 
-          <SelectField
-            options={faceIdFilterOptions}
-            value={faceIdStatusFilter}
-            onChange={(val) => setFaceIdStatusFilter(val)}
-          />
+            <SelectField
+              options={departmentFilterOptions}
+              value={selectedDeptId}
+              onChange={(val) => setSelectedDeptId(val)}
+              width={165}
+            />
 
-          <SelectField
-            options={cardFilterOptions}
-            value={cardStatusFilter}
-            onChange={(val) => setCardStatusFilter(val)}
-          />
+            <SelectField
+              options={faceIdFilterOptions}
+              value={faceIdStatusFilter}
+              onChange={(val) => setFaceIdStatusFilter(val)}
+              width={145}
+            />
+
+            <SelectField
+              options={cardFilterOptions}
+              value={cardStatusFilter}
+              onChange={(val) => setCardStatusFilter(val)}
+              width={145}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: 'var(--space-8)' }}>
+            <Button
+              variant="secondary"
+              icon="file-excel"
+              onClick={() => setExcelModalOpen(true)}
+            >
+              Nhập từ Excel
+            </Button>
+            <Button
+              variant="primary"
+              icon="plus"
+              onClick={handleOpenAddModal}
+            >
+              Thêm nhân sự mới
+            </Button>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 'var(--space-8)' }}>
-          <Button
-            variant="secondary"
-            icon="file-excel"
-            onClick={() => setExcelModalOpen(true)}
-          >
-            Nhập từ Excel
-          </Button>
-          <Button
-            variant="primary"
-            icon="plus"
-            onClick={handleOpenAddModal}
-          >
-            Thêm nhân sự mới
-          </Button>
-        </div>
+        {/* Employees Data Table */}
+        <DataTable
+          columns={columns}
+          rows={filteredEmployees}
+          rowKey="id"
+          pagination={{
+            pageSize: 10,
+            showTotal: (total, range) => (
+              <span>
+                Hiển thị <b>{total === 0 ? 0 : range[0]} - {range[1]}</b> trên <b>{total}</b> cán bộ nhân sự
+              </span>
+            )
+          }}
+          emptyText={
+            loading
+              ? 'Đang tải danh sách nhân sự...'
+              : 'Không tìm thấy cán bộ nhân viên nào phù hợp với bộ lọc.'
+          }
+          emptyIcon="users"
+        />
       </div>
 
-      {/* Employees Data Table */}
-      <DataTable
-        columns={columns}
-        rows={filteredEmployees}
-        rowKey="id"
-        emptyText={
-          loading
-            ? 'Đang tải danh sách nhân sự...'
-            : 'Không tìm thấy cán bộ nhân viên nào phù hợp với bộ lọc.'
-        }
-        emptyIcon="users"
-        footer={
-          <span>
-            Hiển thị <b>{filteredEmployees.length}</b> cán bộ nhân sự
-          </span>
-        }
-      />
-
-      {/* Modals */}
+      {/* Modals / SideSheets */}
       <EmployeeModal
         open={employeeModalOpen}
         onClose={() => setEmployeeModalOpen(false)}
         tenantId={tenantId}
         employeeToEdit={employeeToEdit}
-        onSuccess={loadData}
-      />
-
-      <CameraSyncModal
-        open={cameraSyncModalOpen}
-        onClose={() => setCameraSyncModalOpen(false)}
-        tenantId={tenantId}
-        employee={employeeToSyncCamera}
         onSuccess={loadData}
       />
 
@@ -437,6 +559,52 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
         employee={employeeForCard}
         onSuccess={loadData}
       />
+
+      {/* Delete Employee Confirmation PopupModal */}
+      {empToDelete && (
+        <PopupModal
+          open={!!empToDelete}
+          icon="triangle-exclamation"
+          title="Xác Nhận Xóa Hồ Sơ Nhân Sự"
+          description={`Bạn có chắc chắn muốn xóa nhân sự "${empToDelete.fullName}" (${empToDelete.employeeCode}) khỏi hệ thống không?`}
+          width={460}
+          onClose={() => !isDeletingEmp && setEmpToDelete(null)}
+          primaryAction={{
+            label: isDeletingEmp ? 'Đang xóa...' : 'Xóa nhân sự',
+            icon: 'trash',
+            onClick: handleConfirmDeleteEmployee,
+            disabled: isDeletingEmp
+          }}
+          secondaryAction={{
+            label: 'Hủy bỏ',
+            onClick: () => setEmpToDelete(null),
+            disabled: isDeletingEmp
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div
+              style={{
+                padding: '12px 14px',
+                backgroundColor: 'var(--bg-subtle)',
+                borderRadius: 'var(--radius-8)',
+                border: '1px solid var(--border-default)',
+                fontSize: '13px',
+                lineHeight: '20px',
+                color: 'var(--text-body)'
+              }}
+            >
+              <div><strong>Họ và tên:</strong> {empToDelete.fullName}</div>
+              <div><strong>Mã cán bộ:</strong> <Tag variant="code">{empToDelete.employeeCode}</Tag></div>
+              {empToDelete.position && <div style={{ marginTop: '2px' }}><strong>Chức vụ:</strong> {empToDelete.position}</div>}
+              <div><strong>CCCD / ĐDCN:</strong> {empToDelete.identityNumber}</div>
+            </div>
+
+            <InlineNotice tone="warning">
+              Hành động này sẽ hủy liên kết thẻ nhân viên và xóa dữ liệu nhận diện Face ID của cán bộ khỏi hệ thống điểm danh.
+            </InlineNotice>
+          </div>
+        </PopupModal>
+      )}
     </div>
   );
 };

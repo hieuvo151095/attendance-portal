@@ -4,7 +4,7 @@ type: flow
 sources:
   - pages/sources/portal-architecture-decisions-2026-11-02.md
 spec_ids: [DASH-01, DASH-02]
-updated: 2026-11-02
+updated: 2026-11-04
 ---
 
 # Luồng xem báo cáo tổng hợp
@@ -26,8 +26,8 @@ Cung cấp bức tranh toàn cảnh về tình hình hội họp và mức độ
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| DASH-01 | P2 | Tổng hợp danh mục các cuộc họp đã kết thúc và tỷ lệ chuyên cần | Chưa triển khai | MISSING | - |
-| DASH-02 | P2 | Biểu đồ xu hướng hiện diện cơ quan theo ngày/tuần/tháng | Chưa triển khai | MISSING | - |
+| DASH-01 | P2 | Tổng hợp danh mục các cuộc họp đã kết thúc và tỷ lệ chuyên cần | Đã hoàn thành bộ lọc kỳ, thống kê chuyên cần và lưu trữ biên bản cuộc họp | MATCH | [MeetingReportArchive.tsx](file:///Users/hieuvo/Desktop/Finviet/Attendance%20Portal/src/pages/report/MeetingReportArchive.tsx#L1-L150) |
+| DASH-02 | P2 | Biểu đồ xu hướng hiện diện cơ quan theo ngày/tuần/tháng | Đã triển khai đầy đủ Dashboard với các thẻ KPI, biểu đồ cột/đường xu hướng SVG, so sánh các phòng ban và cơ cấu điểm danh | MATCH | [AttendanceDashboard.tsx](file:///Users/hieuvo/Desktop/Finviet/Attendance%20Portal/src/pages/dashboard/AttendanceDashboard.tsx#L1-L150) |
 
 ## Liên quan
 - [Báo cáo chuyên cần](../entities/attendance-summary.md)

@@ -36,12 +36,12 @@ describe('Giao diện Quản Lý & Điểm Danh Cuộc Họp (MTG-01: Meeting UI
     await waitFor(() => {
       expect(screen.getByText('Họp Giao Ban Thường Kỳ Tháng 11/2026')).toBeInTheDocument();
       expect(screen.getByText('Tọa đàm Ứng dụng AI & Chuyển đổi số Năm 2026')).toBeInTheDocument();
-      expect(screen.getByText('Hội trường số 1 - Tầng 2 Trụ sở UBND')).toBeInTheDocument();
+      expect(screen.getAllByText('Hội trường số 1 - Tầng 2 Trụ sở UBND').length).toBeGreaterThanOrEqual(1);
     });
 
     // Check attendee counts
-    expect(screen.getByText(/3 đại biểu/i)).toBeInTheDocument();
-    expect(screen.getByText(/2 đại biểu/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/3 đại biểu/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/5 đại biểu/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('Tìm kiếm cuộc họp theo tên cập nhật bảng dữ liệu tức thì', async () => {
@@ -86,7 +86,9 @@ describe('Giao diện Quản Lý & Điểm Danh Cuộc Họp (MTG-01: Meeting UI
     const roomInput = screen.getByPlaceholderText(/VD: Hội trường số 1 - Tầng 2/i);
     fireEvent.change(roomInput, { target: { value: 'Hội trường Thành ủy' } });
 
-    // Bấm nút Chọn nhanh phòng ban "Bộ phận Địa chính - Xây dựng"
+    // Mở dropdown Chọn nhanh theo phòng ban và chọn "Bộ phận Địa chính - Xây dựng"
+    const deptTrigger = screen.getByTestId('dept-multiselect-trigger');
+    fireEvent.click(deptTrigger);
     const deptBtn = screen.getByRole('button', { name: /Bộ phận Địa chính - Xây dựng/i });
     fireEvent.click(deptBtn);
 
@@ -101,19 +103,31 @@ describe('Giao diện Quản Lý & Điểm Danh Cuộc Họp (MTG-01: Meeting UI
     });
   });
 
-  it('Mở modal Chỉnh sửa cuộc họp và cập nhật thông tin thành công', async () => {
+  it('Khóa thao tác Chỉnh sửa cuộc họp với cuộc họp đang diễn ra hoặc đã kết thúc, chỉ cho phép chỉnh sửa cuộc họp sắp diễn ra', async () => {
     render(<MeetingManagement tenantId={ubndTenant} />);
 
     await waitFor(() => {
+      expect(screen.getByText('Họp Khẩn Phương Án Đảm Bảo An Ninh Trật Tự & PCCC Kỳ Nghỉ')).toBeInTheDocument();
       expect(screen.getByText('Họp Giao Ban Thường Kỳ Tháng 11/2026')).toBeInTheDocument();
     });
 
-    // Tìm các nút sửa
-    const editBtns = screen.getAllByRole('button', { name: /Chỉnh sửa cuộc họp/i });
-    expect(editBtns.length).toBeGreaterThan(0);
+    const actionBtns = screen.getAllByRole('button', { name: /Thao tác/i });
 
-    // Bấm nút sửa của cuộc họp đầu tiên
-    fireEvent.click(editBtns[0]);
+    // 1. Cuộc họp đang diễn ra (Row 0): Menu Chỉnh sửa cuộc họp bị disabled
+    fireEvent.click(actionBtns[0]);
+    const editBtnDisabled = screen.getByRole('menuitem', { name: /Chỉnh sửa cuộc họp/i });
+    expect(editBtnDisabled).toBeDisabled();
+
+    // Đóng menu bằng cách click ra ngoài hoặc click lại nút
+    fireEvent.click(actionBtns[0]);
+
+    // 2. Cuộc họp sắp diễn ra (Row 1): Menu Chỉnh sửa cuộc họp khả dụng (enabled)
+    fireEvent.click(actionBtns[1]);
+    const editBtnEnabled = screen.getByRole('menuitem', { name: /Chỉnh sửa cuộc họp/i });
+    expect(editBtnEnabled).not.toBeDisabled();
+
+    // Bấm nút chỉnh sửa trong menu thao tác
+    fireEvent.click(editBtnEnabled);
 
     await waitFor(() => {
       expect(

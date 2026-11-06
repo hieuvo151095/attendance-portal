@@ -4,7 +4,7 @@ type: entity
 sources:
   - pages/sources/portal-architecture-decisions-2026-11-02.md
 spec_ids: [MTG-02, MTG-03, ATT-02]
-updated: 2026-11-02
+updated: 2026-11-04
 ---
 
 # Bản ghi điểm danh
@@ -27,9 +27,9 @@ Thực thể `Bản ghi điểm danh` (Attendance Record) lưu trữ bất biế
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| MTG-02 | P0 | Xử lý sự kiện điểm danh vào cuộc họp qua Face ID / Thẻ | Chưa triển khai | MISSING | - |
-| MTG-03 | P0 | Xử lý sự kiện điểm danh ra khỏi cuộc họp | Chưa triển khai | MISSING | - |
-| ATT-02 | P1 | Tiếp nhận sự kiện Check-in/Check-out hàng ngày từ cổng cơ quan | Chưa triển khai | MISSING | - |
+| MTG-02 | P0 | Xử lý sự kiện điểm danh vào cuộc họp qua Face ID / Thẻ | Đã hoàn thành xử lý sự kiện Check-in, đối soát ảnh Face ID/thẻ và hiển thị Live roll-call | MATCH | repo:src/services/meeting.ts:446, repo:src/pages/meeting/MeetingLiveScreen.tsx:1 |
+| MTG-03 | P0 | Xử lý sự kiện điểm danh ra khỏi cuộc họp | Đã hoàn thành ghi nhận Check-out, tính thời lượng thực tế và chốt biên bản bất biến | MATCH | repo:src/services/meeting.ts:580, repo:src/pages/meeting/MeetingLiveScreen.tsx:1 |
+| ATT-02 | P1 | Tiếp nhận sự kiện Check-in/Check-out hàng ngày từ cổng cơ quan | Đã hoàn thành tiếp nhận sự kiện quét cổng, phân loại Check-in/Check-out và lưu vết chi tiết | MATCH | repo:src/services/attendance.ts:1, repo:src/pages/attendance/QuickScanModal.tsx:1 |
 
 ## Liên quan
 - [Phân hệ Điểm danh cuộc họp](../overview/module-meeting.md)

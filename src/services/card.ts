@@ -33,6 +33,266 @@ export const INITIAL_CARDS: EmployeeCard[] = [
     updatedAt: '2026-11-01T08:05:00Z'
   },
   {
+    id: 'card-ubnd-04',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04C3D4E504',
+    employeeId: 'emp-ubnd-04',
+    employeeCode: 'UBND-004',
+    employeeName: 'Bà Lê Thị Thảo',
+    linkedAt: '2026-11-01T08:10:00Z',
+    status: 'active',
+    note: 'Cấp thẻ công vụ Văn phòng',
+    createdAt: '2026-11-01T08:10:00Z',
+    updatedAt: '2026-11-01T08:10:00Z'
+  },
+  {
+    id: 'card-ubnd-05',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04D4E5F605',
+    employeeId: 'emp-ubnd-05',
+    employeeCode: 'UBND-005',
+    employeeName: 'Ông Trần Minh Tuấn',
+    linkedAt: '2026-11-01T08:12:00Z',
+    status: 'active',
+    note: 'Cấp thẻ ra vào phòng họp và cổng cơ quan',
+    createdAt: '2026-11-01T08:12:00Z',
+    updatedAt: '2026-11-01T08:12:00Z'
+  },
+  {
+    id: 'card-ubnd-06',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04E5F6A706',
+    employeeId: 'emp-ubnd-06',
+    employeeCode: 'UBND-006',
+    employeeName: 'Bà Nguyễn Hoàng Mai',
+    linkedAt: '2026-11-01T08:15:00Z',
+    status: 'active',
+    note: 'Thẻ công chức CNTT',
+    createdAt: '2026-11-01T08:15:00Z',
+    updatedAt: '2026-11-01T08:15:00Z'
+  },
+  {
+    id: 'card-ubnd-07',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04F6A7B807',
+    employeeId: 'emp-ubnd-07',
+    employeeCode: 'UBND-007',
+    employeeName: 'Ông Vũ Quốc Bảo',
+    linkedAt: '2026-11-01T08:20:00Z',
+    status: 'active',
+    note: 'Thẻ công vụ Địa chính',
+    createdAt: '2026-11-01T08:20:00Z',
+    updatedAt: '2026-11-01T08:20:00Z'
+  },
+  {
+    id: 'card-ubnd-08',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04A7B8C908',
+    employeeId: 'emp-ubnd-08',
+    employeeCode: 'UBND-008',
+    employeeName: 'Ông Đỗ Quang Huy',
+    linkedAt: '2026-11-01T08:22:00Z',
+    status: 'active',
+    note: 'Thẻ kiểm tra Trật tự đô thị',
+    createdAt: '2026-11-01T08:22:00Z',
+    updatedAt: '2026-11-01T08:22:00Z'
+  },
+  {
+    id: 'card-ubnd-10',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04B8C9D010',
+    employeeId: 'emp-ubnd-10',
+    employeeCode: 'UBND-010',
+    employeeName: 'Ông Bùi Tiến Dũng',
+    linkedAt: '2026-11-01T08:25:00Z',
+    status: 'active',
+    note: 'Thẻ ra vào bộ phận Xây dựng',
+    createdAt: '2026-11-01T08:25:00Z',
+    updatedAt: '2026-11-01T08:25:00Z'
+  },
+  {
+    id: 'card-ubnd-11',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04C9D0E111',
+    employeeId: 'emp-ubnd-11',
+    employeeCode: 'UBND-011',
+    employeeName: 'Bà Trần Thu Trang',
+    linkedAt: '2026-11-01T08:28:00Z',
+    status: 'active',
+    note: 'Thẻ công chức Tư pháp',
+    createdAt: '2026-11-01T08:28:00Z',
+    updatedAt: '2026-11-01T08:28:00Z'
+  },
+  {
+    id: 'card-ubnd-12',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04D0E1F212',
+    employeeId: 'emp-ubnd-12',
+    employeeCode: 'UBND-012',
+    employeeName: 'Ông Phan Trọng Nghĩa',
+    linkedAt: '2026-11-01T08:30:00Z',
+    status: 'active',
+    note: 'Thẻ cán bộ Một Cửa Sao y',
+    createdAt: '2026-11-01T08:30:00Z',
+    updatedAt: '2026-11-01T08:30:00Z'
+  },
+  {
+    id: 'card-ubnd-13',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04E1F2A313',
+    employeeId: 'emp-ubnd-13',
+    employeeCode: 'UBND-013',
+    employeeName: 'Bà Võ Bích Hạnh',
+    linkedAt: '2026-11-01T08:32:00Z',
+    status: 'active',
+    note: 'Thẻ cán bộ Hộ tịch',
+    createdAt: '2026-11-01T08:32:00Z',
+    updatedAt: '2026-11-01T08:32:00Z'
+  },
+  {
+    id: 'card-ubnd-14',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04F2A3B414',
+    employeeId: 'emp-ubnd-14',
+    employeeCode: 'UBND-014',
+    employeeName: 'Đ/c Lê Văn Hùng',
+    linkedAt: '2026-11-01T08:35:00Z',
+    status: 'active',
+    note: 'Thẻ sỹ quan Chỉ huy Quân sự Phường',
+    createdAt: '2026-11-01T08:35:00Z',
+    updatedAt: '2026-11-01T08:35:00Z'
+  },
+  {
+    id: 'card-ubnd-15',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04A3B4C515',
+    employeeId: 'emp-ubnd-15',
+    employeeCode: 'UBND-015',
+    employeeName: 'Ông Mai Xuân Nam',
+    linkedAt: '2026-11-01T08:38:00Z',
+    status: 'active',
+    note: 'Thẻ cán bộ Quân sự',
+    createdAt: '2026-11-01T08:38:00Z',
+    updatedAt: '2026-11-01T08:38:00Z'
+  },
+  {
+    id: 'card-ubnd-16',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04B4C5D616',
+    employeeId: 'emp-ubnd-16',
+    employeeCode: 'UBND-016',
+    employeeName: 'Ông Nguyễn Quốc Khánh',
+    linkedAt: '2026-11-01T08:40:00Z',
+    status: 'active',
+    note: 'Thẻ cán bộ Huấn luyện Dân quân',
+    createdAt: '2026-11-01T08:40:00Z',
+    updatedAt: '2026-11-01T08:40:00Z'
+  },
+  {
+    id: 'card-ubnd-17',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04C5D6E717',
+    employeeId: 'emp-ubnd-17',
+    employeeCode: 'UBND-017',
+    employeeName: 'Ông Đoàn Gia Huy',
+    linkedAt: '2026-11-01T08:42:00Z',
+    status: 'active',
+    note: 'Thẻ cán bộ Hậu cần Quân sự',
+    createdAt: '2026-11-01T08:42:00Z',
+    updatedAt: '2026-11-01T08:42:00Z'
+  },
+  {
+    id: 'card-ubnd-18',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04D6E7F818',
+    employeeId: 'emp-ubnd-18',
+    employeeCode: 'UBND-018',
+    employeeName: 'Trung tá Trần Quốc Toản',
+    linkedAt: '2026-11-01T08:45:00Z',
+    status: 'active',
+    note: 'Thẻ định danh Công An Phường',
+    createdAt: '2026-11-01T08:45:00Z',
+    updatedAt: '2026-11-01T08:45:00Z'
+  },
+  {
+    id: 'card-ubnd-19',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04E7F8A919',
+    employeeId: 'emp-ubnd-19',
+    employeeCode: 'UBND-019',
+    employeeName: 'Thiếu tá Đinh Trọng Hưng',
+    linkedAt: '2026-11-01T08:48:00Z',
+    status: 'active',
+    note: 'Thẻ cán bộ Công An Phường',
+    createdAt: '2026-11-01T08:48:00Z',
+    updatedAt: '2026-11-01T08:48:00Z'
+  },
+  {
+    id: 'card-ubnd-20',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04F8A9B020',
+    employeeId: 'emp-ubnd-20',
+    employeeCode: 'UBND-020',
+    employeeName: 'Đại úy Nguyễn Thanh Tùng',
+    linkedAt: '2026-11-01T08:50:00Z',
+    status: 'active',
+    note: 'Thẻ Cảnh sát Khu vực',
+    createdAt: '2026-11-01T08:50:00Z',
+    updatedAt: '2026-11-01T08:50:00Z'
+  },
+  {
+    id: 'card-ubnd-21',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04A9B0C121',
+    employeeId: 'emp-ubnd-21',
+    employeeCode: 'UBND-021',
+    employeeName: 'Thượng úy Bùi Thị Thu Vân',
+    linkedAt: '2026-11-01T08:52:00Z',
+    status: 'active',
+    note: 'Thẻ Cán bộ Quản lý Hành chính',
+    createdAt: '2026-11-01T08:52:00Z',
+    updatedAt: '2026-11-01T08:52:00Z'
+  },
+  {
+    id: 'card-ubnd-22',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04B0C1D222',
+    employeeId: 'emp-ubnd-22',
+    employeeCode: 'UBND-022',
+    employeeName: 'Trung úy Tạ Đình Khang',
+    linkedAt: '2026-11-01T08:55:00Z',
+    status: 'active',
+    note: 'Thẻ Cảnh sát Phòng chống Tội phạm',
+    createdAt: '2026-11-01T08:55:00Z',
+    updatedAt: '2026-11-01T08:55:00Z'
+  },
+  {
+    id: 'card-ubnd-24',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04C1D2E324',
+    employeeId: 'emp-ubnd-24',
+    employeeCode: 'UBND-024',
+    employeeName: 'Bà Lâm Thanh Trúc',
+    linkedAt: '2026-11-01T08:58:00Z',
+    status: 'active',
+    note: 'Thẻ Kế toán trưởng cơ quan',
+    createdAt: '2026-11-01T08:58:00Z',
+    updatedAt: '2026-11-01T08:58:00Z'
+  },
+  {
+    id: 'card-ubnd-25',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04D2E3F425',
+    employeeId: 'emp-ubnd-25',
+    employeeCode: 'UBND-025',
+    employeeName: 'Ông Đỗ Việt Hùng',
+    linkedAt: '2026-11-01T09:00:00Z',
+    status: 'active',
+    note: 'Thẻ cán bộ Một Cửa Tiếp dân',
+    createdAt: '2026-11-01T09:00:00Z',
+    updatedAt: '2026-11-01T09:00:00Z'
+  },
+  {
     id: 'card-ubnd-old-01',
     tenantId: 'tenant-ubnd-001',
     cardUid: '0499887766',
@@ -99,6 +359,15 @@ class CardService {
       const stored = localStorage.getItem(STORAGE_CARDS_KEY);
       if (!stored) {
         localStorage.setItem(STORAGE_CARDS_KEY, JSON.stringify(INITIAL_CARDS));
+      } else {
+        try {
+          const list = JSON.parse(stored);
+          if (Array.isArray(list) && list.length < INITIAL_CARDS.length) {
+            localStorage.setItem(STORAGE_CARDS_KEY, JSON.stringify(INITIAL_CARDS));
+          }
+        } catch {
+          localStorage.setItem(STORAGE_CARDS_KEY, JSON.stringify(INITIAL_CARDS));
+        }
       }
     } else {
       INITIAL_CARDS.forEach((c) => this.memoryCards.set(c.id, { ...c }));

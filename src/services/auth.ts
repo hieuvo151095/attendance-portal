@@ -25,6 +25,7 @@ export const INITIAL_TENANTS: TenantAccount[] = [
     lockedUntil: null,
     contactName: 'Đ/c Nguyễn Văn An',
     contactPhone: '028 3829 1234',
+    address: '29 Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
     createdAt: '2026-11-01T08:00:00Z',
     updatedAt: '2026-11-01T08:00:00Z'
   },
@@ -40,6 +41,7 @@ export const INITIAL_TENANTS: TenantAccount[] = [
     lockedUntil: null,
     contactName: 'Bà Trần Thị Mai',
     contactPhone: '028 3844 5678',
+    address: 'Lô B2-3, Đường CN13, KCN Tân Bình, Phường Tây Thạnh, Quận Tân Phú, TP. Hồ Chí Minh',
     createdAt: '2026-11-01T08:00:00Z',
     updatedAt: '2026-11-01T08:00:00Z'
   },
@@ -55,6 +57,7 @@ export const INITIAL_TENANTS: TenantAccount[] = [
     lockedUntil: null,
     contactName: 'BS. Lê Hoàng Nam',
     contactPhone: '028 3927 1119',
+    address: '341 Sư Vạn Hạnh, Phường 10, Quận 10, TP. Hồ Chí Minh',
     createdAt: '2026-11-01T08:00:00Z',
     updatedAt: '2026-11-01T08:00:00Z'
   }
@@ -220,7 +223,8 @@ class AuthService {
         orgType: tenant.orgType,
         isDefaultPassword: tenant.isDefaultPassword,
         contactName: tenant.contactName,
-        contactPhone: tenant.contactPhone
+        contactPhone: tenant.contactPhone,
+        address: tenant.address
       },
       expiresAt
     };
@@ -258,6 +262,14 @@ class AuthService {
     }
 
     if (!session) return null;
+
+    // Bổ sung địa chỉ nếu phiên lưu trữ trước đó chưa có
+    if (!session.tenant.address) {
+      const found = INITIAL_TENANTS.find((t) => t.id === session?.tenant.id);
+      if (found?.address) {
+        session.tenant.address = found.address;
+      }
+    }
 
     // Kiểm tra hết hạn phiên
     const expiresAtTime = new Date(session.expiresAt).getTime();
@@ -351,7 +363,8 @@ class AuthService {
           ...currentSession.tenant,
           isDefaultPassword: false,
           contactName: tenant.contactName,
-          contactPhone: tenant.contactPhone
+          contactPhone: tenant.contactPhone,
+          address: tenant.address
         }
       };
       this.saveSession(updatedSession);

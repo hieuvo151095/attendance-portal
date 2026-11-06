@@ -12,6 +12,7 @@ export interface TenantAccount {
   lockedUntil?: string | null; // ISO timestamp
   contactName?: string;
   contactPhone?: string;
+  address?: string; // Địa chỉ trụ sở cơ quan đơn vị
   createdAt: string;
   updatedAt: string;
 }
@@ -26,6 +27,7 @@ export interface AuthSession {
     isDefaultPassword: boolean;
     contactName?: string;
     contactPhone?: string;
+    address?: string; // Địa chỉ trụ sở cơ quan đơn vị
   };
   expiresAt: string; // ISO timestamp
 }

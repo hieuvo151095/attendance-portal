@@ -82,9 +82,14 @@ describe('Giao diện Quản lý Cơ Cấu Phòng Ban (ORG-01: Department UI)', 
       expect(screen.getByText('Văn phòng HĐND & UBND')).toBeInTheDocument();
     });
 
-    // Bấm nút "Thêm con" trên hàng Văn phòng HĐND & UBND
-    const addSubBtns = screen.getAllByRole('button', { name: /Thêm con/i });
-    fireEvent.click(addSubBtns[0]);
+    // Bấm nút Thao tác (ba chấm) trên hàng Văn phòng HĐND & UBND
+    const actionBtns = screen.getAllByRole('button', { name: /Thao tác/i });
+    expect(actionBtns.length).toBeGreaterThan(0);
+    fireEvent.click(actionBtns[0]);
+
+    // Bấm nút Thêm phòng ban con trong menu
+    const addSubBtn = screen.getByRole('menuitem', { name: /Thêm phòng ban con/i });
+    fireEvent.click(addSubBtn);
 
     await waitFor(() => {
       expect(screen.getByText('Thêm Phòng Ban / Đơn Vị Mới')).toBeInTheDocument();

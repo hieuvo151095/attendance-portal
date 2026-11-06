@@ -4,7 +4,7 @@ type: entity
 sources:
   - pages/sources/portal-architecture-decisions-2026-11-02.md
 spec_ids: [ATT-01]
-updated: 2026-11-02
+updated: 2026-11-04
 ---
 
 # Ca làm việc
@@ -24,7 +24,7 @@ Thực thể `Ca làm việc` (Work Shift) đại diện cho khung thời gian l
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| ATT-01 | P1 | Thiết lập khung giờ ca hành chính chuẩn và dung sai đi muộn | Chưa triển khai | MISSING | - |
+| ATT-01 | P1 | Thiết lập khung giờ ca hành chính chuẩn và dung sai đi muộn | Đã hoàn thành cấu hình ca sáng, ca chiều, dung sai vào trễ/ra sớm và hàm tính số phút muộn | MATCH | repo:src/types/setting.ts:1, repo:src/services/setting.ts:1, repo:src/pages/setting/AttendanceSettingsModal.tsx:1 |
 
 ## Liên quan
 - [Phân hệ Chấm công vào ra](../overview/module-attendance.md)

@@ -4,7 +4,7 @@ type: entity
 sources:
   - pages/sources/portal-architecture-decisions-2026-11-02.md
 spec_ids: [DASH-01, DASH-02]
-updated: 2026-11-02
+updated: 2026-11-04
 ---
 
 # Báo cáo chuyên cần
@@ -25,8 +25,8 @@ Thực thể `Báo cáo chuyên cần` (Attendance Summary) là tập hợp các
 ## Khác biệt spec ↔ code
 | Mã spec | Ưu tiên | Spec yêu cầu | Code hiện tại | Mức | Bằng chứng |
 |---|---|---|---|---|---|
-| DASH-01 | P2 | Thống kê tổng hợp các cuộc họp đã kết thúc và tỷ lệ chuyên cần | Chưa triển khai | MISSING | - |
-| DASH-02 | P2 | Biểu đồ xu hướng hiện diện cơ quan theo ngày/tuần/tháng | Chưa triển khai | MISSING | - |
+| DASH-01 | P2 | Thống kê tổng hợp các cuộc họp đã kết thúc và tỷ lệ chuyên cần | Đã triển khai đầy đủ màn hình lưu trữ, thẻ tổng hợp và tải nhanh biên bản | MATCH | [MeetingReportArchive.tsx](file:///Users/hieuvo/Desktop/Finviet/Attendance%20Portal/src/pages/report/MeetingReportArchive.tsx#L25-L100) |
+| DASH-02 | P2 | Biểu đồ xu hướng hiện diện cơ quan theo ngày/tuần/tháng | Đã xây dựng hoàn tất bảng điều khiển Dashboard, biểu đồ xu hướng SVG, so sánh Meter phòng ban và cơ cấu điểm danh | MATCH | [AttendanceDashboard.tsx](file:///Users/hieuvo/Desktop/Finviet/Attendance%20Portal/src/pages/dashboard/AttendanceDashboard.tsx#L1-L150) |
 
 ## Liên quan
 - [Phân hệ Bảng điều khiển báo cáo](../overview/module-dashboard.md)

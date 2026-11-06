@@ -16,6 +16,7 @@ describe('Dịch vụ Xác thực & Đa đơn vị (AUTH-01: Multi-tenancy Auth)
     expect(result.session).toBeDefined();
     expect(result.session?.tenant.orgName).toBe('Ủy Ban Nhân Dân Phường Bến Nghé');
     expect(result.session?.tenant.orgType).toBe('government');
+    expect(result.session?.tenant.address).toBe('29 Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh');
     expect(result.session?.tenant.isDefaultPassword).toBe(true);
     expect(result.session?.token).toContain('fv_att_tenant-ubnd-001');
   });
@@ -29,6 +30,7 @@ describe('Dịch vụ Xác thực & Đa đơn vị (AUTH-01: Multi-tenancy Auth)
     expect(result.success).toBe(true);
     expect(result.session?.tenant.orgType).toBe('enterprise');
     expect(result.session?.tenant.orgName).toBe('Công Ty May & Sản Xuất Tân Bình');
+    expect(result.session?.tenant.address).toBe('Lô B2-3, Đường CN13, KCN Tân Bình, Phường Tây Thạnh, Quận Tân Phú, TP. Hồ Chí Minh');
   });
 
   it('Cho phép đăng nhập thành công với tài khoản Bệnh viện', async () => {
@@ -40,6 +42,7 @@ describe('Dịch vụ Xác thực & Đa đơn vị (AUTH-01: Multi-tenancy Auth)
     expect(result.success).toBe(true);
     expect(result.session?.tenant.orgType).toBe('hospital');
     expect(result.session?.tenant.orgName).toBe('Bệnh Viện Nhi Đồng 1');
+    expect(result.session?.tenant.address).toBe('341 Sư Vạn Hạnh, Phường 10, Quận 10, TP. Hồ Chí Minh');
   });
 
   it('Báo lỗi rõ ràng khi tên đăng nhập hoặc mã đơn vị không tồn tại', async () => {

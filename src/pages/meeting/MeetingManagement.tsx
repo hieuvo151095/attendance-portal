@@ -7,23 +7,46 @@ import {
   DataTable,
   Tag,
   StatusTag,
-  IconButton
+  Icon,
+  PopupModal,
+  InlineNotice
 } from '../../design-system';
 import { Meeting, MeetingStatus } from '../../types/meeting';
 import { meetingService } from '../../services/meeting';
 import { MeetingModal } from './MeetingModal';
+import { MeetingLiveScreen } from './MeetingLiveScreen';
+import { MeetingReportModal } from './MeetingReportModal';
+import { MeetingReportArchive } from '../report/MeetingReportArchive';
 
 export interface MeetingManagementProps {
   tenantId: string;
+  orgName?: string;
+  initialSubTab?: 'list' | 'reports';
+  onSubTabChange?: (tab: 'list' | 'reports') => void;
   onOpenLiveScreen?: (meeting: Meeting) => void;
 }
 
 export const MeetingManagement: React.FC<MeetingManagementProps> = ({
   tenantId,
+  orgName,
+  initialSubTab = 'list',
+  onSubTabChange,
   onOpenLiveScreen
 }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'list' | 'reports'>(initialSubTab);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (initialSubTab) {
+      setActiveSubTab(initialSubTab);
+    }
+  }, [initialSubTab]);
+
+  const handleSubTabChange = (tab: 'list' | 'reports') => {
+    setActiveSubTab(tab);
+    if (onSubTabChange) onSubTabChange(tab);
+  };
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,6 +55,10 @@ export const MeetingManagement: React.FC<MeetingManagementProps> = ({
   // Modal
   const [meetingModalOpen, setMeetingModalOpen] = useState(false);
   const [meetingToEdit, setMeetingToEdit] = useState<Meeting | null>(null);
+  const [activeLiveMeeting, setActiveLiveMeeting] = useState<Meeting | null>(null);
+  const [reportingMeeting, setReportingMeeting] = useState<Meeting | null>(null);
+  const [meetingToDelete, setMeetingToDelete] = useState<Meeting | null>(null);
+  const [isDeletingMeeting, setIsDeletingMeeting] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -39,6 +66,18 @@ export const MeetingManagement: React.FC<MeetingManagementProps> = ({
       const list = await meetingService.getMeetingsByTenant(tenantId, {
         status: statusFilter !== 'all' ? (statusFilter as MeetingStatus) : undefined,
         search: searchTerm || undefined
+      });
+      // Sắp xếp ưu tiên: Đang diễn ra -> Sắp diễn ra -> Đã kết thúc
+      const statusOrder: Record<string, number> = {
+        in_progress: 1,
+        scheduled: 2,
+        completed: 3,
+        cancelled: 4
+      };
+      list.sort((a, b) => {
+        const orderDiff = (statusOrder[a.status] || 5) - (statusOrder[b.status] || 5);
+        if (orderDiff !== 0) return orderDiff;
+        return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
       });
       setMeetings(list);
     } catch (err) {
@@ -64,19 +103,27 @@ export const MeetingManagement: React.FC<MeetingManagementProps> = ({
   };
 
   const handleOpenEditModal = (meeting: Meeting) => {
+    if (meeting.status !== 'scheduled') return;
     setMeetingToEdit(meeting);
     setMeetingModalOpen(true);
   };
 
-  const handleDeleteMeeting = async (meeting: Meeting) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa cuộc họp "${meeting.title}"?`)) {
-      try {
-        await meetingService.deleteMeeting(tenantId, meeting.id);
-        loadData();
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Lỗi xóa cuộc họp';
-        alert(msg);
-      }
+  const handleDeleteMeeting = (meeting: Meeting) => {
+    setMeetingToDelete(meeting);
+  };
+
+  const handleConfirmDeleteMeeting = async () => {
+    if (!meetingToDelete) return;
+    setIsDeletingMeeting(true);
+    try {
+      await meetingService.deleteMeeting(tenantId, meetingToDelete.id);
+      setMeetingToDelete(null);
+      loadData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Lỗi xóa cuộc họp';
+      alert(msg);
+    } finally {
+      setIsDeletingMeeting(false);
     }
   };
 
@@ -186,7 +233,7 @@ export const MeetingManagement: React.FC<MeetingManagementProps> = ({
       width: '140px',
       render: (m: Meeting) => {
         if (m.status === 'scheduled') {
-          return <StatusTag tone="info" label="Sắp diễn ra" icon="clock" />;
+          return <StatusTag tone="neutral" label="Sắp diễn ra" icon="clock" />;
         }
         if (m.status === 'in_progress') {
           return <StatusTag tone="warning" label="Đang diễn ra" icon="circle-dot" />;
@@ -202,134 +249,266 @@ export const MeetingManagement: React.FC<MeetingManagementProps> = ({
       title: 'Thao tác',
       align: 'right' as const,
       actions: true,
-      width: '160px',
+      width: '90px',
       render: (m: Meeting) => (
-        <div style={{ display: 'flex', gap: 'var(--space-4)', justifyContent: 'flex-end' }}>
-          <Button
-            variant="secondary"
-            icon="chalkboard-user"
-            onClick={() => onOpenLiveScreen && onOpenLiveScreen(m)}
-          >
-            Điểm danh
-          </Button>
-          <IconButton
-            icon="pen"
-            label="Chỉnh sửa cuộc họp"
-            size="sm"
-            onClick={() => handleOpenEditModal(m)}
-          />
-          <IconButton
-            icon="trash"
-            label="Xóa cuộc họp"
-            size="sm"
-            onClick={() => handleDeleteMeeting(m)}
-          />
-        </div>
+        <DataTable.RowAction
+          label="Thao tác"
+          items={[
+            {
+              icon: 'chalkboard-user',
+              label: 'Màn hình điểm danh',
+              onClick: () => {
+                setActiveLiveMeeting(m);
+                if (onOpenLiveScreen) onOpenLiveScreen(m);
+              }
+            },
+            {
+              icon: 'file-lines',
+              label: 'Biên bản & Báo cáo chuyên cần',
+              onClick: () => setReportingMeeting(m)
+            },
+            {
+              icon: 'pen',
+              label: 'Chỉnh sửa cuộc họp',
+              disabled: m.status !== 'scheduled',
+              onClick: () => handleOpenEditModal(m)
+            },
+            {
+              divider: true
+            },
+            {
+              icon: 'trash',
+              label: 'Xóa cuộc họp',
+              tone: 'danger',
+              onClick: () => handleDeleteMeeting(m)
+            }
+          ]}
+        />
       )
     }
   ];
 
+  if (activeLiveMeeting) {
+    return (
+      <MeetingLiveScreen
+        meetingId={activeLiveMeeting.id}
+        tenantId={tenantId}
+        onBack={() => {
+          setActiveLiveMeeting(null);
+          loadData();
+        }}
+        onMeetingUpdated={loadData}
+      />
+    );
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-20)' }}>
-      {/* Page Title & Overview */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <h1 className="h2" style={{ margin: 0, color: 'var(--text-heading)' }}>
-            Lên Lịch & Điểm Danh Cuộc Họp
-          </h1>
-          <p className="body-sm" style={{ margin: 'var(--space-4) 0 0', color: 'var(--text-subtle)' }}>
-            Đặc tả MTG-01: Thiết lập cuộc họp, phòng họp, thời gian và triệu tập danh sách đại biểu bắt buộc / tùy chọn theo phòng ban.
-          </p>
-        </div>
-      </div>
-
-      {/* Summary StatCards */}
-      <StatCard.Group columns={4}>
-        <StatCard
-          label="Tổng cuộc họp"
-          value={totalCount}
-          icon="calendar-days"
-          tone="neutral"
-        />
-        <StatCard
-          label="Sắp diễn ra"
-          value={scheduledCount}
-          icon="clock"
-          tone="info"
-        />
-        <StatCard
-          label="Đang diễn ra"
-          value={inProgressCount}
-          icon="circle-dot"
-          tone="warning"
-        />
-        <StatCard
-          label="Đã kết thúc"
-          value={completedCount}
-          icon="circle-check"
-          tone="success"
-        />
-      </StatCard.Group>
-
-      {/* Toolbar & Filters */}
+    <div
+      className="meeting-management-module"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        position: 'relative'
+      }}
+    >
+      {/* Page Title, Overview & Sub-Tabs (OUTSIDE all sections) */}
       <div
+        data-testid="meeting-page-header"
         style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 'var(--space-12)',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: 'var(--space-16)',
-          backgroundColor: 'var(--bg-surface)',
-          border: '1px solid var(--border-default)',
-          borderRadius: 'var(--radius-12)'
+          padding: '4px 0 0',
+          borderBottom: '1px solid var(--border-default)',
+          backgroundColor: 'transparent',
+          flexShrink: 0,
+          marginBottom: '20px'
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-12)', alignItems: 'center', flex: 1 }}>
-          <SearchField
-            placeholder="Tìm theo tên cuộc họp, phòng họp, người chủ trì..."
-            value={searchTerm}
-            onChange={(val) => setSearchTerm(val)}
-            style={{ minWidth: '300px' }}
-          />
-
-          <SelectField
-            options={statusFilterOptions}
-            value={statusFilter}
-            onChange={(val) => setStatusFilter(val)}
-          />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 'var(--space-16)',
+            marginBottom: '14px'
+          }}
+        >
+          <div>
+            <h1 className="h3" style={{ margin: 0, color: 'var(--text-heading)' }}>
+              Lên Lịch & Điểm Danh Cuộc Họp
+            </h1>
+            <p className="body-sm" style={{ margin: 'var(--space-4) 0 0', color: 'var(--text-subtle)' }}>
+              Thiết lập cuộc họp, phòng họp, thời gian và triệu tập danh sách đại biểu bắt buộc / tùy chọn theo phòng ban.
+            </p>
+          </div>
         </div>
 
-        <div>
-          <Button
-            variant="primary"
-            icon="calendar-plus"
-            onClick={handleOpenAddModal}
+        {/* Sub-tabs Switcher */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            type="button"
+            data-testid="subtab-meeting-list"
+            onClick={() => handleSubTabChange('list')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              border: 'none',
+              background: 'none',
+              borderBottom: activeSubTab === 'list' ? '2px solid var(--eco-blue-strong)' : '2px solid transparent',
+              color: activeSubTab === 'list' ? 'var(--eco-blue-strong)' : 'var(--text-subtle)',
+              fontWeight: activeSubTab === 'list' ? 600 : 500,
+              fontSize: '14px',
+              cursor: 'pointer',
+              marginBottom: '-1px',
+              transition: 'all 0.15s ease'
+            }}
           >
-            Tạo cuộc họp mới
-          </Button>
+            <Icon name="calendar-check" size={15} />
+            <span>Lịch Họp & Điểm Danh</span>
+            {inProgressCount > 0 ? (
+              <Tag variant="warning">{inProgressCount} đang diễn ra</Tag>
+            ) : (
+              <Tag variant="default">{totalCount} cuộc họp</Tag>
+            )}
+          </button>
+
+          <button
+            type="button"
+            data-testid="subtab-meeting-reports"
+            onClick={() => handleSubTabChange('reports')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              border: 'none',
+              background: 'none',
+              borderBottom: activeSubTab === 'reports' ? '2px solid var(--eco-blue-strong)' : '2px solid transparent',
+              color: activeSubTab === 'reports' ? 'var(--eco-blue-strong)' : 'var(--text-subtle)',
+              fontWeight: activeSubTab === 'reports' ? 600 : 500,
+              fontSize: '14px',
+              cursor: 'pointer',
+              marginBottom: '-1px',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Icon name="file-lines" size={15} />
+            <span>Báo Cáo & Lưu Trữ Biên Bản</span>
+            <Tag variant="success">{completedCount} đã kết thúc</Tag>
+          </button>
         </div>
       </div>
 
-      {/* Meetings Data Table */}
-      <DataTable
-        columns={columns}
-        rows={meetings}
-        rowKey="id"
-        emptyText={
-          loading
-            ? 'Đang tải danh sách cuộc họp...'
-            : 'Không tìm thấy cuộc họp nào phù hợp với bộ lọc.'
-        }
-        emptyIcon="calendar-days"
-        footer={
-          <span>
-            Hiển thị <b>{meetings.length}</b> cuộc họp
-          </span>
-        }
-      />
+      {activeSubTab === 'reports' ? (
+        <MeetingReportArchive tenantId={tenantId} orgName={orgName} />
+      ) : (
+        <div
+          className="dashboard-card"
+          style={{
+            backgroundColor: 'var(--bg-surface)',
+            border: '1px solid var(--border-default)',
+            borderRadius: 'var(--radius-12)',
+            padding: '22px',
+            boxShadow: 'var(--shadow-xs)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--space-16)'
+          }}
+        >
+          {/* Summary StatCards */}
+          <StatCard.Group columns={4}>
+            <StatCard
+              label="Tổng cuộc họp"
+              value={totalCount}
+              icon="calendar-days"
+              tone="neutral"
+            />
+            <StatCard
+              label="Sắp diễn ra"
+              value={scheduledCount}
+              icon="clock"
+              tone="neutral"
+            />
+            <StatCard
+              label="Đang diễn ra"
+              value={inProgressCount}
+              icon="circle-dot"
+              tone="warning"
+            />
+            <StatCard
+              label="Đã kết thúc"
+              value={completedCount}
+              icon="circle-check"
+              tone="success"
+            />
+          </StatCard.Group>
 
-      {/* Meeting Modal */}
+          {/* Toolbar & Filters */}
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 'var(--space-12)',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: 'var(--space-16)',
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border-default)',
+              borderRadius: 'var(--radius-12)'
+            }}
+          >
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-12)', alignItems: 'center', flex: 1 }}>
+              <SearchField
+                placeholder="Tìm theo tên cuộc họp, phòng họp, người chủ trì..."
+                value={searchTerm}
+                onChange={(val) => setSearchTerm(val)}
+                width={300}
+              />
+
+              <SelectField
+                options={statusFilterOptions}
+                value={statusFilter}
+                onChange={(val) => setStatusFilter(val)}
+                width={200}
+              />
+            </div>
+
+            <div>
+              <Button
+                variant="primary"
+                icon="calendar-plus"
+                onClick={handleOpenAddModal}
+              >
+                Tạo cuộc họp mới
+              </Button>
+            </div>
+          </div>
+
+          {/* Meetings Data Table */}
+          <DataTable
+            columns={columns}
+            rows={meetings}
+            rowKey="id"
+            pagination={{
+              pageSize: 10,
+              showTotal: (total, range) => (
+                <span>
+                  Hiển thị <b>{total === 0 ? 0 : range[0]} - {range[1]}</b> trên <b>{total}</b> cuộc họp
+                </span>
+              )
+            }}
+            emptyText={
+              loading
+                ? 'Đang tải danh sách cuộc họp...'
+                : 'Không tìm thấy cuộc họp nào phù hợp với bộ lọc.'
+            }
+            emptyIcon="calendar-days"
+          />
+        </div>
+      )}
+
+      {/* Meeting Modal / SideSheet */}
       <MeetingModal
         open={meetingModalOpen}
         onClose={() => setMeetingModalOpen(false)}
@@ -337,6 +516,60 @@ export const MeetingManagement: React.FC<MeetingManagementProps> = ({
         meetingToEdit={meetingToEdit}
         onSuccess={loadData}
       />
+
+      {/* Meeting Report Modal (MTG-04) */}
+      {reportingMeeting && (
+        <MeetingReportModal
+          meeting={reportingMeeting}
+          onClose={() => setReportingMeeting(null)}
+        />
+      )}
+
+      {/* Delete Meeting Confirmation PopupModal */}
+      {meetingToDelete && (
+        <PopupModal
+          open={!!meetingToDelete}
+          icon="triangle-exclamation"
+          title="Xác Nhận Xóa Cuộc Họp"
+          description={`Bạn có chắc chắn muốn xóa cuộc họp "${meetingToDelete.title}" khỏi hệ thống không?`}
+          width={460}
+          onClose={() => !isDeletingMeeting && setMeetingToDelete(null)}
+          primaryAction={{
+            label: isDeletingMeeting ? 'Đang xóa...' : 'Xóa cuộc họp',
+            icon: 'trash',
+            onClick: handleConfirmDeleteMeeting,
+            disabled: isDeletingMeeting
+          }}
+          secondaryAction={{
+            label: 'Hủy bỏ',
+            onClick: () => setMeetingToDelete(null),
+            disabled: isDeletingMeeting
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div
+              style={{
+                padding: '12px 14px',
+                backgroundColor: 'var(--bg-subtle)',
+                borderRadius: 'var(--radius-8)',
+                border: '1px solid var(--border-default)',
+                fontSize: '13px',
+                lineHeight: '20px',
+                color: 'var(--text-body)'
+              }}
+            >
+              <div><strong>Tên cuộc họp:</strong> {meetingToDelete.title}</div>
+              {meetingToDelete.roomName && <div style={{ marginTop: '2px' }}><strong>Phòng họp:</strong> {meetingToDelete.roomName}</div>}
+              {meetingToDelete.hostName && <div style={{ marginTop: '2px' }}><strong>Chủ trì:</strong> {meetingToDelete.hostName}</div>}
+              <div style={{ marginTop: '2px' }}><strong>Đại biểu triệu tập:</strong> {meetingToDelete.attendees?.length || 0} cán bộ</div>
+            </div>
+
+            <InlineNotice tone="warning">
+              Hành động này sẽ xóa vĩnh viễn cuộc họp và các dữ liệu điểm danh liên quan.
+            </InlineNotice>
+          </div>
+        </PopupModal>
+      )}
     </div>
   );
 };

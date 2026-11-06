@@ -10,6 +10,7 @@ export interface SearchFieldProps {
   label?: string;
   block?: boolean;
   state?: 'default' | 'focus';
+  width?: number | string;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -23,6 +24,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   label,
   block = false,
   state = 'default',
+  width,
   className = '',
   style = {}
 }) => {
@@ -33,6 +35,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     type: 'search',
     placeholder,
     'aria-label': label || placeholder,
+    title: typeof value === 'string' && value ? value : placeholder,
     onChange: onChange ? (e) => onChange(e.target.value, e) : undefined
   };
 
@@ -43,12 +46,17 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     inputProps.defaultValue = defaultValue;
   }
 
+  const containerStyle: React.CSSProperties = {
+    ...style,
+    ...(width !== undefined ? { width, minWidth: width, maxWidth: width } : {})
+  };
+
   return (
     <label
       className={`ecomd-search ecomd-search--${size} ${
         block ? 'is-block' : ''
       } ${className}`}
-      style={style}
+      style={containerStyle}
     >
       <Icon name="magnifying-glass" size={14} className="ecomd-search__icon" />
       <input {...inputProps} />

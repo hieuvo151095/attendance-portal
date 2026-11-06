@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { EmployeeManagement } from '../pages/organization/EmployeeManagement';
 import { authService } from '../services/auth';
 import { employeeService } from '../services/employee';
@@ -24,7 +24,7 @@ describe('Giao diện Quản Lý Thẻ Nhân Viên (ORG-03: Card Management UI)'
     render(<EmployeeManagement tenantId={ubndTenant} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Quản Lý Hồ Sơ Nhân Sự & Thẻ Điểm Danh')).toBeInTheDocument();
+      expect(screen.getByText('Quản Lý Hồ Sơ Nhân Sự')).toBeInTheDocument();
     });
 
     expect(screen.getByText('Đã cấp thẻ RFID/NFC')).toBeInTheDocument();
@@ -33,7 +33,7 @@ describe('Giao diện Quản Lý Thẻ Nhân Viên (ORG-03: Card Management UI)'
     await waitFor(() => {
       expect(screen.getByText('04A1B2C3D4')).toBeInTheDocument(); // Thẻ của Nguyễn Văn An
       expect(screen.getByText('04B2C3D4E5')).toBeInTheDocument(); // Thẻ của Phạm Thị Cúc
-      expect(screen.getByText('Chưa cấp thẻ')).toBeInTheDocument(); // Hoàng Văn Đức chưa có thẻ
+      expect(screen.getAllByText('Chưa cấp thẻ').length).toBeGreaterThanOrEqual(1); // Hoàng Văn Đức và các nhân sự chưa cấp thẻ
     });
   });
 
@@ -44,12 +44,14 @@ describe('Giao diện Quản Lý Thẻ Nhân Viên (ORG-03: Card Management UI)'
       expect(screen.getByText('04A1B2C3D4')).toBeInTheDocument();
     });
 
-    // Tìm các nút quản lý thẻ
-    const cardBtns = screen.getAllByRole('button', { name: /Quản lý thẻ nhân viên/i });
-    expect(cardBtns.length).toBeGreaterThan(0);
+    // Mở menu thao tác ba chấm của Nguyễn Văn An (hàng 1)
+    const actionBtns = screen.getAllByRole('button', { name: /Thao tác/i });
+    expect(actionBtns.length).toBeGreaterThan(0);
+    fireEvent.click(actionBtns[0]);
 
-    // Bấm nút quản lý thẻ của Nguyễn Văn An (hàng 1)
-    fireEvent.click(cardBtns[0]);
+    // Bấm nút quản lý thẻ trong menu
+    const cardBtn = screen.getByRole('menuitem', { name: /Quản lý thẻ nhân viên/i });
+    fireEvent.click(cardBtn);
 
     await waitFor(() => {
       expect(
@@ -59,60 +61,66 @@ describe('Giao diện Quản Lý Thẻ Nhân Viên (ORG-03: Card Management UI)'
       expect(screen.getByText('Tạm khóa thẻ')).toBeInTheDocument();
     });
 
-    // Bấm nút Tạm khóa thẻ
+    // Bấm nút Tạm khóa thẻ trên thanh công cụ thẻ
     fireEvent.click(screen.getByText('Tạm khóa thẻ'));
 
-    // Chờ thông báo tạm khóa thành công
+    // Xuất hiện Pop-up xác nhận tạm khóa
+    await waitFor(() => {
+      expect(screen.getByText('Xác nhận tạm khóa thẻ vật lý')).toBeInTheDocument();
+    });
+
+    // Bấm nút xác nhận trong Pop-up dialog
+    const confirmDialog = screen.getByRole('dialog', { name: /Xác nhận tạm khóa thẻ vật lý/i });
+    const modalConfirmBtn = within(confirmDialog).getByRole('button', { name: /^Tạm khóa thẻ$/i });
+    fireEvent.click(modalConfirmBtn);
+
+    // Chờ Toast thông báo tạm khóa thành công
     await waitFor(() => {
       expect(screen.getByText(/Đã tạm khóa thẻ UID "04A1B2C3D4"/i)).toBeInTheDocument();
       expect(screen.getByText('Mở khóa thẻ')).toBeInTheDocument();
     });
   });
 
-  it('Thực hiện quy trình Báo mất thẻ và cấp đổi thẻ mới ngay lập tức', async () => {
+  it('Không hiển thị nút Báo mất / Cấp đổi thẻ mới; Mở khóa thẻ yêu cầu pop-up xác nhận và hiển thị Toast', async () => {
+    // Khóa thẻ trước để kiểm tra luồng Mở khóa thẻ
+    await cardService.toggleLockCard(ubndTenant, 'card-ubnd-01', 'Tạm khóa');
+
     render(<EmployeeManagement tenantId={ubndTenant} />);
 
     await waitFor(() => {
       expect(screen.getByText('04A1B2C3D4')).toBeInTheDocument();
     });
 
-    // Mở modal thẻ của Nguyễn Văn An
-    const cardBtns = screen.getAllByRole('button', { name: /Quản lý thẻ nhân viên/i });
-    fireEvent.click(cardBtns[0]);
+    // Mở menu thao tác của Nguyễn Văn An
+    const actionBtns = screen.getAllByRole('button', { name: /Thao tác/i });
+    fireEvent.click(actionBtns[0]);
+    const cardBtn = screen.getByRole('menuitem', { name: /Quản lý thẻ nhân viên/i });
+    fireEvent.click(cardBtn);
 
     await waitFor(() => {
-      expect(screen.getByText('Báo mất / Cấp đổi thẻ mới')).toBeInTheDocument();
+      expect(screen.getByText('Mở khóa thẻ')).toBeInTheDocument();
     });
 
-    // Bấm nút Báo mất / Cấp đổi thẻ mới
-    fireEvent.click(screen.getByText('Báo mất / Cấp đổi thẻ mới'));
+    // Xác nhận đã xóa nút "Báo mất / Cấp đổi thẻ mới"
+    expect(screen.queryByText('Báo mất / Cấp đổi thẻ mới')).not.toBeInTheDocument();
 
+    // Bấm nút Mở khóa thẻ
+    fireEvent.click(screen.getByText('Mở khóa thẻ'));
+
+    // Xuất hiện Pop-up xác nhận mở khóa
     await waitFor(() => {
-      expect(screen.getByText(/Báo mất thẻ & Cấp thẻ mới thay thế/i)).toBeInTheDocument();
+      expect(screen.getByText('Xác nhận mở khóa thẻ vật lý')).toBeInTheDocument();
     });
 
-    // Nhập mã UID thẻ mới
-    const newUidInput = screen.getByPlaceholderText(/VD: 04E9A1B2C3/i);
-    fireEvent.change(newUidInput, { target: { value: '04AABBCCDDEE' } });
+    // Bấm xác nhận mở khóa trong Pop-up dialog
+    const unlockDialog = screen.getByRole('dialog', { name: /Xác nhận mở khóa thẻ vật lý/i });
+    const modalUnlockBtn = within(unlockDialog).getByRole('button', { name: /^Mở khóa thẻ$/i });
+    fireEvent.click(modalUnlockBtn);
 
-    // Bấm nút Xác nhận hủy thẻ cũ & Kích hoạt thẻ mới
-    const confirmBtn = screen.getByText('Xác nhận hủy thẻ cũ & Kích hoạt thẻ mới');
-    fireEvent.click(confirmBtn);
-
-    // Chờ thông báo đổi thẻ thành công
+    // Chờ Toast thông báo mở khóa thành công
     await waitFor(() => {
-      expect(
-        screen.getByText(/Đã hủy thẻ cũ \(UID: 04A1B2C3D4\) và kích hoạt thành công thẻ mới/i)
-      ).toBeInTheDocument();
-    });
-
-    // Đóng modal
-    const closeBtn = screen.getByRole('button', { name: /^Đóng$/i });
-    fireEvent.click(closeBtn);
-
-    // Kiểm tra trên bảng chính đã cập nhật UID mới
-    await waitFor(() => {
-      expect(screen.getByText('04AABBCCDDEE')).toBeInTheDocument();
+      expect(screen.getByText(/Đã mở khóa thẻ UID "04A1B2C3D4"/i)).toBeInTheDocument();
+      expect(screen.getByText('Tạm khóa thẻ')).toBeInTheDocument();
     });
   });
 
@@ -123,9 +131,11 @@ describe('Giao diện Quản Lý Thẻ Nhân Viên (ORG-03: Card Management UI)'
       expect(screen.getByText('Ông Hoàng Văn Đức')).toBeInTheDocument();
     });
 
-    // Bấm nút quản lý thẻ của Hoàng Văn Đức (hàng thứ 3)
-    const cardBtns = screen.getAllByRole('button', { name: /Quản lý thẻ nhân viên/i });
-    fireEvent.click(cardBtns[2]);
+    // Bấm nút Thao tác của Hoàng Văn Đức (hàng thứ 3)
+    const actionBtns = screen.getAllByRole('button', { name: /Thao tác/i });
+    fireEvent.click(actionBtns[2]);
+    const cardBtn = screen.getByRole('menuitem', { name: /Quản lý thẻ nhân viên/i });
+    fireEvent.click(cardBtn);
 
     await waitFor(() => {
       expect(screen.getByText('Chưa có thẻ vật lý nào đang hoạt động')).toBeInTheDocument();

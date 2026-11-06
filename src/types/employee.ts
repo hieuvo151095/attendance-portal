@@ -4,6 +4,12 @@ export interface CameraSyncInfo {
   faceScore?: number; // Điểm số khớp mẫu khuôn mặt từ Camera (0-100)
 }
 
+export interface AllowedAttendanceMethods {
+  faceId: boolean;      // Nhận diện khuôn mặt (Face ID)
+  fingerprint: boolean; // Quét vân tay
+  card: boolean;        // Quẹt thẻ nhân viên (RFID/NFC)
+}
+
 export interface Employee {
   id: string;
   tenantId: string;
@@ -16,8 +22,10 @@ export interface Employee {
   phoneNumber?: string;
   gender?: 'male' | 'female' | 'other';
   faceIdStatus: 'enrolled' | 'pending'; // Trạng thái Face ID (Đã lấy mẫu từ Camera vs Chờ thiết lập tại Camera)
+  fingerprintStatus?: 'enrolled' | 'pending'; // Trạng thái Vân tay (Đã lấy mẫu thiết bị vs Chờ đăng ký)
   avatarUrl?: string; // Ảnh chân dung nhận diện được camera Hikvision chuyển sang portal
   cameraSyncInfo?: CameraSyncInfo; // Thông tin thiết bị camera đồng bộ
+  allowedMethods?: AllowedAttendanceMethods; // 3 hình thức điểm danh cho phép (Face ID, Vân tay, Thẻ)
   status: 'active' | 'inactive';
   createdAt: string;
   updatedAt: string;
@@ -33,6 +41,9 @@ export interface CreateEmployeeDTO {
   phoneNumber?: string;
   gender?: 'male' | 'female' | 'other';
   avatarUrl?: string;
+  faceIdStatus?: 'enrolled' | 'pending';
+  fingerprintStatus?: 'enrolled' | 'pending';
+  allowedMethods?: AllowedAttendanceMethods;
 }
 
 export interface UpdateEmployeeDTO {
@@ -45,6 +56,9 @@ export interface UpdateEmployeeDTO {
   phoneNumber?: string;
   gender?: 'male' | 'female' | 'other';
   avatarUrl?: string;
+  faceIdStatus?: 'enrolled' | 'pending';
+  fingerprintStatus?: 'enrolled' | 'pending';
+  allowedMethods?: AllowedAttendanceMethods;
   status?: 'active' | 'inactive';
 }
 
@@ -63,6 +77,26 @@ export interface ImportEmployeeRow {
   departmentCodeOrName: string;
   email?: string;
   phoneNumber?: string;
+}
+
+export type ImportErrorCode =
+  | 'duplicate_code'
+  | 'duplicate_identity'
+  | 'duplicate_email'
+  | 'duplicate_phone'
+  | 'missing_required';
+
+export interface ImportErrorRow extends ImportEmployeeRow {
+  rowNumber: number;
+  errors: string[];
+  errorTypes: ImportErrorCode[];
+  conflictWith?: string;
+}
+
+export interface ImportValidationResult {
+  total: number;
+  validRows: ImportEmployeeRow[];
+  errorRows: ImportErrorRow[];
 }
 
 export interface ImportEmployeeResult {

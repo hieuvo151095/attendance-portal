@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import {
   Icon,
   Tag,
-  Button,
   IconButton,
-  SearchField
+  SearchField,
+  DropdownMenu
 } from '../../design-system';
 import { DepartmentTreeNode, Department } from '../../types/organization';
 
@@ -115,32 +115,47 @@ export const DepartmentTreeSelector: React.FC<DepartmentTreeSelectorProps> = ({
 
           {/* Action buttons */}
           <div style={styles.actionsCol}>
-            {onAddSubDepartment && (
-              <Button
-                variant="text"
-                icon="plus"
-                onClick={() => onAddSubDepartment(node)}
-                title="Thêm phòng ban con trực thuộc"
-              >
-                Thêm con
-              </Button>
-            )}
-            {onEdit && (
-              <IconButton
-                icon="pen"
-                size="sm"
-                label="Chỉnh sửa phòng ban"
-                onClick={() => onEdit(node)}
-              />
-            )}
-            {onDelete && (
-              <IconButton
-                icon="trash"
-                size="sm"
-                label="Xóa phòng ban"
-                onClick={() => onDelete(node)}
-              />
-            )}
+            <DropdownMenu
+              align="right"
+              trigger={
+                <IconButton
+                  icon="ellipsis-vertical"
+                  size="sm"
+                  label="Thao tác"
+                />
+              }
+              items={[
+                ...(onAddSubDepartment
+                  ? [
+                      {
+                        icon: 'plus' as const,
+                        label: 'Thêm phòng ban con',
+                        onClick: () => onAddSubDepartment(node)
+                      }
+                    ]
+                  : []),
+                ...(onEdit
+                  ? [
+                      {
+                        icon: 'pen' as const,
+                        label: 'Chỉnh sửa phòng ban',
+                        onClick: () => onEdit(node)
+                      }
+                    ]
+                  : []),
+                { divider: true as const },
+                ...(onDelete
+                  ? [
+                      {
+                        icon: 'trash' as const,
+                        label: 'Xóa phòng ban',
+                        tone: 'danger' as const,
+                        onClick: () => onDelete(node)
+                      }
+                    ]
+                  : [])
+              ]}
+            />
           </div>
         </div>
 

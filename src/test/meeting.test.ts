@@ -44,12 +44,18 @@ describe('Dịch Vụ Điểm Danh Cuộc Họp (MTG-01: Meeting Service)', () =
     expect(searchByRoom[0].title).toContain('Chuyển đổi số');
   });
 
-  it('Lọc cuộc họp theo trạng thái (Sắp diễn ra vs Đã kết thúc)', async () => {
-    const scheduledList = await meetingService.getMeetingsByTenant(ubndTenant, {
-      status: 'scheduled'
+  it('Lọc cuộc họp theo trạng thái (Đang diễn ra vs Đã kết thúc)', async () => {
+    const inProgressList = await meetingService.getMeetingsByTenant(ubndTenant, {
+      status: 'in_progress'
     });
-    expect(scheduledList.length).toBeGreaterThanOrEqual(1);
-    scheduledList.forEach((m) => expect(m.status).toBe('scheduled'));
+    expect(inProgressList.length).toBe(1);
+    expect(inProgressList[0].status).toBe('in_progress');
+
+    const completedList = await meetingService.getMeetingsByTenant(ubndTenant, {
+      status: 'completed'
+    });
+    expect(completedList.length).toBe(3);
+    completedList.forEach((m) => expect(m.status).toBe('completed'));
   });
 
   it('Tạo cuộc họp mới thành công với đầy đủ tiêu đề, phòng họp, thời gian và danh sách đại biểu triệu tập', async () => {
@@ -155,7 +161,7 @@ describe('Dịch Vụ Điểm Danh Cuộc Họp (MTG-01: Meeting Service)', () =
   });
 
   it('Cập nhật thông tin cuộc họp và danh sách đại biểu triệu tập', async () => {
-    const list = await meetingService.getMeetingsByTenant(ubndTenant);
+    const list = await meetingService.getMeetingsByTenant(ubndTenant, { status: 'scheduled' });
     const meeting = list[0];
 
     const updated = await meetingService.updateMeeting(ubndTenant, meeting.id, {
@@ -173,7 +179,7 @@ describe('Dịch Vụ Điểm Danh Cuộc Họp (MTG-01: Meeting Service)', () =
 
   it('Xóa cuộc họp thành công', async () => {
     const list = await meetingService.getMeetingsByTenant(ubndTenant);
-    const meeting = list[0];
+    const meeting = list.find((m) => m.status === 'completed') || list[0];
 
     await meetingService.deleteMeeting(ubndTenant, meeting.id);
 

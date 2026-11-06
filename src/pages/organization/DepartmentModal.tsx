@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
-  PopupModal,
+  SideSheet,
   TextField,
-  InlineNotice
+  InlineNotice,
+  SelectField
 } from '../../design-system';
 import { departmentService } from '../../services/department';
 import { Department } from '../../types/organization';
@@ -43,8 +44,17 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({
   const handleSubmit = async () => {
     setErrorMessage(null);
 
-    if (!code.trim()) {
+    const trimmedCode = code.trim().toUpperCase();
+    if (!trimmedCode) {
       setErrorMessage('Vui lòng nhập mã định danh phòng ban (ví dụ: VP-UBND, PX-MAY-1)');
+      return;
+    }
+
+    const CODE_REGEX = /^[A-Z0-9_-]+$/;
+    if (!CODE_REGEX.test(trimmedCode)) {
+      setErrorMessage(
+        'Mã phòng ban phải viết liền không dấu, không dùng khoảng trắng hay ký tự đặc biệt (chỉ chấp nhận chữ cái, số và dấu gạch nối: VD: VP-UBND, DC-XD).'
+      );
       return;
     }
 
@@ -58,7 +68,7 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({
     try {
       if (isEditing && department) {
         await departmentService.updateDepartment(tenantId, department.id, {
-          code,
+          code: trimmedCode,
           name,
           parentId: parentId || null,
           managerName,
@@ -66,7 +76,7 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({
         });
       } else {
         await departmentService.createDepartment(tenantId, {
-          code,
+          code: trimmedCode,
           name,
           parentId: parentId || null,
           managerName,
@@ -83,7 +93,7 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({
   };
 
   return (
-    <PopupModal
+    <SideSheet
       open={open}
       icon="building"
       title={isEditing ? 'Cập Nhật Phòng Ban / Đơn Vị' : 'Thêm Phòng Ban / Đơn Vị Mới'}
@@ -113,9 +123,10 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({
         required
         prefixIcon="hashtag"
         placeholder="Ví dụ: VP-UBND, PX-MAY-1, K-KHAM"
+        helper="Viết liền không dấu, không khoảng trắng, chỉ gồm chữ cái, chữ số và dấu gạch nối (Ví dụ: VP-UBND, DC-XD)"
         value={code}
         onChange={(val) => {
-          setCode(val.toUpperCase());
+          setCode(val.toUpperCase().replace(/\s+/g, '-'));
           if (errorMessage) setErrorMessage(null);
         }}
         disabled={loading}
@@ -140,29 +151,26 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({
         <label htmlFor="dept-parent-select" className="ecomd-field__label">
           Cấp quản lý trực thuộc (Phòng ban cha)
         </label>
-        <div className="ecomd-select-wrap">
-          <select
-            id="dept-parent-select"
-            className="ecomd-select body-sm-medium"
-            value={parentId}
-            onChange={(e) => setParentId(e.target.value)}
-            disabled={loading}
-            aria-label="Cấp quản lý trực thuộc"
-          >
-            <option value="">(Không có — Đây là phòng ban cấp cao nhất)</option>
-            {validParents.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} ({p.code})
-              </option>
-            ))}
-          </select>
-        </div>
+        <SelectField
+          id="dept-parent-select"
+          label="Cấp quản lý trực thuộc"
+          value={parentId}
+          onChange={(val) => setParentId(val)}
+          disabled={loading}
+          options={[
+            { value: '', label: '(Không có — Đây là phòng ban cấp cao nhất)' },
+            ...validParents.map((p) => ({
+              value: p.id,
+              label: `${p.name} (${p.code})`
+            }))
+          ]}
+        />
         <span className="ecomd-field__helper">
           Giúp xây dựng cây cơ cấu phân cấp trực thuộc trong cơ quan
         </span>
       </div>
 
-      <PopupModal.Section label="NGƯỜI PHỤ TRÁCH PHÒNG BAN">
+      <SideSheet.Section label="NGƯỜI PHỤ TRÁCH PHÒNG BAN">
         <TextField
           id="dept-manager-name"
           label="Họ tên người phụ trách / Trưởng phòng"
@@ -182,7 +190,7 @@ export const DepartmentModal: React.FC<DepartmentModalProps> = ({
           onChange={(val) => setManagerPhone(val)}
           disabled={loading}
         />
-      </PopupModal.Section>
-    </PopupModal>
+      </SideSheet.Section>
+    </SideSheet>
   );
 };

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
-  PopupModal,
+  SideSheet,
   TextField,
-  Button,
   InlineNotice,
   Avatar,
   Tag,
-  Checkbox
+  Checkbox,
+  SelectField
 } from '../../design-system';
 import { Meeting, CreateMeetingDTO, UpdateMeetingDTO, AttendeeRole } from '../../types/meeting';
 import { Employee } from '../../types/employee';
@@ -14,6 +14,11 @@ import { Department } from '../../types/organization';
 import { meetingService } from '../../services/meeting';
 import { employeeService } from '../../services/employee';
 import { departmentService } from '../../services/department';
+import { attendanceSettingService } from '../../services/setting';
+import { roomService } from '../../services/room';
+import { OfficeRoom } from '../../types/room';
+import { SearchableCombobox, SearchableComboboxOption } from './SearchableCombobox';
+import { DepartmentMultiSelectDropdown } from './DepartmentMultiSelectDropdown';
 
 export interface MeetingModalProps {
   open: boolean;
@@ -39,6 +44,9 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [description, setDescription] = useState('');
+  const [enableAttendanceRules, setEnableAttendanceRules] = useState(true);
+  const [checkInGraceMinutes, setCheckInGraceMinutes] = useState(5);
+  const [checkOutGraceMinutes, setCheckOutGraceMinutes] = useState(5);
 
   // Attendees selection: map employeeId -> { selected: boolean; role: AttendeeRole }
   const [selectedAttendees, setSelectedAttendees] = useState<
@@ -48,6 +56,7 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
   // Master data
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [rooms, setRooms] = useState<OfficeRoom[]>([]);
   const [attendeeSearch, setAttendeeSearch] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
@@ -77,10 +86,13 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
 
     Promise.all([
       employeeService.getEmployeesByTenant(tenantId),
-      departmentService.getDepartmentsByTenant(tenantId)
-    ]).then(([empList, deptList]) => {
+      departmentService.getDepartmentsByTenant(tenantId),
+      attendanceSettingService.getSettings(tenantId),
+      roomService.getRoomsByTenant(tenantId)
+    ]).then(([empList, deptList, settings, roomList]) => {
       setEmployees(empList);
       setDepartments(deptList);
+      setRooms(roomList);
 
       const map = new Map<string, { selected: boolean; role: AttendeeRole }>();
 
@@ -91,7 +103,13 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
         setStartTime(toDateTimeLocal(meetingToEdit.startTime));
         setEndTime(toDateTimeLocal(meetingToEdit.endTime));
         setDescription(meetingToEdit.description || '');
-
+        setEnableAttendanceRules(meetingToEdit.enableAttendanceRules ?? true);
+        setCheckInGraceMinutes(
+          meetingToEdit.checkInGraceMinutes ?? settings.defaultMeetingCheckInGraceMinutes ?? 5
+        );
+        setCheckOutGraceMinutes(
+          meetingToEdit.checkOutGraceMinutes ?? settings.defaultMeetingCheckOutGraceMinutes ?? 5
+        );
         // Populate attendees
         meetingToEdit.attendees.forEach((att) => {
           map.set(att.employeeId, { selected: true, role: att.role });
@@ -102,6 +120,9 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
         setRoomName('Hội trường số 1 - Tầng 2 Trụ sở');
         setHostName(empList[0] ? `${empList[0].fullName} - ${empList[0].position}` : '');
         setDescription('');
+        setEnableAttendanceRules(true);
+        setCheckInGraceMinutes(settings.defaultMeetingCheckInGraceMinutes ?? 5);
+        setCheckOutGraceMinutes(settings.defaultMeetingCheckOutGraceMinutes ?? 5);
 
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -144,6 +165,18 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
     });
 
     setSelectedAttendees(newMap);
+  };
+
+  const handleSelectAllDepartments = () => {
+    const newMap = new Map(selectedAttendees);
+    employees.forEach((e) => {
+      newMap.set(e.id, { selected: true, role: newMap.get(e.id)?.role || 'required' });
+    });
+    setSelectedAttendees(newMap);
+  };
+
+  const handleClearAllDepartments = () => {
+    setSelectedAttendees(new Map());
   };
 
   const handleToggleAttendee = (employeeId: string) => {
@@ -216,6 +249,9 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
           description: description.trim(),
           startTime: startIso,
           endTime: endIso,
+          enableAttendanceRules,
+          checkInGraceMinutes,
+          checkOutGraceMinutes,
           attendees: attendeesList
         };
         await meetingService.updateMeeting(tenantId, meetingToEdit.id, updateDto);
@@ -227,6 +263,9 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
           description: description.trim(),
           startTime: startIso,
           endTime: endIso,
+          enableAttendanceRules,
+          checkInGraceMinutes,
+          checkOutGraceMinutes,
           attendees: attendeesList
         };
         await meetingService.createMeeting(tenantId, createDto);
@@ -260,19 +299,48 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
   ).length;
   const optionalCount = selectedCount - requiredCount;
 
+  const maxCheckInTime = attendanceSettingService.calculateMaxCheckInTime(
+    startTime,
+    checkInGraceMinutes
+  );
+  const earliestCheckOutTime = attendanceSettingService.calculateEarliestCheckOutTime(
+    endTime,
+    checkOutGraceMinutes
+  );
+
+  const roomOptions: SearchableComboboxOption[] = rooms.map((r) => ({
+    id: r.id,
+    value: r.location ? `${r.name} - ${r.location}` : r.name,
+    title: r.name,
+    subtitle: `${r.roomId} • ${r.location}${r.capacity ? ' • ' + r.capacity + ' chỗ' : ''}`,
+    code: r.roomId,
+    badge: r.status === 'maintenance' ? 'Đang bảo trì' : undefined,
+    badgeTone: r.status === 'maintenance' ? 'warning' : 'default',
+    icon: 'building'
+  }));
+
+  const hostOptions: SearchableComboboxOption[] = employees.map((emp) => ({
+    id: emp.id,
+    value: `${emp.fullName} - ${emp.position}`,
+    title: emp.fullName,
+    subtitle: `${emp.position} • ${departmentMap.get(emp.departmentId) || 'Cơ quan'}`,
+    code: emp.employeeCode,
+    icon: 'user'
+  }));
+
   return (
-    <PopupModal
+    <SideSheet
       open={open}
       title={isEditing ? 'Cập nhật lịch cuộc họp' : 'Thiết lập cuộc họp mới'}
-      description="Đặc tả MTG-01: Nhập thông tin phòng họp, thời gian và triệu tập danh sách đại biểu theo phòng ban."
+      description="Nhập thông tin phòng họp, thời gian và triệu tập danh sách đại biểu theo phòng ban."
       icon="calendar-plus"
-      width={780}
+      width={720}
       onClose={onClose}
       primaryAction={{
         label: submitting ? 'Đang lưu...' : isEditing ? 'Lưu thay đổi' : 'Tạo cuộc họp',
         icon: isEditing ? 'check' : 'plus',
         onClick: handleSubmit,
-        disabled: submitting
+        disabled: submitting || !title.trim() || !roomName.trim() || !startTime || !endTime
       }}
       secondaryAction={{
         label: 'Hủy',
@@ -296,76 +364,251 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
           />
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-12)' }}>
-            <TextField
+            <SearchableCombobox
               id="meeting-room"
               label="Tên phòng họp"
               required
               placeholder="VD: Hội trường số 1 - Tầng 2"
               value={roomName}
               onChange={(val) => setRoomName(val)}
+              options={roomOptions}
               disabled={submitting}
+              defaultIcon="building"
             />
 
-            <TextField
+            <SearchableCombobox
               id="meeting-host"
               label="Người chủ trì"
               placeholder="VD: Đ/c Nguyễn Văn An - Chủ tịch UBND"
               value={hostName}
               onChange={(val) => setHostName(val)}
+              options={hostOptions}
               disabled={submitting}
+              defaultIcon="user"
             />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-12)' }}>
-            <div>
-              <label
-                htmlFor="meeting-start"
-                className="body-sm-medium"
-                style={{ display: 'block', marginBottom: 'var(--space-6)', color: 'var(--text-heading)' }}
-              >
-                Thời gian bắt đầu dự kiến <span style={{ color: 'var(--semantic-danger)' }}>*</span>
-              </label>
-              <input
-                id="meeting-start"
-                type="datetime-local"
-                className="ecomd-input body-sm"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                disabled={submitting}
+            <TextField
+              id="meeting-start"
+              label="Thời gian bắt đầu dự kiến"
+              type="datetime-local"
+              required
+              value={startTime}
+              onChange={(val) => setStartTime(val)}
+              disabled={submitting}
+            />
+
+            <TextField
+              id="meeting-end"
+              label="Thời gian kết thúc dự kiến"
+              type="datetime-local"
+              required
+              value={endTime}
+              onChange={(val) => setEndTime(val)}
+              disabled={submitting}
+            />
+          </div>
+
+          {/* Thiết lập thời gian điểm danh cuộc họp & Thông báo thời gian thực */}
+          <div
+            data-testid="meeting-rules-box"
+            style={{
+              backgroundColor: 'var(--bg-subtle)',
+              borderRadius: 'var(--radius-8)',
+              border: '1px solid var(--border-subtle)',
+              padding: 'var(--space-12)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-10)'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <div
+                className="caption-bold"
                 style={{
-                  width: '100%',
-                  padding: 'var(--space-8) var(--space-12)',
-                  border: '1px solid var(--border-default)',
-                  borderRadius: 'var(--radius-8)',
-                  backgroundColor: 'var(--bg-surface)'
+                  color: 'var(--text-subtle)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em'
                 }}
-              />
+              >
+                Quy tắc thời gian điểm danh cuộc họp
+              </div>
+              <label
+                htmlFor="meeting-rules-toggle"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-8)',
+                  cursor: submitting ? 'not-allowed' : 'pointer',
+                  userSelect: 'none'
+                }}
+              >
+                <input
+                  id="meeting-rules-toggle"
+                  type="checkbox"
+                  role="switch"
+                  data-testid="meeting-rules-toggle"
+                  className="ecomd-switch"
+                  checked={enableAttendanceRules}
+                  onChange={(e) => setEnableAttendanceRules(e.target.checked)}
+                  disabled={submitting}
+                />
+                <span
+                  className="body-xs-medium"
+                  style={{
+                    color: enableAttendanceRules ? 'var(--brand-primary)' : 'var(--text-subtle)',
+                    minWidth: '24px'
+                  }}
+                >
+                  {enableAttendanceRules ? 'Bật' : 'Tắt'}
+                </span>
+              </label>
             </div>
 
-            <div>
-              <label
-                htmlFor="meeting-end"
-                className="body-sm-medium"
-                style={{ display: 'block', marginBottom: 'var(--space-6)', color: 'var(--text-heading)' }}
-              >
-                Thời gian kết thúc dự kiến <span style={{ color: 'var(--semantic-danger)' }}>*</span>
-              </label>
-              <input
-                id="meeting-end"
-                type="datetime-local"
-                className="ecomd-input body-sm"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                disabled={submitting}
+            {enableAttendanceRules ? (
+              <>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 'var(--space-12)'
+                  }}
+                >
+                  <div>
+                    <label
+                      htmlFor="meeting-checkin-grace"
+                      className="body-xs-medium"
+                      style={{
+                        display: 'block',
+                        marginBottom: 'var(--space-4)',
+                        color: 'var(--text-heading)'
+                      }}
+                    >
+                      Cho phép vào trễ tối đa (phút)
+                    </label>
+                    <input
+                      id="meeting-checkin-grace"
+                      type="number"
+                      min="0"
+                      max="120"
+                      className="ecomd-input body-sm"
+                      value={checkInGraceMinutes}
+                      onChange={(e) =>
+                        setCheckInGraceMinutes(Math.max(0, parseInt(e.target.value, 10) || 0))
+                      }
+                      disabled={submitting}
+                      style={{
+                        width: '100%',
+                        padding: 'var(--space-6) var(--space-10)',
+                        border: '1px solid var(--border-default)',
+                        borderRadius: 'var(--radius-6)',
+                        backgroundColor: 'var(--bg-surface)'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="meeting-checkout-grace"
+                      className="body-xs-medium"
+                      style={{
+                        display: 'block',
+                        marginBottom: 'var(--space-4)',
+                        color: 'var(--text-heading)'
+                      }}
+                    >
+                      Cho phép về sớm tối đa (phút)
+                    </label>
+                    <input
+                      id="meeting-checkout-grace"
+                      type="number"
+                      min="0"
+                      max="120"
+                      className="ecomd-input body-sm"
+                      value={checkOutGraceMinutes}
+                      onChange={(e) =>
+                        setCheckOutGraceMinutes(Math.max(0, parseInt(e.target.value, 10) || 0))
+                      }
+                      disabled={submitting}
+                      style={{
+                        width: '100%',
+                        padding: 'var(--space-6) var(--space-10)',
+                        border: '1px solid var(--border-default)',
+                        borderRadius: 'var(--radius-6)',
+                        backgroundColor: 'var(--bg-surface)'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Thông báo động dựa trên giờ thực tế đã chọn */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 'var(--space-6)',
+                    paddingTop: 'var(--space-6)',
+                    borderTop: '1px dashed var(--border-subtle)'
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 'var(--space-8)',
+                      color: 'var(--brand-primary)'
+                    }}
+                    className="body-xs"
+                  >
+                    <i className="fa-regular fa-clock" />
+                    <span>
+                      Bạn có thể điểm danh vào trễ nhất lúc{' '}
+                      <strong style={{ fontWeight: 600 }}>{maxCheckInTime}</strong> (sau giờ này sẽ bị
+                      tính đi muộn)
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 'var(--space-8)',
+                      color: 'var(--text-subtle)'
+                    }}
+                    className="body-xs"
+                  >
+                    <i className="fa-solid fa-door-open" />
+                    <span>
+                      Được phép điểm danh ra về từ lúc{' '}
+                      <strong style={{ fontWeight: 600 }}>{earliestCheckOutTime}</strong> (rời phòng
+                      trước giờ này sẽ bị tính về sớm)
+                    </span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div
                 style={{
-                  width: '100%',
-                  padding: 'var(--space-8) var(--space-12)',
-                  border: '1px solid var(--border-default)',
-                  borderRadius: 'var(--radius-8)',
-                  backgroundColor: 'var(--bg-surface)'
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-8)',
+                  color: 'var(--text-subtle)',
+                  padding: 'var(--space-4) 0'
                 }}
-              />
-            </div>
+                className="body-xs"
+              >
+                <i className="fa-solid fa-circle-info" style={{ color: 'var(--text-subtle)' }} />
+                <span>
+                  Đã tắt quy tắc thời gian điểm danh. Đại biểu check-in / check-out sẽ không bị tính đi muộn hoặc về sớm.
+                </span>
+              </div>
+            )}
           </div>
 
           <TextField
@@ -404,35 +647,16 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
             </div>
           </div>
 
-          {/* Quick Select by Department Buttons */}
-          <div>
-            <div
-              className="body-xs-bold"
-              style={{ marginBottom: 'var(--space-6)', color: 'var(--text-subtle)' }}
-            >
-              Chọn nhanh theo phòng ban:
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-6)' }}>
-              {departments.map((dept) => {
-                const deptEmps = employees.filter((e) => e.departmentId === dept.id);
-                const allSel =
-                  deptEmps.length > 0 &&
-                  deptEmps.every((e) => selectedAttendees.get(e.id)?.selected);
-
-                return (
-                  <Button
-                    key={dept.id}
-                    variant={allSel ? 'secondary' : 'ghost'}
-                    active={allSel}
-                    icon={allSel ? 'check' : 'plus'}
-                    onClick={() => handleSelectDepartment(dept.id)}
-                  >
-                    {dept.name} ({deptEmps.length})
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
+          {/* Quick Select by Department - Single Field with Multi-select Dropdown */}
+          <DepartmentMultiSelectDropdown
+            departments={departments}
+            employees={employees}
+            selectedAttendees={selectedAttendees}
+            onToggleDepartment={handleSelectDepartment}
+            onSelectAllDepartments={handleSelectAllDepartments}
+            onClearAllDepartments={handleClearAllDepartments}
+            disabled={submitting}
+          />
 
           {/* Search attendee input */}
           <TextField
@@ -497,20 +721,17 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
                     </div>
 
                     {isSelected && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)' }}>
-                        <select
-                          className="ecomd-select body-xs"
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)', minWidth: '150px' }}>
+                        <SelectField
+                          size="sm"
                           value={role}
-                          onChange={(e) => handleChangeRole(emp.id, e.target.value as AttendeeRole)}
-                          style={{
-                            padding: 'var(--space-4) var(--space-8)',
-                            fontSize: '12px',
-                            backgroundColor: 'var(--bg-surface)'
-                          }}
-                        >
-                          <option value="required">Bắt buộc (Required)</option>
-                          <option value="optional">Tùy chọn (Optional)</option>
-                        </select>
+                          onChange={(val) => handleChangeRole(emp.id, val as AttendeeRole)}
+                          options={[
+                            { value: 'required', label: 'Bắt buộc' },
+                            { value: 'optional', label: 'Tùy chọn' }
+                          ]}
+                          style={{ width: '100%' }}
+                        />
                       </div>
                     )}
                   </div>
@@ -520,6 +741,6 @@ export const MeetingModal: React.FC<MeetingModalProps> = ({
           </div>
         </div>
       </div>
-    </PopupModal>
+    </SideSheet>
   );
 };
