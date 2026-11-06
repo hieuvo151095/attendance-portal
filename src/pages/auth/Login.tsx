@@ -15,6 +15,7 @@ import { AuthSession, OrganizationType } from '../../types/auth';
 
 export interface LoginProps {
   onLoginSuccess?: (session: AuthSession) => void;
+  showDemoAccounts?: boolean;
 }
 
 const ORG_TYPE_LABELS: Record<OrganizationType, { label: string; tone: 'neutral' | 'info' | 'success' | 'warning' }> = {
@@ -23,7 +24,10 @@ const ORG_TYPE_LABELS: Record<OrganizationType, { label: string; tone: 'neutral'
   hospital: { label: 'Bệnh viện / Cơ sở Y tế', tone: 'success' }
 };
 
-export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
+export const Login: React.FC<LoginProps> = ({
+  onLoginSuccess,
+  showDemoAccounts: propShowDemoAccounts
+}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
@@ -33,6 +37,25 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [currentSession, setCurrentSession] = useState<AuthSession | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordSuccessMessage, setPasswordSuccessMessage] = useState<string | null>(null);
+
+  // Xác định hiển thị danh sách tài khoản demo:
+  // - Ở local (localhost, 127.0.0.1, dev server, test): hiển thị để tiện thử nghiệm
+  // - Khi đóng gói / đẩy lên Git (production / non-local) hoặc khi ?demo=0: tự động ẩn
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const demoParam = urlParams?.get('demo');
+
+  const isLocalEnvironment =
+    demoParam === '1' ||
+    (demoParam !== '0' &&
+      (import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS === 'true' ||
+        (import.meta.env.VITE_ENABLE_DEMO_ACCOUNTS !== 'false' &&
+          (import.meta.env.DEV ||
+            import.meta.env.MODE === 'test' ||
+            (typeof window !== 'undefined' &&
+              (window.location.hostname === 'localhost' ||
+               window.location.hostname === '127.0.0.1'))))));
+
+  const shouldShowDemo = propShowDemoAccounts !== undefined ? propShowDemoAccounts : isLocalEnvironment;
 
   useEffect(() => {
     // Kiểm tra phiên đăng nhập hiện tại nếu có
@@ -322,48 +345,50 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           </Button>
         </form>
 
-        {/* Quick select test accounts helper */}
-        <div style={styles.quickSelectSection}>
-          <div style={styles.quickSelectHeader}>
-            <span className="overline-xs" style={{ color: 'var(--text-subtle)' }}>
-              TÀI KHOẢN MẪU CỦA ĐƠN VỊ KHÁCH HÀNG (DEMO)
-            </span>
-          </div>
+        {/* Quick select test accounts helper (Chỉ hiển thị ở môi trường local) */}
+        {shouldShowDemo && (
+          <div style={styles.quickSelectSection}>
+            <div style={styles.quickSelectHeader}>
+              <span className="overline-xs" style={{ color: 'var(--text-subtle)' }}>
+                TÀI KHOẢN MẪU CỦA ĐƠN VỊ KHÁCH HÀNG (DEMO)
+              </span>
+            </div>
 
-          <div style={styles.quickSelectList}>
-            {INITIAL_TENANTS.map((t) => {
-              const meta = ORG_TYPE_LABELS[t.orgType];
-              const isSelected = username === t.username;
+            <div style={styles.quickSelectList}>
+              {INITIAL_TENANTS.map((t) => {
+                const meta = ORG_TYPE_LABELS[t.orgType];
+                const isSelected = username === t.username;
 
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  style={{
-                    ...styles.quickSelectCard,
-                    borderColor: isSelected ? 'var(--eco-blue-strong)' : 'var(--border-default)',
-                    backgroundColor: isSelected ? 'var(--semantic-info-soft)' : 'var(--bg-surface)'
-                  }}
-                  onClick={() => handleQuickSelectTenant(t.username)}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <strong className="body-xs-semibold" style={{ color: 'var(--text-heading)' }}>
-                      {t.orgName}
-                    </strong>
-                    <StatusTag tone={meta.tone}>{meta.label}</StatusTag>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px', alignItems: 'center' }}>
-                    <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>Mã:</span>
-                    <Tag variant="code">{t.username}</Tag>
-                    <span className="body-xs" style={{ color: 'var(--text-subtle)', marginLeft: 'auto' }}>
-                      MK: <code>Finviet@2026</code>
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    style={{
+                      ...styles.quickSelectCard,
+                      borderColor: isSelected ? 'var(--eco-blue-strong)' : 'var(--border-default)',
+                      backgroundColor: isSelected ? 'var(--semantic-info-soft)' : 'var(--bg-surface)'
+                    }}
+                    onClick={() => handleQuickSelectTenant(t.username)}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <strong className="body-xs-semibold" style={{ color: 'var(--text-heading)' }}>
+                        {t.orgName}
+                      </strong>
+                      <StatusTag tone={meta.tone}>{meta.label}</StatusTag>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px', alignItems: 'center' }}>
+                      <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>Mã:</span>
+                      <Tag variant="code">{t.username}</Tag>
+                      <span className="body-xs" style={{ color: 'var(--text-subtle)', marginLeft: 'auto' }}>
+                        MK: <code>Finviet@2026</code>
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

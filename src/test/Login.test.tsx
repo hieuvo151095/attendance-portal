@@ -19,6 +19,15 @@ describe('Giao diện Màn hình Đăng nhập (AUTH-01: Login Screen)', () => {
     expect(screen.getByText(/TÀI KHOẢN MẪU CỦA ĐƠN VỊ KHÁCH HÀNG/i)).toBeInTheDocument();
   });
 
+  it('Khi triển khai hoặc tắt demo (showDemoAccounts={false}): Ẩn hoàn toàn khối tài khoản mẫu', () => {
+    render(<Login showDemoAccounts={false} />);
+
+    expect(screen.getByText('Cổng Điểm Danh Đơn Vị')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Tên đăng nhập hoặc Mã đơn vị/i)).toBeInTheDocument();
+    expect(screen.queryByText(/TÀI KHOẢN MẪU CỦA ĐƠN VỊ KHÁCH HÀNG/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('Ủy Ban Nhân Dân Phường Bến Nghé')).not.toBeInTheDocument();
+  });
+
   it('Báo lỗi nghiệp vụ khi bấm đăng nhập mà để trống thông tin', async () => {
     render(<Login />);
 
