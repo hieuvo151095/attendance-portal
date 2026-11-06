@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Finviet Attendance Portal - Solution Brief</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 16mm 16mm 14mm 16mm;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #1e293b;
+      line-height: 1.5;
+      font-size: 13px;
+      background: #ffffff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .page {
+      page-break-after: always;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .page:last-child {
+      page-break-after: avoid;
+    }
+
+    /* Header */
+    .header {
+      border-bottom: 2px solid #0070ce;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .brand-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #0070ce;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .doc-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+    .doc-subtitle {
+      font-size: 12px;
+      color: #64748b;
+    }
+    .meta-box {
+      text-align: right;
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.4;
+      background: #f8fafc;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+    }
+    .meta-box strong {
+      color: #0f172a;
+    }
+
+    .mini-header {
+      border-bottom: 1px solid #0070ce;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #64748b;
+    }
+    .mini-header strong {
+      color: #0070ce;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    h2 {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #0070ce;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-left: 4px solid #0070ce;
+      padding-left: 8px;
+    }
+    p {
+      margin-bottom: 8px;
+      color: #334155;
+      font-size: 12.8px;
+    }
+
+    /* Flow diagram */
+    .flow-diagram {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 10px 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .flow-step {
+      flex: 1;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px 10px;
+      text-align: center;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .flow-step.active {
+      border-color: #0070ce;
+      background: #f0f7ff;
+    }
+    .flow-step-num {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #0070ce;
+      margin-bottom: 2px;
+    }
+    .flow-step-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 2px;
+    }
+    .flow-step-desc {
+      font-size: 10.5px;
+      color: #64748b;
+    }
+    .flow-arrow {
+      color: #94a3b8;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    /* Feature cards */
+    .feature-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+    }
+    .feature-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .feature-list {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    .feature-list li {
+      position: relative;
+      padding-left: 14px;
+      margin-bottom: 3px;
+      font-size: 12px;
+      color: #334155;
+      line-height: 1.45;
+    }
+    .feature-list li::before {
+      content: "•";
+      position: absolute;
+      left: 3px;
+      color: #0070ce;
+      font-weight: bold;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      margin-bottom: 14px;
+      font-size: 11.8px;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+      line-height: 1.45;
+    }
+    th {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 11.5px;
+    }
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+    .badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      background: #e0f2fe;
+      color: #0369a1;
+      letter-spacing: 0.03em;
+    }
+
+    /* Highlight box */
+    .highlight-box {
+      background: #eff6ff;
+      border-left: 4px solid #0070ce;
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+      font-size: 12px;
+      color: #1e3a8a;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .value-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .value-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 11.5px;
+    }
+    .value-card-title {
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .value-card-desc {
+      color: #64748b;
+      line-height: 1.35;
+    }
+
+    /* Footer */
+    .footer {
+      padding-top: 8px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10.5px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= PAGE 1 ================= -->
+  <div class="page">
+    <div>
+      <!-- Header -->
+      <div class="header">
+        <div>
+          <div class="brand-title">FINVIET TECH &bull; ATTENDANCE PORTAL</div>
+          <h1 class="doc-title">TỔNG QUAN HỆ THỐNG ĐIỂM DANH FINVIET</h1>
+          <div class="doc-subtitle">Bản tóm lược giải pháp (Solution Brief) & Mô hình nghiệp vụ</div>
+        </div>
+        <div class="meta-box">
+          <div>Phiên bản: <strong>v1.0.0 (Production)</strong></div>
+          <div>Ngày ban hành: <strong>Tháng 11/2026</strong></div>
+          <div>Bảo mật: <strong>Lưu hành nội bộ</strong></div>
+        </div>
+      </div>
+
+      <!-- Intro -->
+      <p>
+        <strong>Cổng Điểm Danh Đơn Vị Finviet</strong> là giải pháp chuyển đổi số toàn diện công tác ghi nhận hiện diện và giám sát chuyên cần dành riêng cho cơ quan Nhà nước, cơ sở y tế và doanh nghiệp. Hệ thống được kiến trúc theo luồng khép kín: <em>Chuẩn hóa danh mục đầu vào &rarr; Ghi nhận điểm danh tự động &rarr; Báo cáo phân tích chuyên sâu</em>.
+      </p>
+
+      <!-- Flow Diagram -->
+      <div class="flow-diagram">
+        <div class="flow-step">
+          <div class="flow-step-num">Bước 1: Nền tảng</div>
+          <div class="flow-step-title">Thiết Lập Dữ Liệu Gốc</div>
+          <div class="flow-step-desc">Phòng ban, Nhân sự, Lịch họp, Ca làm việc</div>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step active">
+          <div class="flow-step-num">Bước 2: Vận hành</div>
+          <div class="flow-step-title">Điểm Danh Thực Tế</div>
+          <div class="flow-step-desc">Chấm công hàng ngày & Điểm danh cuộc họp</div>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">
+          <div class="flow-step-num">Bước 3: Đầu ra</div>
+          <div class="flow-step-title">Báo Cáo Tổng Quan</div>
+          <div class="flow-step-desc">Chỉ số KPI, biểu đồ xu hướng, so sánh đơn vị</div>
+        </div>
+      </div>
+
+      <!-- Part I -->
+      <h2>I. CÁC NGHIỆP VỤ THEO DÕI & ĐIỂM DANH CỐT LÕI</h2>
+
+      <div class="feature-card">
+        <div class="feature-title">
+          <span class="badge">ATTENDANCE</span>
+          1. Quản lý Chấm công Hằng ngày (Daily Attendance)
+        </div>
+        <ul class="feature-list">
+          <li><strong>Đa phương thức xác thực:</strong> Tự động ghi nhận giờ vào/ra thực tế qua Camera AI nhận diện khuôn mặt (Face ID), Thẻ cảm ứng vật lý (RFID/NFC) và Vân tay theo thời gian thực.</li>
+          <li><strong>Phân loại trạng thái tự động:</strong> Đối chiếu giờ quét với quy chế làm việc để tự động xác định chính xác: <em>Đúng giờ, Đi muộn, Về sớm, Nghỉ phép hoặc Chưa đến/Vắng mặt</em>.</li>
+          <li><strong>Xử lý ngoại lệ minh bạch:</strong> Cho phép xem lịch sử quét thiết bị của từng cán bộ, xác nhận lý do nghỉ phép, và xuất bảng tổng hợp Excel đối soát nhanh chóng.</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-title">
+          <span class="badge">MEETINGS</span>
+          2. Quản lý Điểm danh Cuộc họp (Meeting Attendance)
+        </div>
+        <ul class="feature-list">
+          <li><strong>Điểm danh đại biểu theo lịch:</strong> Tự động mở phiên trước giờ họp, nhận diện đại biểu bắt buộc và tùy chọn ngay tại cửa phòng hội nghị.</li>
+          <li><strong>Bảng điện tử trực tiếp (Live Screen):</strong> Màn hình thời gian thực hiển thị sĩ số đại biểu có mặt, đến muộn và vắng mặt phục vụ người chủ trì và thư ký điều hành.</li>
+          <li><strong>Khóa dữ liệu & Biên bản tự động:</strong> Tự động tính toán mức độ chuyên cần kỳ họp, chốt dữ liệu khi kết thúc và hỗ trợ tải biên bản họp chính thức chuẩn hóa.</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-title">
+          <span class="badge">DASHBOARD</span>
+          3. Báo cáo & Bảng điều khiển Tổng quan (Dashboard & Analytics)
+        </div>
+        <ul class="feature-list">
+          <li><strong>Chỉ số chuyên cần tức thời (KPIs):</strong> Theo dõi trực quan tỷ lệ hiện diện, tỷ lệ đúng giờ, số lượt đi muộn và vắng mặt của toàn cơ quan trong ngày.</li>
+          <li><strong>Biểu đồ xu hướng đa chu kỳ:</strong> Phân tích biến động kỷ luật giờ giấc theo ngày, tuần, tháng và phân bổ cơ cấu phương thức xác thực thực tế.</li>
+          <li><strong>So sánh thi đua giữa các phòng ban:</strong> Bảng đối chiếu xếp hạng chuyên cần giữa các đơn vị trực thuộc, giúp lãnh đạo có cái nhìn tổng thể để chỉ đạo kịp thời.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Footer Page 1 -->
+    <div class="footer">
+      <div>Finviet Attendance Portal &bull; Bản Tóm Lược Giải Pháp</div>
+      <div>Trang 1 / 2</div>
+    </div>
+  </div>
+
+  <!-- ================= PAGE 2 ================= -->
+  <div class="page">
+    <div>
+      <!-- Mini Header Page 2 -->
+      <div class="mini-header">
+        <div><strong>FINVIET ATTENDANCE PORTAL</strong> &bull; SOLUTION BRIEF</div>
+        <div>Tài liệu kỹ thuật và vận hành &bull; v1.0.0</div>
+      </div>
+
+      <!-- Part II -->
+      <h2>II. CÁC PHÂN HỆ NỀN TẢNG THIẾT LẬP DỮ LIỆU ĐẦU VÀO</h2>
+      <p>
+        Bốn phân hệ nền tảng đóng vai trò "khung xương sống", cấu hình danh mục và quy tắc giúp các nghiệp vụ Chấm công, Cuộc họp và Báo cáo hoạt động hoàn toàn tự động, không cần can thiệp thủ công:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 17%;">Phân hệ nền tảng</th>
+            <th style="width: 43%;">Vai trò & Giá trị thiết lập dữ liệu</th>
+            <th style="width: 40%;">Tác động trực tiếp đến Chấm công & Báo cáo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Phòng Ban</strong><br><span style="color:#64748b; font-size:10.5px;">(Mã: ORG-01)</span></td>
+            <td>Thiết lập cây sơ đồ cơ cấu tổ chức phân cấp cha - con, mã định danh đơn vị và phân công cán bộ quản lý phụ trách từng bộ phận.</td>
+            <td>Là cơ sở phân loại nhân sự, lọc dữ liệu chấm công theo phòng ban và tính toán tỷ lệ thi đua so sánh giữa các đơn vị.</td>
+          </tr>
+          <tr>
+            <td><strong>Nhân Sự</strong><br><span style="color:#64748b; font-size:10.5px;">(Mã: ORG-02, ORG-03)</span></td>
+            <td>Quản lý hồ sơ cán bộ, số CCCD, hình ảnh nhận diện khuôn mặt Face ID và kích hoạt mã thẻ vật lý RFID/NFC.</td>
+            <td>Cung cấp danh tính gốc để hệ thống nhận diện đúng người khi quét thiết bị, tự động gán dữ liệu vào ca và vào phòng họp.</td>
+          </tr>
+          <tr>
+            <td><strong>Cuộc Họp</strong><br><span style="color:#64748b; font-size:10.5px;">(Mã: MTG-01, MTG-02)</span></td>
+            <td>Khởi tạo lịch họp, chỉ định phòng họp, khung giờ diễn ra, người chủ trì và triệu tập đại biểu theo phòng ban.</td>
+            <td>Là điều kiện cần để hệ thống mở phiên điểm danh cuộc họp, theo dõi sĩ số đại biểu và kết xuất biên bản họp chính thức.</td>
+          </tr>
+          <tr>
+            <td><strong>Thiết Lập</strong><br><span style="color:#64748b; font-size:10.5px;">(Mã: SET-01, SET-02)</span></td>
+            <td>Cấu hình giờ bắt đầu/tan ca, dung sai cho phép đi muộn/về sớm, chỉ tiêu thi đua chuyên cần cơ quan và danh mục phòng họp.</td>
+            <td>Là "thước đo chuẩn" để thuật toán tự động đối soát giờ quét ra kết quả: đúng giờ, đi muộn, hoặc vắng mặt trên mọi báo cáo.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Value Proposition Grid -->
+      <p style="font-weight: 700; color: #0f172a; margin-top: 10px; margin-bottom: 6px;">
+        III. GIÁ TRỊ VẬN HÀNH MANG LẠI CHO ĐƠN VỊ:
+      </p>
+      <div class="value-grid">
+        <div class="value-card">
+          <div class="value-card-title">&#10003; Tự Động Hóa 100%</div>
+          <div class="value-card-desc">Loại bỏ ghi chép thủ công; dữ liệu từ thiết bị đổ thẳng về hệ thống trung tâm không trễ.</div>
+        </div>
+        <div class="value-card">
+          <div class="value-card-title">&#10003; Minh Bạch & Khách Quan</div>
+          <div class="value-card-desc">Mọi lượt quét đều lưu lại thời điểm, phương thức và thiết bị, ngăn chặn gian lận điểm danh.</div>
+        </div>
+        <div class="value-card">
+          <div class="value-card-title">&#10003; Hỗ Trợ Ra Quyết Định</div>
+          <div class="value-card-desc">Báo cáo trực quan theo thời gian thực giúp lãnh đạo nắm bắt kỷ cương cơ quan tức thì.</div>
+        </div>
+      </div>
+
+      <!-- Core Conclusion Box -->
+      <div class="highlight-box">
+        <strong>Kết luận cốt lõi:</strong> Các module <em>Phòng ban, Nhân sự, Cuộc họp và Thiết lập</em> là nền móng chuẩn hóa toàn bộ dữ liệu danh mục và quy tắc nghiệp vụ. Nhờ đó, quy trình <strong>Chấm công hằng ngày</strong> và <strong>Điểm danh cuộc họp</strong> vận hành tự động 100%, tạo ra các <strong>Báo cáo tổng quan</strong> chính xác, minh bạch phục vụ công tác điều hành của cơ quan.
+      </div>
+    </div>
+
+    <!-- Footer Page 2 -->
+    <div class="footer">
+      <div>Finviet Attendance Portal &bull; Phát triển bởi Finviet Tech &copy; 2026. All rights reserved.</div>
+      <div>Trang 2 / 2</div>
+    </div>
+  </div>
+
+</body>
+</html>

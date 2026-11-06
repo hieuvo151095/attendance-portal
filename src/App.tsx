@@ -231,6 +231,18 @@ export const App: React.FC = () => {
                 },
                 { divider: true },
                 {
+                  icon: 'file-pdf',
+                  label: 'Tải tài liệu tổng quan (PDF)',
+                  onClick: () => {
+                    const link = document.createElement('a');
+                    link.href = '/Finviet_Attendance_Portal_Brief.pdf';
+                    link.download = 'Finviet_Attendance_Portal_Brief.pdf';
+                    link.target = '_blank';
+                    link.click();
+                  }
+                },
+                { divider: true },
+                {
                   icon: 'right-from-bracket',
                   label: 'Đăng xuất',
                   tone: 'danger',
