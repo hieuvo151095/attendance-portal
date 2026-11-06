@@ -224,22 +224,23 @@ export const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        backgroundColor: 'var(--bg-canvas)'
+        position: 'relative'
       }}
     >
       <div
         className="dashboard-scrollable-body"
         style={{
-          padding: '24px',
+          padding: '4px 0 0',
           display: 'flex',
           flexDirection: 'column',
-          gap: '24px'
+          gap: '20px'
         }}
       >
         {/* Page Title & Subtitle OUTSIDE all sections */}
         <div
           data-testid="dashboard-page-header"
           style={{
+            padding: '0 0 4px',
             display: 'flex',
             flexDirection: 'column',
             gap: 'var(--space-4)'
