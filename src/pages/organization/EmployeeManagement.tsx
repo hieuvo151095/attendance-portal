@@ -466,33 +466,33 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
             borderRadius: 'var(--radius-12)'
           }}
         >
-          <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 'var(--space-12)', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-12)', alignItems: 'center' }}>
             <SearchField
               placeholder="Tìm theo tên, mã NV, CCCD..."
               value={searchTerm}
               onChange={(val) => setSearchTerm(val)}
-              width={190}
+              width={220}
             />
 
             <SelectField
               options={departmentFilterOptions}
               value={selectedDeptId}
               onChange={(val) => setSelectedDeptId(val)}
-              width={165}
+              width={175}
             />
 
             <SelectField
               options={faceIdFilterOptions}
               value={faceIdStatusFilter}
               onChange={(val) => setFaceIdStatusFilter(val)}
-              width={145}
+              width={195}
             />
 
             <SelectField
               options={cardFilterOptions}
               value={cardStatusFilter}
               onChange={(val) => setCardStatusFilter(val)}
-              width={145}
+              width={175}
             />
           </div>
 

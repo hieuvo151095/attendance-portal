@@ -466,21 +466,21 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
               placeholder="Tìm theo tên cán bộ, mã NV..."
               value={searchTerm}
               onChange={(val) => setSearchTerm(val)}
-              width={150}
+              width={220}
             />
 
             <SelectField
               options={departmentFilterOptions}
               value={selectedDeptId}
               onChange={(val) => setSelectedDeptId(val)}
-              width={135}
+              width={175}
             />
 
             <SelectField
               options={statusFilterOptions}
               value={selectedStatus}
               onChange={(val) => setSelectedStatus(val)}
-              width={125}
+              width={170}
             />
           </div>
 
@@ -516,7 +516,6 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
           columns={columns}
           rows={records}
           rowKey="id"
-          onRowClick={(row) => handleOpenLogModal(row)}
           pagination={{
             pageSize: 10,
             showTotal: (total, range) => (

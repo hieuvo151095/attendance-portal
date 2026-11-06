@@ -99,15 +99,23 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
     });
   });
 
-  it('Modal Chi Tiết: Tick Nghỉ phép vô hiệu hóa nếu đã check-in, bật khi chưa đến và cho phép admin xác nhận nghỉ', async () => {
+  it('Modal Chi Tiết: Không mở khi bấm vào tên cán bộ; chỉ mở khi bấm icon 3 chấm [Chi tiết chấm công]', async () => {
     render(<DailyAttendance tenantId={ubndTenant} />);
 
     await waitFor(() => {
       expect(screen.getByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
     });
 
-    // 1. Kiểm tra với cán bộ ĐÃ CHECK-IN (Đ/c Nguyễn Văn An - đến 07:15)
+    // 1. Bấm vào cột cán bộ nhân sự không mở modal
     fireEvent.click(screen.getByText('Đ/c Nguyễn Văn An'));
+    expect(screen.queryByText('Chi tiết chấm công')).not.toBeInTheDocument();
+
+    // 2. Mở qua nút Thao tác (3 chấm) -> "Chi tiết chấm công"
+    const actionBtns = screen.getAllByRole('button', { name: /Thao tác/i });
+    fireEvent.click(actionBtns[0]);
+
+    const detailMenuOption = screen.getByText('Chi tiết chấm công');
+    fireEvent.click(detailMenuOption);
 
     await waitFor(() => {
       expect(screen.getByText('Chi tiết chấm công')).toBeInTheDocument();
@@ -125,7 +133,7 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
       expect(screen.queryByText('Chi tiết chấm công')).not.toBeInTheDocument();
     });
 
-    // 2. Kiểm tra với cán bộ CHƯA ĐẾN / VẮNG (Ông Bùi Tiến Dũng - chưa có check-in)
+    // 3. Kiểm tra với cán bộ CHƯA ĐẾN / VẮNG (Ông Bùi Tiến Dũng - chưa có check-in)
     const searchInput = screen.getByPlaceholderText(/Tìm theo tên cán bộ, mã NV/i);
     fireEvent.change(searchInput, { target: { value: 'Bùi Tiến Dũng' } });
 
@@ -133,8 +141,14 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
       expect(screen.getByText('Ông Bùi Tiến Dũng')).toBeInTheDocument();
     });
 
-    // Mở chi tiết bằng cách click vào hàng cán bộ
+    // Bấm vào tên không mở modal
     fireEvent.click(screen.getByText('Ông Bùi Tiến Dũng'));
+    expect(screen.queryByText('Chi tiết chấm công')).not.toBeInTheDocument();
+
+    // Mở chi tiết qua nút 3 chấm thao tác
+    const dungActionBtn = screen.getByRole('button', { name: /Thao tác/i });
+    fireEvent.click(dungActionBtn);
+    fireEvent.click(screen.getByText('Chi tiết chấm công'));
 
     await waitFor(() => {
       expect(screen.getByText('Chi tiết chấm công')).toBeInTheDocument();
@@ -212,8 +226,14 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
       expect(screen.queryByText('Bà Phạm Thị Cúc')).not.toBeInTheDocument();
     });
 
-    // Bấm vào tên cán bộ trên hàng để mở modal
+    // Bấm vào tên cán bộ trên hàng KHÔNG mở modal
     fireEvent.click(screen.getByText('Đ/c Nguyễn Văn An'));
+    expect(screen.queryByText('Chi tiết chấm công')).not.toBeInTheDocument();
+
+    // Mở modal qua nút 3 chấm thao tác
+    const actionBtn = screen.getByRole('button', { name: 'Thao tác' });
+    fireEvent.click(actionBtn);
+    fireEvent.click(screen.getByText('Chi tiết chấm công'));
 
     await waitFor(() => {
       expect(screen.getByText('Chi tiết chấm công')).toBeInTheDocument();
