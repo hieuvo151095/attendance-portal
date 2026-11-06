@@ -366,11 +366,6 @@ export const MeetingManagement: React.FC<MeetingManagementProps> = ({
           >
             <Icon name="calendar-check" size={15} />
             <span>Lịch Họp & Điểm Danh</span>
-            {inProgressCount > 0 ? (
-              <Tag variant="warning">{inProgressCount} đang diễn ra</Tag>
-            ) : (
-              <Tag variant="default">{totalCount} cuộc họp</Tag>
-            )}
           </button>
 
           <button
@@ -395,7 +390,6 @@ export const MeetingManagement: React.FC<MeetingManagementProps> = ({
           >
             <Icon name="file-lines" size={15} />
             <span>Báo Cáo & Lưu Trữ Biên Bản</span>
-            <Tag variant="success">{completedCount} đã kết thúc</Tag>
           </button>
         </div>
       </div>

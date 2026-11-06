@@ -402,7 +402,7 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
             }}
           >
             <Icon name="building" size={17} color={activeTab === 'rooms' ? 'var(--eco-blue-strong)' : 'currentColor'} />
-            Danh Sách Phòng Họp ({rooms.length})
+            Danh Sách Phòng Họp
           </button>
         </div>
       </div>
