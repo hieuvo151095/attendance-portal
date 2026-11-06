@@ -466,7 +466,7 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
               placeholder="Tìm theo tên cán bộ, mã NV..."
               value={searchTerm}
               onChange={(val) => setSearchTerm(val)}
-              width={220}
+              width={300}
             />
 
             <SelectField

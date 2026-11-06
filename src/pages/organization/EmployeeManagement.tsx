@@ -471,7 +471,7 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
               placeholder="Tìm theo tên, mã NV, CCCD..."
               value={searchTerm}
               onChange={(val) => setSearchTerm(val)}
-              width={220}
+              width={300}
             />
 
             <SelectField

@@ -670,6 +670,7 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
                 placeholder="Tìm đại biểu theo tên, mã, chức vụ..."
                 value={search}
                 onChange={setSearch}
+                block
               />
             </div>
 

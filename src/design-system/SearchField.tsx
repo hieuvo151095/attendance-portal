@@ -46,9 +46,11 @@ export const SearchField: React.FC<SearchFieldProps> = ({
     inputProps.defaultValue = defaultValue;
   }
 
+  const resolvedWidth = width !== undefined ? width : (block ? undefined : 300);
+
   const containerStyle: React.CSSProperties = {
     ...style,
-    ...(width !== undefined ? { width, minWidth: width, maxWidth: width } : {})
+    ...(resolvedWidth !== undefined ? { width: resolvedWidth, minWidth: resolvedWidth, maxWidth: resolvedWidth } : {})
   };
 
   return (

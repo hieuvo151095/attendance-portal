@@ -403,7 +403,7 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
             placeholder="Tìm phòng ban theo tên, mã định danh, người phụ trách..."
             value={searchTerm}
             onChange={(val) => setSearchTerm(val)}
-            width={360}
+            width={300}
           />
 
           <Button
