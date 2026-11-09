@@ -94,12 +94,12 @@ describe('Bảng Điều Khiển Tổng Quan Điểm Danh & Chuyên Cần Toàn 
     expect(screen.getAllByText('Bộ phận Tư pháp - Hộ tịch').length).toBeGreaterThan(0);
   });
 
-  it('Tab Chấm công: Không chia sẻ Cuộc Họp Đã Hoàn Tất Gần Nhất, hiển thị Quân Số Hiện Diện & Nghỉ Phép Hôm Nay và Hoạt Động Điểm Danh Gần Nhất', async () => {
+  it('Tab Chấm công: Không chia sẻ Cuộc Họp Đã Hoàn Tất Gần Nhất, hiển thị Chấm công hôm nay và Nghỉ phép và Hoạt Động Điểm Danh Gần Nhất', async () => {
     const handleNavigate = vi.fn();
     render(<AttendanceDashboard tenantId={ubndTenant} onNavigateTab={handleNavigate} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Quân Số Hiện Diện & Nghỉ Phép Hôm Nay')).toBeInTheDocument();
+      expect(screen.getByText('Chấm công hôm nay và Nghỉ phép')).toBeInTheDocument();
       expect(screen.getByText('Hoạt Động Điểm Danh Gần Nhất')).toBeInTheDocument();
     });
 

@@ -65,11 +65,11 @@ const mockRoster: TodayAttendanceRoster = {
   ]
 };
 
-describe('TodayAttendanceRosterCard - Quân Số Hiện Diện & Nghỉ Phép Hôm Nay', () => {
+describe('TodayAttendanceRosterCard - Chấm công hôm nay và Nghỉ phép', () => {
   it('Hiển thị tiêu đề thẻ và các chỉ số tóm tắt Có mặt, Nghỉ phép, Chưa đến', () => {
     render(<TodayAttendanceRosterCard roster={mockRoster} />);
 
-    expect(screen.getByText('Quân Số Hiện Diện & Nghỉ Phép Hôm Nay')).toBeInTheDocument();
+    expect(screen.getByText('Chấm công hôm nay và Nghỉ phép')).toBeInTheDocument();
     expect(screen.getByText('Đang có mặt')).toBeInTheDocument();
     expect(screen.getByText('Nghỉ phép có đơn')).toBeInTheDocument();
     expect(screen.getByText('Chưa đến / Vắng')).toBeInTheDocument();

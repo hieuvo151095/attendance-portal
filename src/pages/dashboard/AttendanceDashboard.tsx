@@ -983,7 +983,7 @@ export const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
             gap: '24px'
           }}
         >
-          {/* Card 1: Quân Số Hiện Diện & Nghỉ Phép Hôm Nay */}
+          {/* Card 1: Chấm công hôm nay và Nghỉ phép */}
           {data.todayRoster && (
             <TodayAttendanceRosterCard
               roster={data.todayRoster}

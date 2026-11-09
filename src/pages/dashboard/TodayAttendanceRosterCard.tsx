@@ -61,7 +61,7 @@ export const TodayAttendanceRosterCard: React.FC<TodayAttendanceRosterCardProps>
             }}
           >
             <Icon name="users" size={18} color="var(--eco-blue-strong)" />
-            Quân Số Hiện Diện & Nghỉ Phép Hôm Nay
+            Chấm công hôm nay và Nghỉ phép
           </h2>
           <span className="body-xs" style={{ color: 'var(--text-subtle)', marginTop: '2px', display: 'inline-block' }}>
             Theo dõi cán bộ có mặt thực tế, nghỉ phép có đơn và vắng mặt trong ngày
@@ -413,11 +413,74 @@ export const TodayAttendanceRosterCard: React.FC<TodayAttendanceRosterCardProps>
                 </div>
 
                 {/* Right: Status details */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px', flexShrink: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    flexShrink: 0
+                  }}
+                >
+                  {/* Dòng trên: Time hoặc text "Chưa check-in" hoặc lý do nghỉ */}
+                  {item.checkInTime ? (
+                    <span
+                      className="body-xs"
+                      style={{
+                        color: 'var(--text-heading)',
+                        fontWeight: 600,
+                        fontSize: '12px',
+                        fontVariantNumeric: 'tabular-nums',
+                        lineHeight: '16px'
+                      }}
+                    >
+                      {item.checkInTime}
+                    </span>
+                  ) : isAbsent ? (
+                    <span
+                      className="body-xs"
+                      style={{
+                        color: 'var(--text-subtle)',
+                        fontStyle: 'italic',
+                        fontSize: '11px',
+                        lineHeight: '16px'
+                      }}
+                    >
+                      Chưa check-in
+                    </span>
+                  ) : isLeave && item.leaveReason ? (
+                    <span
+                      className="body-xs"
+                      style={{
+                        color: 'var(--text-subtle)',
+                        fontStyle: 'italic',
+                        maxWidth: '180px',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        fontSize: '11px',
+                        lineHeight: '16px'
+                      }}
+                    >
+                      {item.leaveReason}
+                    </span>
+                  ) : null}
+
+                  {/* Dòng dưới: Label "Đi muộn", "Chưa đến", "Đúng giờ" hoặc "Nghỉ phép" */}
+                  <div>
                     {isLeave ? (
                       <Tag variant="default">
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--eco-blue-strong)', fontWeight: 600 }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            color: 'var(--eco-blue-strong)',
+                            fontWeight: 600,
+                            fontSize: '11px'
+                          }}
+                        >
                           <Icon name="calendar-check" size={12} />
                           Nghỉ phép
                         </span>
@@ -427,43 +490,7 @@ export const TodayAttendanceRosterCard: React.FC<TodayAttendanceRosterCardProps>
                     ) : (
                       <StatusTag tone={tagTone} label={item.statusLabel} />
                     )}
-
-                    {item.checkInTime && (
-                      <span
-                        className="body-xs"
-                        style={{
-                          color: 'var(--text-heading)',
-                          fontWeight: 500,
-                          fontVariantNumeric: 'tabular-nums'
-                        }}
-                      >
-                        {item.checkInTime}
-                      </span>
-                    )}
                   </div>
-
-                  {/* Detail note / reason */}
-                  {isLeave && item.leaveReason && (
-                    <span
-                      className="body-xs"
-                      style={{
-                        color: 'var(--text-subtle)',
-                        fontStyle: 'italic',
-                        maxWidth: '200px',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                    >
-                      {item.leaveReason}
-                    </span>
-                  )}
-
-                  {isAbsent && (
-                    <span className="body-xs" style={{ color: 'var(--text-subtle)', fontStyle: 'italic' }}>
-                      Chưa check-in
-                    </span>
-                  )}
                 </div>
               </div>
             );
