@@ -3,11 +3,8 @@ import {
   StatCard,
   SelectField,
   Button,
-  Tag,
-  StatusTag,
   Meter,
-  Icon,
-  EmptyValue
+  Icon
 } from '../../design-system';
 import {
   dashboardService,
@@ -22,11 +19,12 @@ import { DepartmentAttendanceComparison } from './DepartmentAttendanceComparison
 import { AttendancePeriodRangeFilter } from './AttendancePeriodRangeFilter';
 import { MeetingDashboard } from './MeetingDashboard';
 import { TodayAttendanceRosterCard } from './TodayAttendanceRosterCard';
+import { ActionCenterCard } from './ActionCenterCard';
 
 export interface AttendanceDashboardProps {
   tenantId: string;
   initialTab?: 'attendance' | 'meetings';
-  onNavigateTab?: (tab: 'attendance' | 'meetings' | 'reports' | 'employees' | 'departments') => void;
+  onNavigateTab?: (tab: 'attendance' | 'meetings' | 'reports' | 'employees' | 'departments' | 'settings') => void;
 }
 
 export const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
@@ -991,165 +989,15 @@ export const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({
             />
           )}
 
-          {/* Card 2: Recent Activity Stream */}
-          <div
-            className="dashboard-card"
-            data-testid="attendance-recent-activity-card"
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              border: '1px solid var(--border-default)',
-              borderRadius: 'var(--radius-12)',
-              padding: '20px',
-              boxShadow: 'var(--shadow-xs)',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '14px'
-              }}
-            >
-              <div>
-                <h2
-                  className="title-md"
-                  style={{
-                    margin: 0,
-                    color: 'var(--text-heading)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}
-                >
-                  <Icon name="clipboard-check" size={18} color="var(--eco-blue-strong)" />
-                  Hoạt Động Điểm Danh Gần Nhất
-                </h2>
-                <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>
-                  Dòng sự kiện quét khuôn mặt, vân tay và quẹt thẻ thời gian thực
-                </span>
-              </div>
-
-              {onNavigateTab && (
-                <Button
-                  variant="ghost"
-                  onClick={() => onNavigateTab('attendance')}
-                >
-                  Màn hình chấm công
-                </Button>
-              )}
-            </div>
-
-            {data.recentActivities.length === 0 ? (
-              <EmptyValue label="Chưa ghi nhận lượt điểm danh nào trong ngày" />
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {data.recentActivities.map((act) => {
-                      const methodLabel =
-                        act.method === 'face_id'
-                          ? 'Camera Face ID'
-                          : act.method === 'card'
-                          ? 'Thẻ RFID'
-                          : act.method === 'fingerprint'
-                          ? 'Vân tay'
-                          : 'Thủ công';
-
-                      const methodIcon =
-                        act.method === 'face_id'
-                          ? 'camera'
-                          : act.method === 'card'
-                          ? 'credit-card'
-                          : 'fingerprint';
-
-                      return (
-                        <div
-                          key={act.id}
-                          style={{
-                            padding: '10px 14px',
-                            borderRadius: 'var(--radius-8)',
-                            backgroundColor: 'var(--bg-subtle)',
-                            border: '1px solid var(--border-default)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '12px'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div
-                              style={{
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: 'var(--radius-full)',
-                                backgroundColor: 'var(--eco-blue-subtle)',
-                                color: 'var(--eco-blue-strong)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '13px',
-                                fontWeight: 600,
-                                flexShrink: 0
-                              }}
-                            >
-                              {act.employeeName.charAt(0)}
-                            </div>
-                            <div>
-                              <div
-                                className="body-sm"
-                                style={{
-                                  fontWeight: 600,
-                                  color: 'var(--text-heading)',
-                                  lineHeight: 1.3
-                                }}
-                              >
-                                {act.employeeName}{' '}
-                                <code style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>
-                                  ({act.employeeCode})
-                                </code>
-                              </div>
-                              <div
-                                className="body-xs"
-                                style={{ color: 'var(--text-subtle)', marginTop: '2px' }}
-                              >
-                                {act.departmentName}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Tag variant="default">
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                <Icon name={methodIcon} size={12} />
-                                {methodLabel}
-                              </span>
-                            </Tag>
-                            <span
-                              className="body-xs"
-                              style={{
-                                color: 'var(--text-heading)',
-                                fontWeight: 500,
-                                fontVariantNumeric: 'tabular-nums'
-                              }}
-                            >
-                              {act.time}
-                            </span>
-                            <StatusTag
-                              tone={act.status === 'late' ? 'warning' : 'success'}
-                              label={act.status === 'late' ? 'Đi muộn' : 'Đúng giờ'}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          </>
-        )}
+          {/* Card 2: Trung Tâm Cảnh Báo Bất Thường & Việc Cần Xử Lý Trong Ngày (Action Center) */}
+          <ActionCenterCard
+            tenantId={tenantId}
+            onNavigateTab={onNavigateTab}
+          />
+        </div>
+      )}
+      </>
+    )}
         </div>
       </div>
     );

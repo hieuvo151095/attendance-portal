@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { SideSheet, StatusTag, Icon, EmptyValue } from '../../design-system';
+import { SideSheet, StatusTag, Icon, EmptyValue, Button } from '../../design-system';
 import { DailyAttendanceRecord } from '../../types/attendance';
 import { dailyAttendanceService } from '../../services/attendance';
+import { AdminCheckOutModal } from './AdminCheckOutModal';
 
 export interface AttendanceLogModalProps {
   open: boolean;
@@ -25,6 +26,7 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
   const [currentStatus, setCurrentStatus] = useState(record.status);
   const [leaveReason, setLeaveReason] = useState(record.note || 'Nghỉ phép năm');
   const [submitting, setSubmitting] = useState(false);
+  const [adminCheckOutOpen, setAdminCheckOutOpen] = useState(false);
 
   useEffect(() => {
     if (record) {
@@ -101,6 +103,12 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
         return (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--primary-700)' }}>
             <Icon name="id-badge" size={14} /> Thẻ RFID
+          </span>
+        );
+      case 'manual':
+        return (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--eco-blue-strong, #0284c7)', fontWeight: 500 }}>
+            <Icon name="pencil" size={13} /> Admin bổ sung
           </span>
         );
       default:
@@ -337,6 +345,97 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
           )}
         </div>
 
+        {/* Khối quản trị: Bổ sung giờ về (Check-out bù) khi cán bộ quên quét */}
+        {hasCheckedIn && !record.checkOutTime && (
+          <div
+            style={{
+              padding: 'var(--space-16)',
+              borderRadius: 'var(--radius-8)',
+              border: '1px solid var(--semantic-warning, #f59e0b)',
+              backgroundColor: 'var(--semantic-warning-light, #fef3c7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 'var(--space-12)'
+            }}
+          >
+            <div>
+              <div
+                className="body-sm-bold"
+                style={{
+                  color: 'var(--semantic-warning-dark, #b45309)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Icon name="clock" size={15} />
+                Cán bộ chưa có giờ về (Quên check-out)
+              </div>
+              <div className="body-xs" style={{ color: 'var(--text-body)', marginTop: 4 }}>
+                Cán bộ đã vào ca lúc <b>{record.checkInTime}</b> nhưng chưa ghi nhận giờ tan ca. Quản trị viên có thể xác nhận giờ về bù và lưu vết kiểm toán.
+              </div>
+            </div>
+            <Button
+              variant="primary"
+              onClick={() => setAdminCheckOutOpen(true)}
+            >
+              Bổ sung giờ về
+            </Button>
+          </div>
+        )}
+
+        {/* Lịch sử kiểm toán của Quản trị viên (Audit Log) */}
+        {record.auditLogs && record.auditLogs.length > 0 && (
+          <div>
+            <h4
+              className="body-sm-semibold"
+              style={{
+                color: 'var(--text-heading)',
+                marginBottom: 'var(--space-8)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <Icon name="shield-halved" size={15} color="var(--primary-600)" />
+              Nhật ký kiểm toán & can thiệp Quản trị viên ({record.auditLogs.length})
+            </h4>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
+              {record.auditLogs.map((audit) => (
+                <div
+                  key={audit.id}
+                  style={{
+                    padding: 'var(--space-12)',
+                    backgroundColor: 'var(--primary-50)',
+                    border: '1px solid var(--primary-200)',
+                    borderRadius: 'var(--radius-8)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <span className="body-xs-medium" style={{ color: 'var(--primary-700)' }}>
+                      {audit.action === 'admin_checkout' ? 'Bổ sung giờ về (Check-out bù)' : 'Điều chỉnh thủ công'}
+                    </span>
+                    <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>
+                      {new Date(audit.performedAt).toLocaleString('vi-VN')}
+                    </span>
+                  </div>
+                  <div className="body-sm-medium" style={{ color: 'var(--text-heading)' }}>
+                    {audit.details}
+                  </div>
+                  <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>
+                    Lý do: <i>{audit.reason}</i> • Thực hiện bởi: <b>{audit.performedBy}</b>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Lịch sử từng lượt quét chi tiết */}
         <div>
           <h4 className="body-sm-semibold" style={{ color: 'var(--text-heading)', marginBottom: 'var(--space-8)' }}>
@@ -413,6 +512,26 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
           )}
         </div>
       </div>
+
+      {tenantId && (
+        <AdminCheckOutModal
+          open={adminCheckOutOpen}
+          onClose={() => setAdminCheckOutOpen(false)}
+          record={record}
+          tenantId={tenantId}
+          onSuccess={(updated) => {
+            record.checkOutTime = updated.checkOutTime;
+            record.checkOutMethod = updated.checkOutMethod;
+            record.checkOutDevice = updated.checkOutDevice;
+            record.status = updated.status;
+            record.note = updated.note;
+            record.scanLogs = updated.scanLogs;
+            record.auditLogs = updated.auditLogs;
+            setCurrentStatus(updated.status);
+            if (onRecordUpdated) onRecordUpdated();
+          }}
+        />
+      )}
     </SideSheet>
   );
 };

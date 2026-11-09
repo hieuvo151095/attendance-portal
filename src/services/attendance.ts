@@ -4,6 +4,8 @@ import {
   DailyAttendanceSummary,
   RecordAttendancePayload,
   AttendanceScanLog,
+  AttendanceAuditLog,
+  AdminCheckOutPayload,
   DailyAttendanceStatus
 } from '../types/attendance';
 import { authService } from './auth';
@@ -1015,6 +1017,14 @@ function buildMultiDayRecords(base20261104: DailyAttendanceRecord[]): DailyAtten
             rec.checkOutTime = undefined;
             rec.lateMinutes = 0;
             rec.earlyLeaveMinutes = 0;
+          } else if (r.employeeId === 'emp-ubnd-03' || r.employeeId === 'emp-ubnd-07') {
+            // Cán bộ quên check-out ngày hôm trước (chỉ có giờ vào)
+            rec.checkOutTime = undefined;
+            rec.checkOutMethod = undefined;
+            rec.checkOutDevice = undefined;
+            rec.earlyLeaveMinutes = 0;
+            rec.scanLogs = rec.scanLogs.filter(l => l.type === 'check_in');
+            rec.note = 'Chưa ghi nhận giờ về (Quên check-out)';
           }
         } else if (date === '2026-11-06') {
           // Ngày hôm nay (06/11/2026): Cán bộ đang trong ca làm việc chưa tan ca
@@ -1469,6 +1479,89 @@ class DailyAttendanceService {
 
     this.saveRecords(allRecords);
     return record;
+  }
+
+  /**
+   * Quản trị viên bổ sung giờ về (check-out bù) cho cán bộ quên check-out ngày hôm trước
+   * và lưu vết kiểm toán (Audit Log)
+   */
+  public async adminCheckOut(payload: AdminCheckOutPayload): Promise<DailyAttendanceRecord> {
+    authService.assertTenantAccess(payload.tenantId);
+
+    const settings = await attendanceSettingService.getSettings(payload.tenantId);
+
+    const allRecords = this.getAllRecords();
+    const recordIndex = allRecords.findIndex(
+      (r) => r.tenantId === payload.tenantId && r.employeeId === payload.employeeId && r.date === payload.date
+    );
+
+    if (recordIndex < 0) {
+      throw new Error(`Không tìm thấy hồ sơ chấm công ngày ${payload.date} của nhân sự.`);
+    }
+
+    const existingRecord = { ...allRecords[recordIndex] };
+    const previousStatus = existingRecord.status;
+    const now = new Date();
+
+    // Đánh giá giờ về đối chiếu khung ca
+    const checkOutEval = attendanceSettingService.evaluateDailyCheckOut(payload.checkOutTime, settings);
+
+    existingRecord.checkOutTime = payload.checkOutTime;
+    existingRecord.checkOutMethod = 'manual';
+    existingRecord.checkOutDevice = 'Xác nhận thủ công bởi Quản trị viên';
+    existingRecord.earlyLeaveMinutes = checkOutEval.earlyLeaveMinutes;
+
+    // Cập nhật trạng thái
+    if (existingRecord.lateMinutes > 0 && checkOutEval.isEarlyLeave) {
+      existingRecord.status = 'late_and_early';
+      existingRecord.note = `Đi muộn ${existingRecord.lateMinutes}p & Về sớm ${checkOutEval.earlyLeaveMinutes}p (Admin bổ sung giờ về)`;
+    } else if (existingRecord.lateMinutes > 0) {
+      existingRecord.status = 'late';
+      existingRecord.note = `Đi muộn ${existingRecord.lateMinutes}p (Admin bổ sung giờ về ${payload.checkOutTime})`;
+    } else if (checkOutEval.isEarlyLeave) {
+      existingRecord.status = 'early_leave';
+      existingRecord.note = `Về sớm ${checkOutEval.earlyLeaveMinutes}p (Admin bổ sung giờ về ${payload.checkOutTime})`;
+    } else {
+      existingRecord.status = 'on_time';
+      existingRecord.note = `Hoàn thành ca làm việc (Admin bổ sung giờ về ${payload.checkOutTime})`;
+    }
+
+    // Thêm vào scanLogs
+    const newScanLog: AttendanceScanLog = {
+      id: `scan-admin-${Date.now().toString(36)}`,
+      timestamp: now.toISOString(),
+      type: 'check_out',
+      method: 'manual',
+      deviceName: `Xác nhận bởi: ${payload.adminName} — Lý do: ${payload.reason}`,
+      note: payload.reason
+    };
+    existingRecord.scanLogs = [...(existingRecord.scanLogs || []), newScanLog];
+
+    // Thêm vào auditLogs
+    const newAuditLog: AttendanceAuditLog = {
+      id: `audit-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`,
+      action: 'admin_checkout',
+      performedBy: payload.adminName,
+      performedAt: now.toISOString(),
+      reason: payload.reason,
+      details: `Bổ sung giờ về: ${payload.checkOutTime} ngày ${payload.date}.${payload.note ? ` Ghi chú: ${payload.note}` : ''}`,
+      previousStatus,
+      newStatus: existingRecord.status
+    };
+    existingRecord.auditLogs = [...(existingRecord.auditLogs || []), newAuditLog];
+    existingRecord.updatedAt = now.toISOString();
+
+    allRecords[recordIndex] = existingRecord;
+    this.saveRecords(allRecords);
+    return existingRecord;
+  }
+
+  /**
+   * Lấy danh sách cán bộ quên check-out trong ngày (có check-in nhưng chưa có check-out)
+   */
+  public async getUncheckedOutEmployees(tenantId: string, date: string): Promise<DailyAttendanceRecord[]> {
+    const records = await this.getDailyAttendance(tenantId, { date });
+    return records.filter((r) => r.status !== 'leave' && Boolean(r.checkInTime) && !r.checkOutTime);
   }
 
   /**

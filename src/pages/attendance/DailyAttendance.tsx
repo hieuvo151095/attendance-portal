@@ -16,6 +16,7 @@ import { departmentService } from '../../services/department';
 import { dailyAttendanceService } from '../../services/attendance';
 import { QuickScanModal } from './QuickScanModal';
 import { AttendanceLogModal } from './AttendanceLogModal';
+import { AdminCheckOutModal } from './AdminCheckOutModal';
 import { AttendanceSettingsModal } from '../setting/AttendanceSettingsModal';
 
 export interface DailyAttendanceProps {
@@ -41,6 +42,13 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
   const [logModalOpen, setLogModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<DailyAttendanceRecord | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [adminCheckOutOpen, setAdminCheckOutOpen] = useState(false);
+  const [checkOutRecord, setCheckOutRecord] = useState<DailyAttendanceRecord | null>(null);
+
+  const handleOpenAdminCheckOut = (rec: DailyAttendanceRecord) => {
+    setCheckOutRecord(rec);
+    setAdminCheckOutOpen(true);
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -254,7 +262,47 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
           if (!r.checkInTime) {
             return <span style={{ color: 'var(--text-disabled)' }}>—</span>;
           }
-          return <EmptyValue italic>Chưa tan ca</EmptyValue>;
+          if (selectedDate === TODAY) {
+            return <EmptyValue italic>Chưa tan ca</EmptyValue>;
+          }
+          // Cán bộ quên check-out ngày hôm trước hoặc ngày quá khứ
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', alignItems: 'flex-start' }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  color: 'var(--semantic-warning-dark, #b45309)',
+                  backgroundColor: 'var(--semantic-warning-light, #fef3c7)',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-4)',
+                  border: '1px solid #fde68a',
+                  fontSize: '12px',
+                  fontWeight: 500
+                }}
+              >
+                <Icon name="clock" size={12} /> Quên check-out
+              </span>
+              <button
+                type="button"
+                onClick={() => handleOpenAdminCheckOut(r)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--primary-700)',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  padding: '0',
+                  textDecoration: 'underline'
+                }}
+                title="Bổ sung giờ về cho cán bộ quên quét ngày hôm trước"
+              >
+                + Bổ sung giờ về
+              </button>
+            </div>
+          );
         }
 
         const isEarly = r.earlyLeaveMinutes > 0;
@@ -307,18 +355,30 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
       align: 'right' as const,
       actions: true,
       width: '90px',
-      render: (r: DailyAttendanceRecord) => (
-        <DataTable.RowAction
-          label="Thao tác"
-          items={[
-            {
-              icon: 'clock',
-              label: 'Chi tiết chấm công',
-              onClick: () => handleOpenLogModal(r)
-            }
-          ]}
-        />
-      )
+      render: (r: DailyAttendanceRecord) => {
+        const actionItems: Array<{ icon?: any; label: string; onClick: () => void; tone?: 'default' | 'danger' }> = [
+          {
+            icon: 'clock',
+            label: 'Chi tiết chấm công',
+            onClick: () => handleOpenLogModal(r)
+          }
+        ];
+
+        if (r.checkInTime && !r.checkOutTime && r.status !== 'leave') {
+          actionItems.unshift({
+            icon: 'pencil',
+            label: 'Bổ sung giờ về (Check-out bù)',
+            onClick: () => handleOpenAdminCheckOut(r)
+          });
+        }
+
+        return (
+          <DataTable.RowAction
+            label="Thao tác"
+            items={actionItems}
+          />
+        );
+      }
     }
   ];
 
@@ -513,6 +573,33 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
           </div>
         </div>
 
+        {/* Cảnh báo cán bộ quên check-out trong các ngày đã qua */}
+        {selectedDate < TODAY && records.filter((r) => r.status !== 'leave' && Boolean(r.checkInTime) && !r.checkOutTime).length > 0 && (
+          <div
+            style={{
+              padding: '10px 14px',
+              backgroundColor: 'var(--semantic-warning-light, #fef3c7)',
+              border: '1px solid #fde68a',
+              borderRadius: 'var(--radius-8)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              marginBottom: 'var(--space-12)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--semantic-warning-dark, #b45309)' }}>
+              <Icon name="triangle-exclamation" size={16} />
+              <span className="body-sm-medium">
+                Phát hiện <b>{records.filter((r) => r.status !== 'leave' && Boolean(r.checkInTime) && !r.checkOutTime).length} cán bộ</b> quên ghi nhận giờ về (chưa check-out) trong ngày {selectedDate}.
+              </span>
+            </div>
+            <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>
+              Quản trị viên có thể bấm "Bổ sung giờ về" trên từng dòng để ghi nhận bù và lưu vết kiểm toán.
+            </span>
+          </div>
+        )}
+
         {/* Attendance Data Table */}
         <DataTable
           columns={columns}
@@ -563,6 +650,16 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
         onClose={() => setSettingsModalOpen(false)}
         tenantId={tenantId}
         onSaved={() => loadData()}
+      />
+
+      <AdminCheckOutModal
+        open={adminCheckOutOpen}
+        onClose={() => setAdminCheckOutOpen(false)}
+        record={checkOutRecord}
+        tenantId={tenantId}
+        onSuccess={() => {
+          loadData();
+        }}
       />
     </div>
   );

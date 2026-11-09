@@ -300,8 +300,8 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
     });
   });
 
-  it('Từ ngày 01 đến 05/11/2026: Tất cả cán bộ có mặt đều có đầy đủ dữ liệu giờ về (Check-out)', async () => {
-    const dates = ['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05'];
+  it('Từ ngày 01 đến 04/11/2026: Tất cả cán bộ có mặt đều có đầy đủ dữ liệu giờ về (Check-out)', async () => {
+    const dates = ['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04'];
 
     for (const d of dates) {
       const records = await dailyAttendanceService.getDailyAttendance(ubndTenant, { date: d });
@@ -314,5 +314,36 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
         expect(rec.checkOutMethod).toBeDefined();
       }
     }
+  });
+
+  it('Ngày hôm trước (05/11/2026): Quản trị viên bổ sung giờ về (Check-out bù) cho cán bộ quên quét và lưu vết kiểm toán (Audit Log) thành công', async () => {
+    // 1. Kiểm tra ngày 05/11/2026 có 2 cán bộ quên check-out
+    const unCheckedList = await dailyAttendanceService.getUncheckedOutEmployees(ubndTenant, '2026-11-05');
+    expect(unCheckedList.length).toBe(2);
+    expect(unCheckedList.some(r => r.employeeCode === 'UBND-003')).toBe(true);
+
+    // 2. Thực hiện check-out bù cho cán bộ UBND-003 (Ông Hoàng Văn Đức)
+    const updated = await dailyAttendanceService.adminCheckOut({
+      tenantId: ubndTenant,
+      employeeId: 'emp-ubnd-03',
+      date: '2026-11-05',
+      checkOutTime: '17:00',
+      reason: 'Cán bộ quên quét vân tay khi ra về',
+      adminName: 'Đ/c Nguyễn Văn An (Quản trị viên)',
+      note: 'Đã xác nhận có mặt làm việc đến hết ca'
+    });
+
+    expect(updated.checkOutTime).toBe('17:00');
+    expect(updated.checkOutMethod).toBe('manual');
+    expect(updated.status).toBe('on_time');
+    expect(updated.auditLogs).toBeDefined();
+    expect(updated.auditLogs!.length).toBeGreaterThan(0);
+    expect(updated.auditLogs![0].action).toBe('admin_checkout');
+    expect(updated.auditLogs![0].performedBy).toContain('Nguyễn Văn An');
+    expect(updated.auditLogs![0].reason).toBe('Cán bộ quên quét vân tay khi ra về');
+
+    // 3. Sau khi check-out bù, danh sách quên check-out giảm còn 1
+    const remaining = await dailyAttendanceService.getUncheckedOutEmployees(ubndTenant, '2026-11-05');
+    expect(remaining.length).toBe(1);
   });
 });

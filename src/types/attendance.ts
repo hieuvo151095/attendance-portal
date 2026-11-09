@@ -10,6 +10,18 @@ export interface AttendanceScanLog {
   deviceName: string;
   faceScore?: number;
   cardUid?: string;
+  note?: string;
+}
+
+export interface AttendanceAuditLog {
+  id: string;
+  action: 'admin_checkout' | 'admin_leave' | 'admin_checkin' | 'admin_override';
+  performedBy: string; // Tên Quản trị viên
+  performedAt: string; // ISO String
+  reason: string; // Lý do giải trình
+  details: string; // Chi tiết thay đổi (ví dụ: Bổ sung giờ về 17:00)
+  previousStatus?: DailyAttendanceStatus;
+  newStatus?: DailyAttendanceStatus;
 }
 
 export interface DailyAttendanceRecord {
@@ -32,6 +44,7 @@ export interface DailyAttendanceRecord {
   earlyLeaveMinutes: number; // 0 if worked full shift
   status: DailyAttendanceStatus;
   scanLogs: AttendanceScanLog[];
+  auditLogs?: AttendanceAuditLog[];
   note?: string;
   createdAt: string;
   updatedAt: string;
@@ -66,5 +79,15 @@ export interface RecordAttendancePayload {
   deviceName?: string;
   cardUid?: string;
   faceScore?: number;
+  note?: string;
+}
+
+export interface AdminCheckOutPayload {
+  tenantId: string;
+  employeeId: string;
+  date: string; // YYYY-MM-DD
+  checkOutTime: string; // HH:mm (e.g. 17:00)
+  reason: string;
+  adminName: string;
   note?: string;
 }

@@ -94,13 +94,13 @@ describe('Bảng Điều Khiển Tổng Quan Điểm Danh & Chuyên Cần Toàn 
     expect(screen.getAllByText('Bộ phận Tư pháp - Hộ tịch').length).toBeGreaterThan(0);
   });
 
-  it('Tab Chấm công: Không chia sẻ Cuộc Họp Đã Hoàn Tất Gần Nhất, hiển thị Chấm công hôm nay và Nghỉ phép và Hoạt Động Điểm Danh Gần Nhất', async () => {
+  it('Tab Chấm công: Không chia sẻ Cuộc Họp Đã Hoàn Tất Gần Nhất, hiển thị Chấm công hôm nay và Nghỉ phép và Cảnh Báo Bất Thường & Việc Cần Xử Lý Trong Ngày (Action Center)', async () => {
     const handleNavigate = vi.fn();
     render(<AttendanceDashboard tenantId={ubndTenant} onNavigateTab={handleNavigate} />);
 
     await waitFor(() => {
       expect(screen.getByText('Chấm công hôm nay và Nghỉ phép')).toBeInTheDocument();
-      expect(screen.getByText('Hoạt Động Điểm Danh Gần Nhất')).toBeInTheDocument();
+      expect(screen.getByText('Cảnh Báo Bất Thường & Việc Cần Xử Lý Trong Ngày')).toBeInTheDocument();
     });
 
     // Cuộc họp đã hoàn tất KHÔNG được hiển thị ở tab Chấm công
@@ -110,6 +110,12 @@ describe('Bảng Điều Khiển Tổng Quan Điểm Danh & Chuyên Cần Toàn 
     expect(screen.getByText('Đang có mặt')).toBeInTheDocument();
     expect(screen.getByText('Nghỉ phép có đơn')).toBeInTheDocument();
     expect(screen.getByText('Chưa đến / Vắng')).toBeInTheDocument();
+
+    // Trung tâm cảnh báo bất thường hiển thị các nhóm việc cần xử lý
+    expect(screen.getAllByText(/Quên check-out/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Chuyên cần đột biến/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Đơn chờ duyệt/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Thiết bị/).length).toBeGreaterThan(0);
 
     // Nút chuyển tab sang màn hình chấm công
     const viewAttendanceBtns = screen.getAllByText('Màn hình chấm công');
