@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SettingsManagement } from '../pages/setting/SettingsManagement';
 import { attendanceSettingService } from '../services/setting';
 import { roomService } from '../services/room';
+import { cameraDeviceService } from '../services/device';
 import { authService } from '../services/auth';
 
 describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
@@ -12,6 +13,7 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
     authService.resetMockData();
     attendanceSettingService.resetMockData();
     roomService.resetMockData();
+    cameraDeviceService.resetMockData();
     await authService.login({
       username: 'ubnd-ben-nghe',
       password: 'Finviet@2026'
@@ -19,7 +21,7 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
     vi.clearAllMocks();
   });
 
-  it('Hiển thị tiêu đề mô-đun Thiết Lập và 2 tab cấu hình', async () => {
+  it('Hiển thị tiêu đề mô-đun Thiết Lập và các tab cấu hình (Thời Gian & Điểm Danh, Danh Sách Phòng Họp, Quản trị thiết bị)', async () => {
     render(<SettingsManagement tenantId={ubndTenant} />);
 
     await waitFor(() => {
@@ -28,6 +30,7 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
 
     expect(screen.getByText('Thời Gian & Điểm Danh')).toBeInTheDocument();
     expect(screen.getByText(/Danh Sách Phòng Họp/)).toBeInTheDocument();
+    expect(screen.getByText('Quản trị thiết bị')).toBeInTheDocument();
   });
 
   it('Tab Thời Gian & Điểm Danh hiển thị các thông số ca làm việc và nút lưu cấu hình', async () => {
@@ -235,5 +238,87 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
     });
 
     confirmSpy.mockRestore();
+  });
+
+  it('Chuyển sang tab Quản trị thiết bị, hiển thị đầy đủ các cột STT, Tên thiết bị, Mã thiết bị, Loại điểm danh, Trạng thái', async () => {
+    render(<SettingsManagement tenantId={ubndTenant} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Thiết Lập Hệ Thống/)).toBeInTheDocument();
+    });
+
+    // Bấm chuyển sang tab Quản trị thiết bị
+    const devicesTabBtn = screen.getByText('Quản trị thiết bị');
+    fireEvent.click(devicesTabBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Danh sách thiết bị')).toBeInTheDocument();
+    });
+
+    // Kiểm tra các cột trong bảng
+    expect(screen.getByRole('columnheader', { name: 'STT' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Mã thiết bị' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Tên thiết bị' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Loại điểm danh' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Trạng thái' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Thao tác' })).toBeInTheDocument();
+
+    // Kiểm tra dữ liệu thiết bị mẫu
+    expect(screen.getByText('CAM-UBND-CC-01')).toBeInTheDocument();
+    expect(screen.getByText('Camera AI Cổng Tiếp Dân')).toBeInTheDocument();
+    expect(screen.getAllByText('Chấm công').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Cuộc họp').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Hoạt động').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Tạm khoá').length).toBeGreaterThan(0);
+  });
+
+  it('Thao tác mở Right-Sheet thêm thiết bị mới và chuyển đổi trạng thái Hoạt động / Tạm khoá', async () => {
+    render(<SettingsManagement tenantId={ubndTenant} />);
+
+    // Chuyển sang tab Quản trị thiết bị
+    fireEvent.click(screen.getByText('Quản trị thiết bị'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Tạo mới')).toBeInTheDocument();
+    });
+
+    // Bấm nút "Tạo mới"
+    fireEvent.click(screen.getByText('Tạo mới'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Tạo mới thiết bị')).toBeInTheDocument();
+    });
+
+    // Nhập dữ liệu thiết bị mới
+    const nameInput = screen.getByPlaceholderText('Nhập tên thiết bị (ví dụ: Camera Cổng Tiếp Dân)');
+    const codeInput = screen.getByPlaceholderText('Nhập mã thiết bị (ví dụ: CAM-099842)');
+
+    fireEvent.change(nameInput, { target: { value: 'Camera Cổng Thư Viện' } });
+    fireEvent.change(codeInput, { target: { value: 'CAM-LIB-01' } });
+
+    // Bấm nút lưu trong Right-Sheet (nút Tạo mới cuối cùng)
+    const createButtons = screen.getAllByRole('button', { name: 'Tạo mới' });
+    const saveBtn = createButtons[createButtons.length - 1];
+    fireEvent.click(saveBtn);
+
+    // Thiết bị mới xuất hiện trên danh sách
+    await waitFor(() => {
+      expect(screen.getByText('CAM-LIB-01')).toBeInTheDocument();
+      expect(screen.getByText('Camera Cổng Thư Viện')).toBeInTheDocument();
+    });
+
+    // Thao tác chỉnh trạng thái Tạm khoá / Mở khoá qua menu Thao tác
+    const actionButtons = screen.getAllByRole('button', { name: 'Thao tác' });
+    fireEvent.click(actionButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Tạm khoá thiết bị')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Tạm khoá thiết bị'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Đã tạm khoá thiết bị/)).toBeInTheDocument();
+    });
   });
 });
