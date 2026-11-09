@@ -45,8 +45,9 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
 
   // Face ID chỉ cần ảnh khuôn mặt (tải trực tiếp trên Portal hoặc đã đồng bộ từ trước)
   const hasFaceId = Boolean(avatarUrl && avatarUrl.trim());
-  // Vân tay mới cần lấy mẫu từ thiết bị phần cứng Hikvision
-  const hasFingerprint = (employeeToEdit?.fingerprintStatus ?? (employeeToEdit ? 'enrolled' : 'pending')) === 'enrolled';
+  // Vân tay chỉ có thể tồn tại khi nhân sự đã được đồng bộ xuống camera và đã đăng ký mẫu vân tay trên thiết bị
+  const isSyncedToCamera = Boolean(employeeToEdit?.cameraSyncInfo);
+  const hasFingerprint = isSyncedToCamera && employeeToEdit?.fingerprintStatus === 'enrolled';
 
   useEffect(() => {
     if (!open) return;
@@ -70,11 +71,12 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
         setHasCard(cardExists);
 
         const faceEnrolled = Boolean(employeeToEdit.avatarUrl) || employeeToEdit.faceIdStatus === 'enrolled';
-        const fpEnrolled = (employeeToEdit.fingerprintStatus ?? 'enrolled') === 'enrolled';
+        const isSynced = Boolean(employeeToEdit.cameraSyncInfo);
+        const fpEnrolled = isSynced && employeeToEdit.fingerprintStatus === 'enrolled';
 
         setAllowedMethods({
           faceId: faceEnrolled ? (employeeToEdit.allowedMethods?.faceId ?? true) : false,
-          fingerprint: fpEnrolled ? (employeeToEdit.allowedMethods?.fingerprint ?? true) : false,
+          fingerprint: fpEnrolled ? (employeeToEdit.allowedMethods?.fingerprint ?? false) : false,
           card: cardExists ? (employeeToEdit.allowedMethods?.card ?? true) : false
         });
       } else {
@@ -700,9 +702,13 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                       Quét dấu vân tay trên thiết bị chấm công chuyên dụng
                       {!allowedMethods.fingerprint && <span style={{ color: 'var(--text-disabled)', marginLeft: 6 }}>• Đang tạm tắt</span>}
                     </div>
+                  ) : !isSyncedToCamera ? (
+                    <div className="body-xs" style={{ color: '#b45309', fontWeight: 500, marginTop: 2 }}>
+                      ⚠️ Chưa đồng bộ đến Camera — Cần đồng bộ hồ sơ nhân sự (kèm ảnh hoặc thẻ) xuống Camera AI trước khi lấy mẫu vân tay trên thiết bị.
+                    </div>
                   ) : (
                     <div className="body-xs" style={{ color: '#b45309', fontWeight: 500, marginTop: 2 }}>
-                      ⚠️ Chưa có dữ liệu vân tay — Cần lấy mẫu vân tay trực tiếp trên thiết bị Hikvision trước khi bật.
+                      ⚠️ Chưa có dữ liệu vân tay — Cần lấy mẫu vân tay trực tiếp trên thiết bị Camera AI trước khi bật.
                     </div>
                   )}
                 </div>

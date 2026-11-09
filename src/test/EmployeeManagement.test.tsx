@@ -52,10 +52,11 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
     expect(screen.getByTestId('method-fingerprint-emp-ubnd-01')).toBeInTheDocument();
     expect(screen.getByTestId('method-card-emp-ubnd-01')).toBeInTheDocument();
 
-    // Hoàng Văn Đức (chưa cấp thẻ, chưa có Face ID) thì KHÔNG hiển thị icon Thẻ và Face ID
+    // Hoàng Văn Đức (chưa đồng bộ camera, chưa có Face ID, chưa có Thẻ) thì KHÔNG hiển thị bất kỳ phương thức nào -> "Chưa kích hoạt"
     expect(screen.queryByTestId('method-card-emp-ubnd-03')).not.toBeInTheDocument();
     expect(screen.queryByTestId('method-faceId-emp-ubnd-03')).not.toBeInTheDocument();
-    expect(screen.getByTestId('method-fingerprint-emp-ubnd-03')).toBeInTheDocument();
+    expect(screen.queryByTestId('method-fingerprint-emp-ubnd-03')).not.toBeInTheDocument();
+    expect(screen.getByText('Chưa kích hoạt')).toBeInTheDocument();
   });
 
   it('Tìm kiếm nhân sự theo họ tên cập nhật danh sách bảng tức thì', async () => {
@@ -205,10 +206,13 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
     expect(cardInput).toBeDisabled();
     expect(cardInput).not.toBeChecked();
 
-    // Checkbox Vân tay (đã có dữ liệu) vẫn cho phép bật/tắt bình thường
-    const fingerprintInput = screen.getByLabelText(/Cho phép điểm danh bằng Vân tay/i);
-    expect(fingerprintInput).not.toBeDisabled();
-    expect(fingerprintInput).toBeChecked();
+    // Checkbox Vân tay cũng bị khóa do chưa đồng bộ Camera và chưa lấy mẫu vân tay trên máy
+    const fingerprintInput = screen.getByLabelText(/Chưa có dữ liệu vân tay/i);
+    expect(fingerprintInput).toBeDisabled();
+    expect(fingerprintInput).not.toBeChecked();
+    expect(
+      screen.getByText(/Chưa đồng bộ đến Camera — Cần đồng bộ hồ sơ nhân sự/i)
+    ).toBeInTheDocument();
   });
 
   it('Mở modal Nhập từ Excel và import thành công danh sách nhân viên qua 3 bước (Tải lên -> Kiểm tra & Xác nhận -> Hoàn tất)', async () => {
@@ -379,7 +383,19 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
       expect(screen.getByText(/Đồng bộ dữ liệu đến Camera/i)).toBeInTheDocument();
     });
 
-    // Bấm nút "Đồng bộ dữ liệu đến Camera"
+    // 1. Kiểm tra huy hiệu số lượng chưa đồng bộ có nền tròn màu đỏ
+    const unsyncedBadge = screen.getByTestId('unsynced-badge');
+    expect(unsyncedBadge).toBeInTheDocument();
+    expect(unsyncedBadge).toHaveTextContent('4');
+    expect(unsyncedBadge).toHaveStyle({ backgroundColor: '#ef4444' });
+
+    // 2. Kiểm tra cột Thao tác đã xóa hành động "Đồng bộ đến Camera AI"
+    const actionBtns = screen.getAllByRole('button', { name: /Thao tác/i });
+    fireEvent.click(actionBtns[0]);
+    expect(screen.queryByText(/Đồng bộ đến Camera AI/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Đồng bộ lại đến Camera/i)).not.toBeInTheDocument();
+
+    // Bấm nút "Đồng bộ dữ liệu đến Camera" trên thanh công cụ
     fireEvent.click(screen.getByText(/Đồng bộ dữ liệu đến Camera/i));
 
     // BƯỚC 1: Hiển thị danh sách cán bộ chưa đồng bộ
@@ -389,15 +405,17 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
       expect(screen.getByText('Bước 2: Xem lại & Đồng bộ')).toBeInTheDocument();
     });
 
-    // Kiểm tra các cán bộ chưa đồng bộ xuất hiện trong modal
-    expect(screen.getAllByText('Ông Hoàng Văn Đức').length).toBeGreaterThanOrEqual(2);
-    expect(screen.getAllByText('Ông Bùi Tiến Dũng').length).toBeGreaterThanOrEqual(2);
-
-    // Bỏ chọn 1 cán bộ (Hoàng Văn Đức)
-    const ducCheckbox = screen.getByLabelText(/Chọn cán bộ Ông Hoàng Văn Đức/i);
-    expect(ducCheckbox).toBeChecked();
-    fireEvent.click(ducCheckbox);
+    // Kiểm tra Hoàng Văn Đức chưa đủ điều kiện (thiếu cả ảnh và thẻ) nên bị khóa checkbox
+    expect(screen.getByText('Chưa đủ điều kiện (Thiếu ảnh & thẻ)')).toBeInTheDocument();
+    const ducCheckbox = screen.getByLabelText(/Cán bộ Ông Hoàng Văn Đức chưa đủ điều kiện đồng bộ/i);
+    expect(ducCheckbox).toBeDisabled();
     expect(ducCheckbox).not.toBeChecked();
+
+    // Kiểm tra Bùi Tiến Dũng đủ điều kiện và được chọn sẵn
+    const dungCheckbox = screen.getByLabelText(/Chọn cán bộ Ông Bùi Tiến Dũng/i);
+    expect(dungCheckbox).toBeChecked();
+    fireEvent.click(dungCheckbox);
+    expect(dungCheckbox).not.toBeChecked();
 
     // Bấm "Tiếp tục: Xem lại" để sang Bước 2
     const nextBtn = screen.getByRole('button', { name: /Tiếp tục: Xem lại/i });
@@ -409,20 +427,20 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
       expect(screen.getByText(/Danh sách cán bộ được duyệt đồng bộ/i)).toBeInTheDocument();
     });
 
-    // Kiểm tra Bùi Tiến Dũng có trong danh sách duyệt modal (xuất hiện ở cả bảng và modal review),
-    // còn Hoàng Văn Đức chỉ có 1 ở bảng nền, không có trong danh sách duyệt modal
-    expect(screen.getAllByText('Ông Bùi Tiến Dũng').length).toBeGreaterThanOrEqual(2);
+    // Bùi Tiến Dũng đã bị bỏ chọn ở Bước 1 nên không có trong danh sách duyệt modal
+    // Hoàng Văn Đức cũng không có vì không đủ điều kiện
     expect(screen.getAllByText('Ông Hoàng Văn Đức').length).toBe(1);
 
     // Bấm "← Quay lại chỉnh sửa" để kiểm tra tính năng quay lại
     const backBtn = screen.getByRole('button', { name: /← Quay lại chỉnh sửa/i });
     fireEvent.click(backBtn);
 
-    // Trở về Bước 1, Hoàng Văn Đức vẫn giữ trạng thái bỏ chọn
+    // Trở về Bước 1, chọn lại Bùi Tiến Dũng
     await waitFor(() => {
       expect(screen.getByText('Bước 1: Chọn cán bộ')).toBeInTheDocument();
     });
-    expect(screen.getByLabelText(/Chọn cán bộ Ông Hoàng Văn Đức/i)).not.toBeChecked();
+    fireEvent.click(screen.getByLabelText(/Chọn cán bộ Ông Bùi Tiến Dũng/i));
+    expect(screen.getByLabelText(/Chọn cán bộ Ông Bùi Tiến Dũng/i)).toBeChecked();
 
     // Tiến lại Bước 2
     fireEvent.click(screen.getByRole('button', { name: /Tiếp tục: Xem lại/i }));

@@ -124,17 +124,6 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
     setCardModalOpen(true);
   };
 
-  const handleSyncSingleEmployee = async (emp: Employee) => {
-    try {
-      await employeeService.syncEmployeesToCamera(tenantId, [emp.id]);
-      toast.success(`Đã đồng bộ thành công hồ sơ của "${emp.fullName}" đến các thiết bị Camera AI.`);
-      loadData();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Lỗi đồng bộ đến Camera';
-      toast.danger(msg);
-    }
-  };
-
   const handleDeleteEmployee = (emp: Employee) => {
     setEmpToDelete(emp);
   };
@@ -253,7 +242,8 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
         const card = activeCardMap.get(emp.id);
         const hasCard = Boolean(card);
         const hasFaceId = Boolean(emp.avatarUrl) || emp.faceIdStatus === 'enrolled';
-        const hasFingerprint = (emp.fingerprintStatus ?? 'enrolled') === 'enrolled';
+        // Quy tắc: Chỉ có thể có phương thức vân tay khi cán bộ đã đồng bộ đến Camera và đã lấy mẫu vân tay trên máy
+        const hasFingerprint = Boolean(emp.cameraSyncInfo) && emp.fingerprintStatus === 'enrolled';
 
         const allowed = emp.allowedMethods || {
           faceId: hasFaceId,
@@ -403,11 +393,6 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
               onClick: () => handleOpenEditModal(emp)
             },
             {
-              icon: 'rotate-right',
-              label: emp.cameraSyncInfo ? 'Đồng bộ lại đến Camera' : 'Đồng bộ đến Camera AI',
-              onClick: () => handleSyncSingleEmployee(emp)
-            },
-            {
               divider: true
             },
             {
@@ -548,14 +533,22 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
               Đồng bộ dữ liệu đến Camera
               {unsyncedCount > 0 && (
                 <span
+                  data-testid="unsynced-badge"
                   style={{
-                    marginLeft: '6px',
-                    backgroundColor: 'var(--primary-100)',
-                    color: 'var(--primary-700)',
+                    marginLeft: '8px',
+                    backgroundColor: '#ef4444',
+                    color: '#ffffff',
                     fontSize: '11px',
                     fontWeight: 700,
-                    padding: '2px 7px',
-                    borderRadius: '10px'
+                    minWidth: '20px',
+                    height: '20px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '9999px',
+                    padding: '0 6px',
+                    lineHeight: 1,
+                    boxShadow: '0 1px 2px rgba(239, 68, 68, 0.25)'
                   }}
                 >
                   {unsyncedCount}

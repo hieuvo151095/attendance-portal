@@ -85,11 +85,11 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     email: 'duc.hoang@ubnd.gov.vn',
     phoneNumber: '0903 555 666',
     gender: 'male',
-    faceIdStatus: 'pending', // Chờ lấy mẫu tại camera
-    fingerprintStatus: 'enrolled', // Đã lấy mẫu vân tay
+    faceIdStatus: 'pending', // Chưa có ảnh chân dung
+    fingerprintStatus: 'pending', // Chưa đồng bộ camera, chưa thể lấy mẫu vân tay
     allowedMethods: {
       faceId: false,
-      fingerprint: true,
+      fingerprint: false,
       card: false
     },
     status: 'active',
@@ -276,11 +276,11 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     phoneNumber: '0908 789 012',
     gender: 'male',
     faceIdStatus: 'pending',
-    fingerprintStatus: 'enrolled',
+    fingerprintStatus: 'pending',
     avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150',
     allowedMethods: {
-      faceId: false,
-      fingerprint: true,
+      faceId: true,
+      fingerprint: false,
       card: true
     },
     status: 'active',
@@ -467,11 +467,11 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     phoneNumber: '0909 345 678',
     gender: 'male',
     faceIdStatus: 'pending',
-    fingerprintStatus: 'enrolled',
+    fingerprintStatus: 'pending',
     avatarUrl: 'https://images.unsplash.com/photo-1528892952291-009c663ce843?w=150',
     allowedMethods: {
-      faceId: false,
-      fingerprint: true,
+      faceId: true,
+      fingerprint: false,
       card: true
     },
     status: 'active',
@@ -658,11 +658,11 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     phoneNumber: '0909 901 234',
     gender: 'female',
     faceIdStatus: 'pending',
-    fingerprintStatus: 'enrolled',
+    fingerprintStatus: 'pending',
     avatarUrl: 'https://images.unsplash.com/photo-1558898479-33c0057a5d12?w=150',
     allowedMethods: {
-      faceId: false,
-      fingerprint: true,
+      faceId: true,
+      fingerprint: false,
       card: true
     },
     status: 'active',
@@ -838,7 +838,35 @@ class EmployeeService {
       } else {
         try {
           const list = JSON.parse(stored);
-          if (Array.isArray(list) && list.length < INITIAL_EMPLOYEES.length) {
+          if (Array.isArray(list)) {
+            let changed = false;
+            // Quy tắc bất biến: Nhân sự chưa đồng bộ đến Camera thì không thể có vân tay
+            list.forEach((e: Employee) => {
+              if (!e.cameraSyncInfo) {
+                if (e.fingerprintStatus === 'enrolled' || e.allowedMethods?.fingerprint) {
+                  e.fingerprintStatus = 'pending';
+                  if (e.allowedMethods) {
+                    e.allowedMethods.fingerprint = false;
+                  }
+                  changed = true;
+                }
+              }
+              if (e.id === 'emp-ubnd-03') {
+                if (e.fingerprintStatus === 'enrolled' || e.allowedMethods?.fingerprint || e.allowedMethods?.faceId) {
+                  e.fingerprintStatus = 'pending';
+                  e.allowedMethods = { faceId: false, fingerprint: false, card: false };
+                  changed = true;
+                }
+              }
+            });
+
+            if (list.length < INITIAL_EMPLOYEES.length || changed) {
+              localStorage.setItem(
+                STORAGE_EMPLOYEES_KEY,
+                JSON.stringify(list.length < INITIAL_EMPLOYEES.length ? INITIAL_EMPLOYEES : list)
+              );
+            }
+          } else {
             localStorage.setItem(STORAGE_EMPLOYEES_KEY, JSON.stringify(INITIAL_EMPLOYEES));
           }
         } catch {
@@ -964,12 +992,12 @@ class EmployeeService {
       phoneNumber: dto.phoneNumber?.trim() || '',
       gender: dto.gender || 'male',
       faceIdStatus: hasAvatar ? 'enrolled' : (dto.faceIdStatus || 'pending'),
-      fingerprintStatus: dto.fingerprintStatus || 'pending',
+      fingerprintStatus: 'pending', // Nhân sự mới chưa đồng bộ đến Camera thì chưa thể có vân tay
       avatarUrl: dto.avatarUrl?.trim(),
       cameraSyncInfo: undefined,
-      allowedMethods: dto.allowedMethods || {
-        faceId: hasAvatar,
-        fingerprint: false,
+      allowedMethods: {
+        faceId: hasAvatar && (dto.allowedMethods?.faceId !== false),
+        fingerprint: false, // Bắt buộc false khi chưa đồng bộ camera và chưa lấy mẫu vân tay
         card: false
       },
       status: 'active',
@@ -1045,6 +1073,13 @@ class EmployeeService {
     if (dto.fingerprintStatus !== undefined) emp.fingerprintStatus = dto.fingerprintStatus;
     if (dto.allowedMethods !== undefined) {
       emp.allowedMethods = { ...dto.allowedMethods };
+    }
+    // Quy tắc: Nếu chưa đồng bộ đến Camera thì không thể có vân tay
+    if (!emp.cameraSyncInfo) {
+      emp.fingerprintStatus = 'pending';
+      if (emp.allowedMethods) {
+        emp.allowedMethods.fingerprint = false;
+      }
     }
     if (dto.status !== undefined) emp.status = dto.status;
 
