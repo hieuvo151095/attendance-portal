@@ -241,6 +241,7 @@ export const MeetingReportModal: React.FC<MeetingReportModalProps> = ({
       >
         {/* Header: Quốc hiệu & Đơn vị chủ quản */}
         <div
+          className="meeting-report-doc-header"
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
@@ -293,7 +294,7 @@ export const MeetingReportModal: React.FC<MeetingReportModalProps> = ({
         </div>
 
         {/* Tiêu đề chính của biên bản */}
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+        <div className="meeting-report-doc-title" style={{ textAlign: 'center', marginBottom: '28px' }}>
           <h2
             style={{
               fontSize: '20px',
@@ -312,7 +313,7 @@ export const MeetingReportModal: React.FC<MeetingReportModalProps> = ({
         </div>
 
         {/* PHẦN I: THÔNG TIN CHUNG */}
-        <div style={{ marginBottom: '24px' }}>
+        <div className="meeting-report-doc-section-1" style={{ marginBottom: '24px' }}>
           <div
             style={{
               fontSize: '14px',
@@ -362,7 +363,7 @@ export const MeetingReportModal: React.FC<MeetingReportModalProps> = ({
         </div>
 
         {/* PHẦN II: TỔNG HỢP KẾT QUẢ ĐIỂM DANH */}
-        <div style={{ marginBottom: '24px' }}>
+        <div className="meeting-report-doc-section-2" style={{ marginBottom: '24px' }}>
           <div
             style={{
               fontSize: '14px',
@@ -479,7 +480,7 @@ export const MeetingReportModal: React.FC<MeetingReportModalProps> = ({
         </div>
 
         {/* PHẦN III: BẢNG DANH SÁCH CHI TIẾT */}
-        <div style={{ marginBottom: '28px' }}>
+        <div className="meeting-report-doc-section-3" style={{ marginBottom: '28px' }}>
           <div
             style={{
               fontSize: '14px',
@@ -623,6 +624,7 @@ export const MeetingReportModal: React.FC<MeetingReportModalProps> = ({
 
         {/* PHẦN IV: DẤU MỘC SỐ & BẢO MẬT BẤT BIẾN FINVIET */}
         <div
+          className="meeting-report-doc-seal"
           style={{
             marginBottom: '32px',
             padding: '16px 20px',
@@ -701,6 +703,7 @@ export const MeetingReportModal: React.FC<MeetingReportModalProps> = ({
 
         {/* PHẦN V: CHỮ KÝ ĐẠI DIỆN HAI BÊN */}
         <div
+          className="meeting-report-doc-signatures"
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
@@ -716,7 +719,7 @@ export const MeetingReportModal: React.FC<MeetingReportModalProps> = ({
             <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#6b7280', marginTop: '2px' }}>
               (Ký và ghi rõ họ tên)
             </div>
-            <div style={{ height: '70px' }} />
+            <div className="meeting-report-doc-sig-space" style={{ height: '70px' }} />
             <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>
               {reportData.closedBy}
             </div>
@@ -729,7 +732,7 @@ export const MeetingReportModal: React.FC<MeetingReportModalProps> = ({
             <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#6b7280', marginTop: '2px' }}>
               (Ký, đóng dấu và ghi rõ họ tên)
             </div>
-            <div style={{ height: '70px' }} />
+            <div className="meeting-report-doc-sig-space" style={{ height: '70px' }} />
             <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>
               {reportData.hostName}
             </div>
