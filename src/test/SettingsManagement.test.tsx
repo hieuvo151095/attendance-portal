@@ -240,7 +240,7 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
     confirmSpy.mockRestore();
   });
 
-  it('Chuyển sang tab Quản trị thiết bị, hiển thị đầy đủ các cột STT, Tên thiết bị, Mã thiết bị, Loại điểm danh, Trạng thái', async () => {
+  it('Chuyển sang tab Quản trị thiết bị, hiển thị StatCards tổng quan và đầy đủ các cột', async () => {
     render(<SettingsManagement tenantId={ubndTenant} />);
 
     await waitFor(() => {
@@ -252,13 +252,19 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
     fireEvent.click(devicesTabBtn);
 
     await waitFor(() => {
-      expect(screen.getByText('Danh sách thiết bị')).toBeInTheDocument();
+      expect(screen.getByText('Tổng số lượng thiết bị camera')).toBeInTheDocument();
     });
+
+    // Kiểm tra StatCards số liệu tổng quan trên đầu bộ lọc
+    expect(screen.getByText('Thiết bị đang hoạt động')).toBeInTheDocument();
+    expect(screen.getByText('Thiết bị tạm khoá / bảo trì')).toBeInTheDocument();
+    expect(screen.getByText('Thêm thiết bị mới')).toBeInTheDocument();
+    expect(screen.getByText('Xuất dữ liệu')).toBeInTheDocument();
 
     // Kiểm tra các cột trong bảng
     expect(screen.getByRole('columnheader', { name: 'STT' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Mã thiết bị' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Tên thiết bị' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Mã thiết bị' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Loại điểm danh' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Trạng thái' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Thao tác' })).toBeInTheDocument();
@@ -279,11 +285,11 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
     fireEvent.click(screen.getByText('Quản trị thiết bị'));
 
     await waitFor(() => {
-      expect(screen.getByText('Tạo mới')).toBeInTheDocument();
+      expect(screen.getByText('Thêm thiết bị mới')).toBeInTheDocument();
     });
 
-    // Bấm nút "Tạo mới"
-    fireEvent.click(screen.getByText('Tạo mới'));
+    // Bấm nút "Thêm thiết bị mới" cùng hàng với bộ lọc
+    fireEvent.click(screen.getByText('Thêm thiết bị mới'));
 
     await waitFor(() => {
       expect(screen.getByText('Tạo mới thiết bị')).toBeInTheDocument();
@@ -296,9 +302,8 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
     fireEvent.change(nameInput, { target: { value: 'Camera Cổng Thư Viện' } });
     fireEvent.change(codeInput, { target: { value: 'CAM-LIB-01' } });
 
-    // Bấm nút lưu trong Right-Sheet (nút Tạo mới cuối cùng)
-    const createButtons = screen.getAllByRole('button', { name: 'Tạo mới' });
-    const saveBtn = createButtons[createButtons.length - 1];
+    // Bấm nút lưu trong Right-Sheet
+    const saveBtn = screen.getByRole('button', { name: 'Tạo mới' });
     fireEvent.click(saveBtn);
 
     // Thiết bị mới xuất hiện trên danh sách
@@ -319,6 +324,56 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Đã tạm khoá thiết bị/)).toBeInTheDocument();
+    });
+  });
+
+  it('Thao tác xóa thiết bị yêu cầu tick ô vuông xác nhận trách nhiệm trước khi xóa (Claim responsibility checkbox)', async () => {
+    render(<SettingsManagement tenantId={ubndTenant} />);
+
+    // Chuyển sang tab Quản trị thiết bị
+    fireEvent.click(screen.getByText('Quản trị thiết bị'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Tổng số lượng thiết bị camera')).toBeInTheDocument();
+    });
+
+    // Mở menu Thao tác của dòng thiết bị đầu tiên
+    const actionButtons = screen.getAllByRole('button', { name: 'Thao tác' });
+    fireEvent.click(actionButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Xóa thiết bị')).toBeInTheDocument();
+    });
+
+    // Bấm "Xóa thiết bị"
+    fireEvent.click(screen.getByText('Xóa thiết bị'));
+
+    // Modal Popup xác nhận xuất hiện
+    await waitFor(() => {
+      expect(screen.getByText('Xác Nhận Xóa Thiết Bị')).toBeInTheDocument();
+    });
+
+    // Kiểm tra ô checkbox xác nhận trách nhiệm
+    const checkbox = screen.getByTestId('confirm-delete-device-checkbox');
+    expect(checkbox).not.toBeChecked();
+
+    // Nút "Xóa thiết bị" trong modal phải bị vô hiệu hóa (disabled) khi chưa tick
+    const deleteConfirmBtn = screen.getByRole('button', { name: 'Xóa thiết bị' });
+    expect(deleteConfirmBtn).toBeDisabled();
+
+    // Bấm tick ô vuông xác nhận trách nhiệm
+    fireEvent.click(checkbox);
+    expect(checkbox).toBeChecked();
+
+    // Nút "Xóa thiết bị" bây giờ đã sẵn sàng (enabled)
+    expect(deleteConfirmBtn).not.toBeDisabled();
+
+    // Bấm xác nhận xóa
+    fireEvent.click(deleteConfirmBtn);
+
+    // Thông báo xóa thành công và thiết bị được loại bỏ
+    await waitFor(() => {
+      expect(screen.getByText(/Đã xóa thiết bị "Camera AI Cổng Tiếp Dân" thành công/)).toBeInTheDocument();
     });
   });
 });

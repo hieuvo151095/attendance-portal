@@ -71,6 +71,7 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
   const [deviceNotice, setDeviceNotice] = useState<{ message: string; tone: 'success' | 'danger' } | null>(null);
   const [deviceToDelete, setDeviceToDelete] = useState<CameraDevice | null>(null);
   const [isDeletingDevice, setIsDeletingDevice] = useState(false);
+  const [deleteDeviceConfirmed, setDeleteDeviceConfirmed] = useState(false);
 
   // Load Settings
   const loadSettings = useCallback(async () => {
@@ -354,16 +355,18 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
   };
 
   const handleDeleteDevice = (device: CameraDevice) => {
+    setDeleteDeviceConfirmed(false);
     setDeviceToDelete(device);
   };
 
   const handleConfirmDeleteDevice = async () => {
-    if (!deviceToDelete) return;
+    if (!deviceToDelete || !deleteDeviceConfirmed) return;
     setIsDeletingDevice(true);
     try {
       await cameraDeviceService.deleteDevice(tenantId, deviceToDelete.id);
       setDeviceNotice({ message: `Đã xóa thiết bị "${deviceToDelete.name}" thành công.`, tone: 'success' });
       setDeviceToDelete(null);
+      setDeleteDeviceConfirmed(false);
       loadDevices();
       setTimeout(() => setDeviceNotice(null), 3000);
     } catch (err: unknown) {
@@ -1110,29 +1113,51 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {deviceNotice && <InlineNotice tone={deviceNotice.tone} label={deviceNotice.message} />}
 
-            {/* Filter Section (Matching Image 1) */}
+            {/* Stat Cards (Matching standard with Danh Sách Phòng Họp) */}
+            <StatCard.Group columns={3}>
+              <StatCard
+                label="Tổng số lượng thiết bị camera"
+                value={devices.length}
+                icon="camera"
+                tone="neutral"
+              />
+              <StatCard
+                label="Thiết bị đang hoạt động"
+                value={devices.filter((d) => d.status === 'active').length}
+                icon="circle-check"
+                tone="success"
+              />
+              <StatCard
+                label="Thiết bị tạm khoá / bảo trì"
+                value={devices.filter((d) => d.status === 'locked').length}
+                icon="lock"
+                tone="warning"
+              />
+            </StatCard.Group>
+
+            {/* Filter and Action Bar (Filtering fields & "Thêm mới" on the same line) */}
             <div
               style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                padding: '12px 16px',
                 backgroundColor: 'var(--bg-surface)',
                 border: '1px solid var(--border-default)',
-                borderRadius: 'var(--radius-8)',
-                padding: '16px 20px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px'
+                borderRadius: 'var(--radius-8)'
               }}
             >
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-                <TextField
-                  id="device-filter-code"
-                  label="Mã thiết bị"
-                  placeholder="Nhập mã thiết bị"
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '280px', flexWrap: 'wrap' }}>
+                <SearchField
+                  placeholder="Tìm theo tên thiết bị, mã thiết bị, vị trí..."
                   value={deviceSearch}
                   onChange={(val) => setDeviceSearch(val)}
+                  width={300}
                 />
                 <SelectField
-                  id="device-filter-type"
-                  label="Loại điểm danh"
+                  id="device-type-filter"
                   value={deviceTypeFilter}
                   onChange={(val) => setDeviceTypeFilter(val)}
                   options={[
@@ -1140,141 +1165,53 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
                     { value: 'attendance', label: 'Chấm công' },
                     { value: 'meeting', label: 'Cuộc họp' }
                   ]}
+                  width={180}
                 />
                 <SelectField
-                  id="device-filter-status"
-                  label="Trạng thái"
+                  id="device-status-filter"
                   value={deviceStatusFilter}
                   onChange={(val) => setDeviceStatusFilter(val)}
                   options={[
-                    { value: '', label: 'Vui lòng chọn' },
+                    { value: '', label: 'Tất cả trạng thái' },
                     { value: 'active', label: 'Hoạt động' },
                     { value: 'locked', label: 'Tạm khoá' }
                   ]}
+                  width={160}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Button
                   variant="secondary"
-                  onClick={() => {
-                    setDeviceSearch('');
-                    setDeviceTypeFilter('');
-                    setDeviceStatusFilter('');
-                  }}
+                  icon="file-lines"
+                  onClick={handleExportDevices}
                 >
-                  Làm lại
+                  Xuất dữ liệu
                 </Button>
                 <Button
                   variant="primary"
-                  icon="magnifying-glass"
+                  icon="plus"
                   onClick={() => {
-                    // Reactive filtering
+                    setDeviceToEdit(null);
+                    setDeviceModalOpen(true);
                   }}
                 >
-                  Tìm kiếm
+                  Thêm thiết bị mới
                 </Button>
               </div>
             </div>
 
-            {/* Main List Section (Matching Image 1) */}
-            <div
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                border: '1px solid var(--border-default)',
-                borderRadius: 'var(--radius-8)',
-                overflow: 'hidden'
-              }}
-            >
-              {/* Subheader bar */}
-              <div
-                style={{
-                  padding: '14px 20px',
-                  borderBottom: '1px solid var(--border-default)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '12px'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                  <span className="body-md-bold" style={{ color: 'var(--text-heading)' }}>
-                    Danh sách thiết bị
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        backgroundColor: 'var(--eco-blue-50, #eff6ff)',
-                        color: 'var(--eco-blue-strong, #0070ce)',
-                        fontSize: '12px',
-                        fontWeight: 600
-                      }}
-                    >
-                      Tổng số lượng thiết bị {devices.length}
-                    </span>
-                    <span
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        backgroundColor: '#ecfdf5',
-                        color: '#059669',
-                        fontSize: '12px',
-                        fontWeight: 600
-                      }}
-                    >
-                      Đang hoạt động {devices.filter((d) => d.status === 'active').length}
-                    </span>
-                    <span
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        backgroundColor: '#f1f5f9',
-                        color: '#64748b',
-                        fontSize: '12px',
-                        fontWeight: 600
-                      }}
-                    >
-                      Tạm khoá {devices.filter((d) => d.status === 'locked').length}
-                    </span>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Button
-                    variant="secondary"
-                    icon="file-lines"
-                    onClick={handleExportDevices}
-                  >
-                    Xuất dữ liệu
-                  </Button>
-                  <Button
-                    variant="primary"
-                    icon="plus"
-                    onClick={() => {
-                      setDeviceToEdit(null);
-                      setDeviceModalOpen(true);
-                    }}
-                  >
-                    Tạo mới
-                  </Button>
-                </div>
-              </div>
-
-              {/* Data Table */}
-              <DataTable
-                columns={deviceColumns}
-                rows={filteredDevices}
-                rowKey="id"
-                emptyText={
-                  loadingDevices
-                    ? 'Đang tải danh sách thiết bị...'
-                    : 'Chưa có thiết bị nào phù hợp với bộ lọc.'
-                }
-              />
-            </div>
+            {/* Data Table */}
+            <DataTable
+              columns={deviceColumns}
+              rows={filteredDevices}
+              rowKey="id"
+              emptyText={
+                loadingDevices
+                  ? 'Đang tải danh sách thiết bị...'
+                  : 'Chưa có thiết bị camera nào phù hợp với bộ lọc.'
+              }
+            />
           </div>
         )}
       </div>
@@ -1328,21 +1265,29 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
           icon="triangle-exclamation"
           title="Xác Nhận Xóa Thiết Bị"
           description={`Bạn có chắc chắn muốn xóa thiết bị "${deviceToDelete.name}" (${deviceToDelete.code}) không?`}
-          width={460}
-          onClose={() => !isDeletingDevice && setDeviceToDelete(null)}
+          width={480}
+          onClose={() => {
+            if (!isDeletingDevice) {
+              setDeviceToDelete(null);
+              setDeleteDeviceConfirmed(false);
+            }
+          }}
           primaryAction={{
             label: isDeletingDevice ? 'Đang xóa...' : 'Xóa thiết bị',
             icon: 'trash',
             onClick: handleConfirmDeleteDevice,
-            disabled: isDeletingDevice
+            disabled: isDeletingDevice || !deleteDeviceConfirmed
           }}
           secondaryAction={{
             label: 'Hủy bỏ',
-            onClick: () => setDeviceToDelete(null),
+            onClick: () => {
+              setDeviceToDelete(null);
+              setDeleteDeviceConfirmed(false);
+            },
             disabled: isDeletingDevice
           }}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div
               style={{
                 padding: '12px 14px',
@@ -1367,6 +1312,41 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
             <InlineNotice tone="warning">
               Hành động này sẽ xóa thiết bị khỏi hệ thống. Thiết bị sẽ ngừng tiếp nhận dữ liệu nhận diện điểm danh. Lịch sử điểm danh trước đây vẫn được lưu trữ an toàn.
             </InlineNotice>
+
+            {/* Checkbox xác nhận trách nhiệm từ người thực hiện */}
+            <label
+              htmlFor="confirm-delete-device-checkbox"
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '10px',
+                padding: '12px 14px',
+                backgroundColor: deleteDeviceConfirmed ? '#eff6ff' : 'var(--bg-subtle, #f8fafc)',
+                border: `1.5px solid ${deleteDeviceConfirmed ? 'var(--eco-blue-strong, #0070ce)' : 'var(--border-default, #e2e8f0)'}`,
+                borderRadius: 'var(--radius-8, 8px)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <input
+                type="checkbox"
+                id="confirm-delete-device-checkbox"
+                data-testid="confirm-delete-device-checkbox"
+                checked={deleteDeviceConfirmed}
+                onChange={(e) => setDeleteDeviceConfirmed(e.target.checked)}
+                style={{
+                  marginTop: '2px',
+                  width: '16px',
+                  height: '16px',
+                  cursor: 'pointer',
+                  accentColor: 'var(--eco-blue-strong, #0070ce)'
+                }}
+              />
+              <span className="body-xs" style={{ color: 'var(--text-heading)', fontWeight: 500, lineHeight: '18px' }}>
+                Tôi xác nhận hiểu rõ và chịu trách nhiệm về việc xóa thiết bị này khỏi hệ thống cơ quan.
+              </span>
+            </label>
           </div>
         </PopupModal>
       )}
