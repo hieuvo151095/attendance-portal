@@ -122,8 +122,9 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
     });
 
     const leaveCheckboxAn = screen.getByRole('checkbox', { name: /Xác nhận nghỉ phép/i });
-    expect(leaveCheckboxAn).toBeDisabled();
-    expect(screen.getByText(/Đã check-in \(Không thể báo nghỉ\)/i)).toBeInTheDocument();
+    // Quản trị viên vẫn có thể tích chọn nghỉ phép đột xuất ngay cả khi cán bộ đã check-in
+    expect(leaveCheckboxAn).toBeEnabled();
+    expect(screen.getByText(/Đã vào ca/i)).toBeInTheDocument();
 
     // Đóng modal
     const closeBtnAn = screen.getByRole('button', { name: 'Đóng' });
@@ -164,7 +165,7 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
 
     await waitFor(() => {
       expect(leaveCheckboxDung).toBeChecked();
-      expect(screen.getByText('Đang nghỉ phép')).toBeInTheDocument();
+      expect(screen.getAllByText('Nghỉ cả ngày').length).toBeGreaterThanOrEqual(1);
     });
 
     // Đóng modal và kiểm tra hàng trên bảng chính đã cập nhật hiển thị "Nghỉ phép"
@@ -345,5 +346,98 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
     // 3. Sau khi check-out bù, danh sách quên check-out giảm còn 1
     const remaining = await dailyAttendanceService.getUncheckedOutEmployees(ubndTenant, '2026-11-05');
     expect(remaining.length).toBe(1);
+  });
+
+  it('SideSheet Chi tiết: Quản trị viên điều chỉnh giờ về ngay trong right-sheet và xác nhận qua popup popup modal', async () => {
+    render(<DailyAttendance tenantId={ubndTenant} />);
+
+    // Chuyển sang ngày 05/11/2026 (có người quên check-out)
+    const prevBtn = screen.getByRole('button', { name: /Ngày trước/i });
+    fireEvent.click(prevBtn);
+
+    // Tìm kiếm cán bộ Mai Xuân Nam (UBND-015)
+    const searchInput = screen.getByPlaceholderText(/Tìm theo tên cán bộ, mã NV/i);
+    fireEvent.change(searchInput, { target: { value: 'Mai Xuân Nam' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Ông Mai Xuân Nam')).toBeInTheDocument();
+    });
+
+    // Mở SideSheet Chi tiết chấm công
+    const actionBtn = screen.getByRole('button', { name: /Thao tác/i });
+    fireEvent.click(actionBtn);
+    fireEvent.click(screen.getByText('Chi tiết chấm công'));
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Chi tiết chấm công').length).toBeGreaterThanOrEqual(1);
+    });
+
+    // Xác nhận ô nhập giờ về hiển thị ngay trong right-sheet
+    const timeInput = screen.getByLabelText('Giờ về bổ sung') as HTMLInputElement;
+    expect(timeInput).toBeInTheDocument();
+    fireEvent.change(timeInput, { target: { value: '17:30' } });
+
+    // Bấm nút "Bổ sung" ngay trong right-sheet
+    const supplementBtn = screen.getByRole('button', { name: /^Bổ sung$/i });
+    fireEvent.click(supplementBtn);
+
+    // Pop-up modal xác nhận xuất hiện
+    await waitFor(() => {
+      expect(screen.getByText('Xác nhận bổ sung giờ về')).toBeInTheDocument();
+      expect(screen.getByText(/Bạn có chắc chắn muốn xác nhận bổ sung giờ về lúc/i)).toBeInTheDocument();
+      expect(screen.getByText(/Thông tin check-out được bổ sung bởi/i)).toBeInTheDocument();
+    });
+
+    // Bấm nút "Xác nhận" trên popup
+    const confirmBtn = screen.getByRole('button', { name: /^Xác nhận$/i });
+    fireEvent.click(confirmBtn);
+
+    // Kiểm tra nhãn hiển thị thông tin check-out được bổ sung bởi admin
+    await waitFor(() => {
+      expect(screen.getByText(/Thông tin check-out được bổ sung bởi/i)).toBeInTheDocument();
+    });
+  });
+
+  it('SideSheet Chi tiết: Cán bộ đã check-in nhưng có việc khẩn cấp, Quản trị viên xác nhận nghỉ phép và chọn Buổi chiều / Buổi sáng / Cả ngày', async () => {
+    render(<DailyAttendance tenantId={ubndTenant} />);
+
+    // Tìm kiếm cán bộ Nguyễn Văn An (đã check-in vào ca)
+    const searchInput = screen.getByPlaceholderText(/Tìm theo tên cán bộ, mã NV/i);
+    fireEvent.change(searchInput, { target: { value: 'Nguyễn Văn An' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
+    });
+
+    // Mở SideSheet Chi tiết chấm công
+    const actionBtn = screen.getByRole('button', { name: /Thao tác/i });
+    fireEvent.click(actionBtn);
+    fireEvent.click(screen.getByText('Chi tiết chấm công'));
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Chi tiết chấm công').length).toBeGreaterThanOrEqual(1);
+    });
+
+    const leaveCheckbox = screen.getByRole('checkbox', { name: /Xác nhận nghỉ phép/i });
+    expect(leaveCheckbox).toBeEnabled();
+
+    // Bật xác nhận nghỉ phép đột xuất
+    fireEvent.click(leaveCheckbox);
+
+    await waitFor(() => {
+      expect(leaveCheckbox).toBeChecked();
+      // Hiển thị các lựa chọn: Cả ngày, Buổi sáng, Buổi chiều
+      expect(screen.getByText('Buổi chiều')).toBeInTheDocument();
+      expect(screen.getByText('Buổi sáng')).toBeInTheDocument();
+      expect(screen.getByText('Cả ngày')).toBeInTheDocument();
+    });
+
+    // Chọn nghỉ phép "Buổi chiều"
+    const afternoonRadio = screen.getByRole('radio', { name: /Buổi chiều/i });
+    fireEvent.click(afternoonRadio);
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Nghỉ buổi chiều').length).toBeGreaterThanOrEqual(1);
+    });
   });
 });

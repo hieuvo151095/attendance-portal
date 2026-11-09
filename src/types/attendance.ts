@@ -2,6 +2,8 @@ export type AttendanceMethodType = 'faceId' | 'fingerprint' | 'card' | 'manual';
 
 export type DailyAttendanceStatus = 'on_time' | 'late' | 'early_leave' | 'late_and_early' | 'absent' | 'leave';
 
+export type LeavePeriod = 'full_day' | 'morning' | 'afternoon';
+
 export interface AttendanceScanLog {
   id: string;
   timestamp: string; // ISO String (e.g. 2026-11-04T07:22:15Z)
@@ -45,6 +47,8 @@ export interface DailyAttendanceRecord {
   status: DailyAttendanceStatus;
   scanLogs: AttendanceScanLog[];
   auditLogs?: AttendanceAuditLog[];
+  leavePeriod?: LeavePeriod;
+  checkOutAdminName?: string;
   note?: string;
   createdAt: string;
   updatedAt: string;

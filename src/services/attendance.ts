@@ -6,7 +6,8 @@ import {
   AttendanceScanLog,
   AttendanceAuditLog,
   AdminCheckOutPayload,
-  DailyAttendanceStatus
+  DailyAttendanceStatus,
+  LeavePeriod
 } from '../types/attendance';
 import { authService } from './auth';
 import { employeeService } from './employee';
@@ -1419,7 +1420,8 @@ class DailyAttendanceService {
     employeeId: string,
     date: string,
     isLeave: boolean,
-    reason?: string
+    reason?: string,
+    leavePeriod: LeavePeriod = 'full_day'
   ): Promise<DailyAttendanceRecord> {
     authService.assertTenantAccess(tenantId);
     const emp = await employeeService.getEmployeeById(tenantId, employeeId);
@@ -1455,18 +1457,29 @@ class DailyAttendanceService {
 
     if (isLeave) {
       record.status = 'leave';
-      record.note = reason?.trim() || 'Nghỉ phép có lý do';
-      record.checkInTime = undefined;
-      record.checkOutTime = undefined;
-      record.lateMinutes = 0;
-      record.earlyLeaveMinutes = 0;
+      record.leavePeriod = leavePeriod;
+      const periodLabel = leavePeriod === 'morning' ? 'Buổi sáng' : leavePeriod === 'afternoon' ? 'Buổi chiều' : 'Cả ngày';
+      record.note = reason?.trim() ? `${reason.trim()} (${periodLabel})` : `Nghỉ phép (${periodLabel})`;
+      // Giữ lại giờ check-in nếu nhân sự đã quét vào ca và xin nghỉ đột xuất buổi chiều
+      if (leavePeriod === 'afternoon' && record.checkInTime) {
+        record.checkOutTime = undefined;
+        record.earlyLeaveMinutes = 0;
+      } else if (leavePeriod === 'full_day') {
+        record.lateMinutes = 0;
+        record.earlyLeaveMinutes = 0;
+      }
     } else {
-      record.status = 'absent';
+      record.leavePeriod = undefined;
       record.note = 'Đã hủy trạng thái nghỉ phép';
-      record.checkInTime = undefined;
-      record.checkOutTime = undefined;
-      record.lateMinutes = 0;
-      record.earlyLeaveMinutes = 0;
+      if (record.checkInTime) {
+        record.status = record.lateMinutes > 0 ? 'late' : 'on_time';
+      } else {
+        record.status = 'absent';
+        record.checkInTime = undefined;
+        record.checkOutTime = undefined;
+        record.lateMinutes = 0;
+        record.earlyLeaveMinutes = 0;
+      }
     }
 
     record.updatedAt = now.toISOString();
@@ -1508,22 +1521,23 @@ class DailyAttendanceService {
 
     existingRecord.checkOutTime = payload.checkOutTime;
     existingRecord.checkOutMethod = 'manual';
-    existingRecord.checkOutDevice = 'Xác nhận thủ công bởi Quản trị viên';
+    existingRecord.checkOutDevice = `Thông tin check-out được bổ sung bởi ${payload.adminName}`;
+    existingRecord.checkOutAdminName = payload.adminName;
     existingRecord.earlyLeaveMinutes = checkOutEval.earlyLeaveMinutes;
 
     // Cập nhật trạng thái
     if (existingRecord.lateMinutes > 0 && checkOutEval.isEarlyLeave) {
       existingRecord.status = 'late_and_early';
-      existingRecord.note = `Đi muộn ${existingRecord.lateMinutes}p & Về sớm ${checkOutEval.earlyLeaveMinutes}p (Admin bổ sung giờ về)`;
+      existingRecord.note = `Đi muộn ${existingRecord.lateMinutes}p & Về sớm ${checkOutEval.earlyLeaveMinutes}p (Thông tin check-out được bổ sung bởi ${payload.adminName})`;
     } else if (existingRecord.lateMinutes > 0) {
       existingRecord.status = 'late';
-      existingRecord.note = `Đi muộn ${existingRecord.lateMinutes}p (Admin bổ sung giờ về ${payload.checkOutTime})`;
+      existingRecord.note = `Đi muộn ${existingRecord.lateMinutes}p (Thông tin check-out được bổ sung bởi ${payload.adminName})`;
     } else if (checkOutEval.isEarlyLeave) {
       existingRecord.status = 'early_leave';
-      existingRecord.note = `Về sớm ${checkOutEval.earlyLeaveMinutes}p (Admin bổ sung giờ về ${payload.checkOutTime})`;
+      existingRecord.note = `Về sớm ${checkOutEval.earlyLeaveMinutes}p (Thông tin check-out được bổ sung bởi ${payload.adminName})`;
     } else {
       existingRecord.status = 'on_time';
-      existingRecord.note = `Hoàn thành ca làm việc (Admin bổ sung giờ về ${payload.checkOutTime})`;
+      existingRecord.note = `Hoàn thành ca làm việc (Thông tin check-out được bổ sung bởi ${payload.adminName})`;
     }
 
     // Thêm vào scanLogs
@@ -1532,8 +1546,8 @@ class DailyAttendanceService {
       timestamp: now.toISOString(),
       type: 'check_out',
       method: 'manual',
-      deviceName: `Xác nhận bởi: ${payload.adminName} — Lý do: ${payload.reason}`,
-      note: payload.reason
+      deviceName: `Thông tin check-out được bổ sung bởi ${payload.adminName}`,
+      note: payload.reason || `Thông tin check-out được bổ sung bởi ${payload.adminName}`
     };
     existingRecord.scanLogs = [...(existingRecord.scanLogs || []), newScanLog];
 
@@ -1543,8 +1557,8 @@ class DailyAttendanceService {
       action: 'admin_checkout',
       performedBy: payload.adminName,
       performedAt: now.toISOString(),
-      reason: payload.reason,
-      details: `Bổ sung giờ về: ${payload.checkOutTime} ngày ${payload.date}.${payload.note ? ` Ghi chú: ${payload.note}` : ''}`,
+      reason: payload.reason || 'Bổ sung giờ về trực tiếp',
+      details: `Thông tin check-out được bổ sung bởi ${payload.adminName}: Giờ về ${payload.checkOutTime} ngày ${payload.date}.${payload.note ? ` Ghi chú: ${payload.note}` : ''}`,
       previousStatus,
       newStatus: existingRecord.status
     };

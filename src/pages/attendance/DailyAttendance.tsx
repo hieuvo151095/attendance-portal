@@ -183,12 +183,23 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
       width: '240px',
       render: (r: DailyAttendanceRecord) => {
         if (r.status === 'leave') {
-          return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--primary-700)' }}>
-              <Icon name="calendar-check" size={13} style={{ color: 'var(--primary-600)' }} />
-              <span className="body-xs-medium">Nghỉ phép</span>
-            </div>
-          );
+          if (!r.checkInTime || r.leavePeriod !== 'afternoon') {
+            const leaveText =
+              r.leavePeriod === 'morning'
+                ? 'Nghỉ buổi sáng'
+                : r.leavePeriod === 'afternoon'
+                ? 'Nghỉ buổi chiều'
+                : r.leavePeriod === 'full_day'
+                ? 'Nghỉ cả ngày'
+                : 'Nghỉ phép';
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--primary-700)' }}>
+                <Icon name="calendar-check" size={13} style={{ color: 'var(--primary-600)' }} />
+                <span className="body-xs-medium">{leaveText}</span>
+              </div>
+            );
+          }
+          // Cán bộ vào ca buổi sáng nhưng xin nghỉ đột xuất buổi chiều: hiển thị giờ check-in đã ghi nhận
         }
 
         if (!r.checkInTime) {
@@ -250,12 +261,23 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
       width: '240px',
       render: (r: DailyAttendanceRecord) => {
         if (r.status === 'leave') {
-          return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--primary-700)' }}>
-              <Icon name="calendar-check" size={13} style={{ color: 'var(--primary-600)' }} />
-              <span className="body-xs-medium">Nghỉ phép</span>
-            </div>
-          );
+          if (!r.checkInTime || r.leavePeriod !== 'afternoon') {
+            const leaveText =
+              r.leavePeriod === 'morning'
+                ? 'Nghỉ buổi sáng'
+                : r.leavePeriod === 'afternoon'
+                ? 'Nghỉ buổi chiều'
+                : r.leavePeriod === 'full_day'
+                ? 'Nghỉ cả ngày'
+                : 'Nghỉ phép';
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--primary-700)' }}>
+                <Icon name="calendar-check" size={13} style={{ color: 'var(--primary-600)' }} />
+                <span className="body-xs-medium">{leaveText}</span>
+              </div>
+            );
+          }
+          // Cán bộ vào ca buổi sáng nhưng xin nghỉ đột xuất buổi chiều: hiển thị giờ check-in đã ghi nhận
         }
 
         if (!r.checkOutTime) {
@@ -314,7 +336,11 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
                 {r.checkOutTime}
               </span>
               <div
-                title={`${r.checkOutMethod === 'faceId' ? 'Face ID' : r.checkOutMethod === 'fingerprint' ? 'Vân tay' : 'Thẻ'} • ${r.checkOutDevice || ''}`}
+                title={
+                  r.checkOutAdminName
+                    ? `Thông tin check-out được bổ sung bởi "${r.checkOutAdminName}"`
+                    : `${r.checkOutMethod === 'faceId' ? 'Face ID' : r.checkOutMethod === 'fingerprint' ? 'Vân tay' : 'Thẻ'} • ${r.checkOutDevice || ''}`
+                }
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -330,7 +356,14 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
             </div>
 
             {/* Trạng thái Check-out */}
-            {isEarly ? (
+            {r.checkOutAdminName || r.checkOutMethod === 'manual' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--eco-blue-strong, #0284c7)' }}>
+                <Icon name="pencil" size={12} style={{ color: 'var(--eco-blue-strong, #0284c7)' }} />
+                <span className="body-xs-medium">
+                  {`Bổ sung bởi ${r.checkOutAdminName || 'Admin'}`}
+                </span>
+              </div>
+            ) : isEarly ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--semantic-warning)' }}>
                 <Icon name="clock" size={13} style={{ color: 'var(--semantic-warning)' }} />
                 <span className="body-xs-medium" style={{ color: 'var(--semantic-warning)' }}>
