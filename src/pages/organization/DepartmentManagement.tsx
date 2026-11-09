@@ -9,7 +9,9 @@ import {
   DataTableColumn,
   SearchField,
   StatCard,
-  EmptyValue
+  EmptyValue,
+  toast,
+  ToastContainer
 } from '../../design-system';
 import { departmentService } from '../../services/department';
 import { authService } from '../../services/auth';
@@ -33,8 +35,6 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
   const [departments, setDepartments] = useState<Department[]>([]);
   const [treeNodes, setTreeNodes] = useState<DepartmentTreeNode[]>([]);
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Search Filter State
   const [searchTerm, setSearchTerm] = useState('');
@@ -57,7 +57,6 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
   const loadData = async () => {
     if (!session) return;
     setLoading(true);
-    setErrorMessage(null);
 
     try {
       const [list, tree] = await Promise.all([
@@ -68,7 +67,7 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
       setTreeNodes(tree);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Không thể tải danh sách phòng ban';
-      setErrorMessage(msg);
+      toast.danger(msg);
     } finally {
       setLoading(false);
     }
@@ -106,12 +105,13 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
     if (!session || !deleteConfirmDept) return;
     try {
       await departmentService.deleteDepartment(session.tenant.id, deleteConfirmDept.id);
+      const deletedName = deleteConfirmDept.name;
       setDeleteConfirmDept(null);
-      setSuccessMessage(`Đã xóa phòng ban "${deleteConfirmDept.name}" thành công`);
       loadData();
+      toast.success(`Đã xóa phòng ban "${deletedName}" thành công`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Có lỗi khi xóa phòng ban';
-      setErrorMessage(msg);
+      toast.danger(msg);
     }
   };
 
@@ -354,25 +354,6 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
           gap: 'var(--space-16)'
         }}
       >
-        {/* Notifications */}
-        {successMessage && (
-          <InlineNotice
-            tone="success"
-            style={{ marginBottom: '8px' }}
-          >
-            {successMessage}
-          </InlineNotice>
-        )}
-
-        {errorMessage && (
-          <InlineNotice
-            tone="danger"
-            style={{ marginBottom: '8px' }}
-          >
-            {errorMessage}
-          </InlineNotice>
-        )}
-
         {/* Quick Stat Cards: Only 2 cards, main departments only */}
         <StatCard.Group columns={2}>
           <StatCard
@@ -447,13 +428,15 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
           availableParents={departments}
           onClose={() => setModalOpen(false)}
           onSuccess={() => {
+            const wasEditing = !!editingDept;
+            const deptName = editingDept?.name;
             setModalOpen(false);
-            setSuccessMessage(
-              editingDept
-                ? `Đã cập nhật phòng ban "${editingDept.name}" thành công`
+            loadData();
+            toast.success(
+              wasEditing
+                ? `Đã cập nhật phòng ban "${deptName}" thành công`
                 : 'Đã tạo mới phòng ban thành công'
             );
-            loadData();
           }}
         />
       )}
@@ -482,6 +465,9 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
           </InlineNotice>
         </PopupModal>
       )}
+
+      {/* Local ToastContainer for isolated module rendering / testing */}
+      <ToastContainer />
     </div>
   );
 };

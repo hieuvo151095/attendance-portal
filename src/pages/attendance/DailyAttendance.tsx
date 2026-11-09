@@ -7,7 +7,8 @@ import {
   DataTable,
   Tag,
   EmptyValue,
-  Icon
+  Icon,
+  toast
 } from '../../design-system';
 import { DailyAttendanceRecord, DailyAttendanceSummary } from '../../types/attendance';
 import { Department } from '../../types/organization';
@@ -82,7 +83,7 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
 
   const handleDateChange = (newDate: string) => {
     if (newDate > TODAY) {
-      alert(`Không thể chọn ngày trong tương lai. Ngày hiện tại là ${TODAY}`);
+      toast.warning(`Không thể chọn ngày trong tương lai. Ngày hiện tại là ${TODAY}`);
       setSelectedDate(TODAY);
       return;
     }
@@ -109,8 +110,9 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      toast.success('Đã xuất báo cáo chấm công thành công!');
     } catch (err) {
-      alert('Lỗi xuất dữ liệu chấm công: ' + (err instanceof Error ? err.message : ''));
+      toast.danger('Lỗi xuất dữ liệu chấm công: ' + (err instanceof Error ? err.message : ''));
     }
   };
 
@@ -539,7 +541,10 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
         onClose={() => setScanModalOpen(false)}
         tenantId={tenantId}
         currentDate={selectedDate}
-        onSuccess={loadData}
+        onSuccess={() => {
+          loadData();
+          toast.success('Ghi nhận điểm danh thành công!');
+        }}
       />
 
       <AttendanceLogModal
@@ -547,7 +552,10 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
         onClose={() => setLogModalOpen(false)}
         record={selectedRecord}
         tenantId={tenantId}
-        onRecordUpdated={loadData}
+        onRecordUpdated={() => {
+          loadData();
+          toast.success('Đã cập nhật nhật ký điểm danh thành công!');
+        }}
       />
 
       <AttendanceSettingsModal

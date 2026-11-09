@@ -10,7 +10,9 @@ import {
   DataTable,
   StatCard,
   SearchField,
-  PopupModal
+  PopupModal,
+  toast,
+  ToastContainer
 } from '../../design-system';
 import type { OfficeRoom } from '../../types/room';
 import type { CameraDevice } from '../../types/device';
@@ -30,8 +32,6 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
   // --- 1. Attendance Settings State ---
   const [loadingSettings, setLoadingSettings] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
-  const [settingsError, setSettingsError] = useState<string | null>(null);
-  const [settingsSuccess, setSettingsSuccess] = useState<string | null>(null);
 
   const [workStartTime, setWorkStartTime] = useState('07:00');
   const [workEndTime, setWorkEndTime] = useState('16:00');
@@ -56,7 +56,6 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
   const [roomStatusFilter, setRoomStatusFilter] = useState('');
   const [roomModalOpen, setRoomModalOpen] = useState(false);
   const [roomToEdit, setRoomToEdit] = useState<OfficeRoom | null>(null);
-  const [roomNotice, setRoomNotice] = useState<{ message: string; tone: 'success' | 'danger' } | null>(null);
   const [roomToDelete, setRoomToDelete] = useState<OfficeRoom | null>(null);
   const [isDeletingRoom, setIsDeletingRoom] = useState(false);
 
@@ -68,7 +67,6 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
   const [deviceStatusFilter, setDeviceStatusFilter] = useState('');
   const [deviceModalOpen, setDeviceModalOpen] = useState(false);
   const [deviceToEdit, setDeviceToEdit] = useState<CameraDevice | null>(null);
-  const [deviceNotice, setDeviceNotice] = useState<{ message: string; tone: 'success' | 'danger' } | null>(null);
   const [deviceToDelete, setDeviceToDelete] = useState<CameraDevice | null>(null);
   const [isDeletingDevice, setIsDeletingDevice] = useState(false);
   const [deleteDeviceConfirmed, setDeleteDeviceConfirmed] = useState(false);
@@ -76,7 +74,6 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
   // Load Settings
   const loadSettings = useCallback(async () => {
     setLoadingSettings(true);
-    setSettingsError(null);
     try {
       const s = await attendanceSettingService.getSettings(tenantId);
       setWorkStartTime(s.workStartTime || '07:00');
@@ -102,7 +99,7 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
           : ''
       );
     } catch (err: unknown) {
-      setSettingsError(err instanceof Error ? err.message : 'Không thể tải cấu hình');
+      console.error('Không thể tải cấu hình:', err);
     } finally {
       setLoadingSettings(false);
     }
@@ -168,8 +165,6 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
   const earlyLeaveThreshold = calculateEarlyLeaveThresholdTime(workEndTime, workCheckOutGraceMinutes);
 
   const handleSaveSettings = async () => {
-    setSettingsError(null);
-    setSettingsSuccess(null);
     setSavingSettings(true);
     try {
       await attendanceSettingService.updateSettings(tenantId, {
@@ -194,10 +189,9 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
             ? undefined
             : Math.min(100, Math.max(0, parseInt(meetingTargetOnTimeRate, 10) || 0))
       });
-      setSettingsSuccess('Đã lưu cấu hình thời gian làm việc & dung sai điểm danh thành công.');
-      setTimeout(() => setSettingsSuccess(null), 4000);
+      toast.success('Đã lưu cấu hình thời gian làm việc & dung sai điểm danh thành công.');
     } catch (err: unknown) {
-      setSettingsError(err instanceof Error ? err.message : 'Có lỗi khi lưu cấu hình.');
+      toast.danger(err instanceof Error ? err.message : 'Có lỗi khi lưu cấu hình.');
     } finally {
       setSavingSettings(false);
     }
@@ -218,6 +212,7 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
     setMeetingEarlyOpenMinutes(15);
     setMeetingTargetAttendanceRate('90');
     setMeetingTargetOnTimeRate('85');
+    toast.success('Đã khôi phục cấu hình thời gian làm việc mặc định chuẩn.');
   };
 
   const handleDeleteRoom = (room: OfficeRoom) => {
@@ -229,12 +224,12 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
     setIsDeletingRoom(true);
     try {
       await roomService.deleteRoom(tenantId, roomToDelete.id);
-      setRoomNotice({ message: `Đã xóa phòng "${roomToDelete.name}" thành công.`, tone: 'success' });
+      const roomName = roomToDelete.name;
       setRoomToDelete(null);
       loadRooms();
-      setTimeout(() => setRoomNotice(null), 3000);
+      toast.success(`Đã xóa phòng "${roomName}" thành công.`);
     } catch (err: unknown) {
-      setRoomNotice({ message: err instanceof Error ? err.message : 'Có lỗi khi xóa phòng', tone: 'danger' });
+      toast.danger(err instanceof Error ? err.message : 'Có lỗi khi xóa phòng');
     } finally {
       setIsDeletingRoom(false);
     }
@@ -340,17 +335,14 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
   const handleToggleDeviceStatus = async (device: CameraDevice) => {
     try {
       const updated = await cameraDeviceService.toggleDeviceStatus(tenantId, device.id);
-      setDeviceNotice({
-        message: `Đã ${updated.status === 'active' ? 'mở khoá' : 'tạm khoá'} thiết bị "${device.name}" thành công.`,
-        tone: 'success'
-      });
       loadDevices();
-      setTimeout(() => setDeviceNotice(null), 3500);
+      toast.success(
+        `Đã ${updated.status === 'active' ? 'mở khoá' : 'tạm khoá'} thiết bị "${device.name}" thành công.`
+      );
     } catch (err: unknown) {
-      setDeviceNotice({
-        message: err instanceof Error ? err.message : 'Có lỗi khi cập nhật trạng thái thiết bị',
-        tone: 'danger'
-      });
+      toast.danger(
+        err instanceof Error ? err.message : 'Có lỗi khi cập nhật trạng thái thiết bị'
+      );
     }
   };
 
@@ -364,16 +356,13 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
     setIsDeletingDevice(true);
     try {
       await cameraDeviceService.deleteDevice(tenantId, deviceToDelete.id);
-      setDeviceNotice({ message: `Đã xóa thiết bị "${deviceToDelete.name}" thành công.`, tone: 'success' });
+      const deletedName = deviceToDelete.name;
       setDeviceToDelete(null);
       setDeleteDeviceConfirmed(false);
       loadDevices();
-      setTimeout(() => setDeviceNotice(null), 3000);
+      toast.success(`Đã xóa thiết bị "${deletedName}" thành công.`);
     } catch (err: unknown) {
-      setDeviceNotice({
-        message: err instanceof Error ? err.message : 'Có lỗi khi xóa thiết bị',
-        tone: 'danger'
-      });
+      toast.danger(err instanceof Error ? err.message : 'Có lỗi khi xóa thiết bị');
     } finally {
       setIsDeletingDevice(false);
     }
@@ -732,9 +721,6 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
         {/* ================= TAB 1: WORK HOURS & ATTENDANCE RULES ================= */}
         {activeTab === 'attendance' && (
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {settingsError && <InlineNotice tone="danger" label={settingsError} />}
-            {settingsSuccess && <InlineNotice tone="success" label={settingsSuccess} />}
-
             {/* Side-by-Side Grid: Block 1 & Block 2 */}
             <div
               style={{
@@ -1047,8 +1033,6 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
         {/* ================= TAB 2: OFFICE ROOMS SETUP ================= */}
         {activeTab === 'rooms' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {roomNotice && <InlineNotice tone={roomNotice.tone} label={roomNotice.message} />}
-
             {/* Stat Cards */}
             <StatCard.Group columns={3}>
               <StatCard
@@ -1134,8 +1118,6 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
         {/* ================= TAB 3: CAMERA DEVICES MANAGEMENT ================= */}
         {activeTab === 'devices' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {deviceNotice && <InlineNotice tone={deviceNotice.tone} label={deviceNotice.message} />}
-
             {/* Stat Cards (Matching standard with Danh Sách Phòng Họp) */}
             <StatCard.Group columns={3}>
               <StatCard
@@ -1251,13 +1233,11 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
         roomToEdit={roomToEdit}
         onSuccess={() => {
           loadRooms();
-          setRoomNotice({
-            message: roomToEdit
+          toast.success(
+            roomToEdit
               ? 'Đã cập nhật thông tin phòng thành công.'
-              : 'Đã thêm phòng mới thành công.',
-            tone: 'success'
-          });
-          setTimeout(() => setRoomNotice(null), 3000);
+              : 'Đã thêm phòng mới thành công.'
+          );
         }}
       />
 
@@ -1272,13 +1252,11 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
         deviceToEdit={deviceToEdit}
         onSuccess={() => {
           loadDevices();
-          setDeviceNotice({
-            message: deviceToEdit
+          toast.success(
+            deviceToEdit
               ? 'Đã cập nhật thông tin thiết bị thành công.'
-              : 'Đã thêm thiết bị mới thành công.',
-            tone: 'success'
-          });
-          setTimeout(() => setDeviceNotice(null), 3000);
+              : 'Đã thêm thiết bị mới thành công.'
+          );
         }}
       />
 
@@ -1425,6 +1403,9 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
           </div>
         </PopupModal>
       )}
+
+      {/* Local ToastContainer for isolated module rendering / testing */}
+      <ToastContainer />
     </div>
   );
 };

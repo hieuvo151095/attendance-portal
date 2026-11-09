@@ -4,7 +4,8 @@ import {
   TextField,
   PasswordField,
   InlineNotice,
-  Icon
+  Icon,
+  toast
 } from '../../design-system';
 import { authService } from '../../services/auth';
 import { AuthSession } from '../../types/auth';
@@ -83,6 +84,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
       );
 
       if (res.success && res.session) {
+        toast.success('Đổi mật khẩu tài khoản thành công!');
         onSuccess(res.session);
       } else {
         setErrorMessage(res.error || 'Đổi mật khẩu thất bại');

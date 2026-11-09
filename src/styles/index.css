@@ -1063,3 +1063,13 @@ button.ecomd-sidebar__toggle:hover {
   }
 }
 
+@keyframes ecomd-toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+

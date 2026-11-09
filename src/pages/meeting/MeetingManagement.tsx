@@ -9,7 +9,8 @@ import {
   StatusTag,
   Icon,
   PopupModal,
-  InlineNotice
+  InlineNotice,
+  toast
 } from '../../design-system';
 import { Meeting, MeetingStatus } from '../../types/meeting';
 import { meetingService } from '../../services/meeting';
@@ -117,11 +118,13 @@ export const MeetingManagement: React.FC<MeetingManagementProps> = ({
     setIsDeletingMeeting(true);
     try {
       await meetingService.deleteMeeting(tenantId, meetingToDelete.id);
+      const deletedTitle = meetingToDelete.title;
       setMeetingToDelete(null);
       loadData();
+      toast.success(`Đã xóa cuộc họp "${deletedTitle}" thành công.`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Lỗi xóa cuộc họp';
-      alert(msg);
+      toast.danger(msg);
     } finally {
       setIsDeletingMeeting(false);
     }
@@ -508,7 +511,14 @@ export const MeetingManagement: React.FC<MeetingManagementProps> = ({
         onClose={() => setMeetingModalOpen(false)}
         tenantId={tenantId}
         meetingToEdit={meetingToEdit}
-        onSuccess={loadData}
+        onSuccess={() => {
+          loadData();
+          toast.success(
+            meetingToEdit
+              ? `Đã cập nhật thông tin cuộc họp "${meetingToEdit.title}" thành công.`
+              : 'Đã lên lịch cuộc họp mới thành công.'
+          );
+        }}
       />
 
       {/* Meeting Report Modal (MTG-04) */}

@@ -10,7 +10,8 @@ import {
   EmptyValue,
   Icon,
   PopupModal,
-  InlineNotice
+  InlineNotice,
+  toast
 } from '../../design-system';
 import { Employee } from '../../types/employee';
 import { Department } from '../../types/organization';
@@ -131,11 +132,13 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
     setIsDeletingEmp(true);
     try {
       await employeeService.deleteEmployee(tenantId, empToDelete.id);
+      const empName = empToDelete.fullName;
       setEmpToDelete(null);
       loadData();
+      toast.success(`Đã xóa hồ sơ nhân sự "${empName}" thành công.`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Lỗi xóa nhân sự';
-      alert(msg);
+      toast.danger(msg);
     } finally {
       setIsDeletingEmp(false);
     }
@@ -542,14 +545,24 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
         onClose={() => setEmployeeModalOpen(false)}
         tenantId={tenantId}
         employeeToEdit={employeeToEdit}
-        onSuccess={loadData}
+        onSuccess={() => {
+          loadData();
+          toast.success(
+            employeeToEdit
+              ? `Đã cập nhật thông tin nhân sự "${employeeToEdit.fullName}" thành công.`
+              : 'Đã thêm mới nhân sự thành công.'
+          );
+        }}
       />
 
       <ExcelImportModal
         open={excelModalOpen}
         onClose={() => setExcelModalOpen(false)}
         tenantId={tenantId}
-        onSuccess={loadData}
+        onSuccess={() => {
+          loadData();
+          toast.success('Đã nạp danh sách nhân sự từ Excel thành công.');
+        }}
       />
 
       <CardManagementModal
