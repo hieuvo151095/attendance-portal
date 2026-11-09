@@ -72,14 +72,6 @@ export const CardManagementModal: React.FC<CardManagementModalProps> = ({
     }
   }, [open, employee, loadCardData]);
 
-  // Simulation of tapping physical card onto desktop RFID reader
-  const handleSimulateCardScan = (setter: (val: string) => void) => {
-    const hex = Array.from({ length: 8 }, () =>
-      Math.floor(Math.random() * 16).toString(16).toUpperCase()
-    ).join('');
-    setter(`04${hex}`);
-  };
-
   // Link new card
   const handleAssignNewCard = async () => {
     if (!employee) return;
@@ -87,7 +79,7 @@ export const CardManagementModal: React.FC<CardManagementModalProps> = ({
 
     const uid = newCardUid.trim().toUpperCase();
     if (!uid) {
-      setError('Vui lòng nhập hoặc quẹt mã UID thẻ vật lý.');
+      setError('Vui lòng nhập mã UID thẻ vật lý.');
       return;
     }
 
@@ -98,13 +90,13 @@ export const CardManagementModal: React.FC<CardManagementModalProps> = ({
         cardUid: uid,
         note: newCardNote.trim() || undefined
       });
-      toast.success(`Đã liên kết thành công thẻ UID "${card.cardUid}" với nhân viên!`);
+      toast.success(`Đã cấp thành công thẻ UID "${card.cardUid}" cho nhân viên!`);
       setNewCardUid('');
       setNewCardNote('');
       await loadCardData();
       onSuccess();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Lỗi liên kết thẻ';
+      const msg = err instanceof Error ? err.message : 'Lỗi cấp thẻ';
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -319,30 +311,18 @@ export const CardManagementModal: React.FC<CardManagementModalProps> = ({
                 Chưa có thẻ vật lý nào đang hoạt động
               </div>
               <p className="body-xs" style={{ margin: 0, color: 'var(--text-subtle)' }}>
-                Nhập mã thẻ hoặc chạm thẻ vật lý vào đầu đọc USB RFID/NFC để liên kết với nhân sự.
+                Nhập mã thẻ vật lý (RFID/NFC) để cấp thẻ điểm danh cho nhân sự.
               </p>
 
-              <div style={{ display: 'flex', gap: 'var(--space-8)', alignItems: 'flex-end' }}>
-                <div style={{ flex: 1 }}>
-                  <TextField
-                    id="assign-new-card-uid"
-                    label="Mã UID vật lý của thẻ"
-                    required
-                    placeholder="VD: 04A1B2C3D4, E0040150..."
-                    value={newCardUid}
-                    onChange={(val) => setNewCardUid(val)}
-                    disabled={submitting}
-                  />
-                </div>
-                <Button
-                  variant="secondary"
-                  icon="fingerprint"
-                  onClick={() => handleSimulateCardScan(setNewCardUid)}
-                  disabled={submitting}
-                >
-                  Quét từ đầu đọc
-                </Button>
-              </div>
+              <TextField
+                id="assign-new-card-uid"
+                label="Mã UID vật lý của thẻ"
+                required
+                placeholder="VD: 04A1B2C3D4, E0040150..."
+                value={newCardUid}
+                onChange={(val) => setNewCardUid(val)}
+                disabled={submitting}
+              />
 
               <TextField
                 id="assign-new-card-note"
@@ -360,7 +340,7 @@ export const CardManagementModal: React.FC<CardManagementModalProps> = ({
                   disabled={submitting || !newCardUid.trim()}
                   onClick={handleAssignNewCard}
                 >
-                  {submitting ? 'Đang liên kết...' : 'Liên kết thẻ cho nhân viên'}
+                  {submitting ? 'Đang cấp thẻ...' : 'Cấp thẻ'}
                 </Button>
               </div>
             </div>

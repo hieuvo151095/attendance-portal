@@ -141,17 +141,20 @@ describe('Giao diện Quản Lý Thẻ Nhân Viên (ORG-03: Card Management UI)'
       expect(screen.getByText('Chưa có thẻ vật lý nào đang hoạt động')).toBeInTheDocument();
     });
 
+    // Xác nhận không còn nút "Quét từ đầu đọc"
+    expect(screen.queryByText(/Quét từ đầu đọc/i)).not.toBeInTheDocument();
+
     // Nhập mã UID mới
     const uidInput = screen.getByPlaceholderText(/VD: 04A1B2C3D4, E0040150.../i);
     fireEvent.change(uidInput, { target: { value: '04FFFF112233' } });
 
-    // Bấm nút Liên kết thẻ
-    const assignBtn = screen.getByRole('button', { name: /Liên kết thẻ cho nhân viên/i });
+    // Bấm nút Cấp thẻ
+    const assignBtn = screen.getByRole('button', { name: /^Cấp thẻ$/i });
     fireEvent.click(assignBtn);
 
     // Chờ thông báo thành công
     await waitFor(() => {
-      expect(screen.getByText(/Đã liên kết thành công thẻ UID "04FFFF112233"/i)).toBeInTheDocument();
+      expect(screen.getByText(/Đã cấp thành công thẻ UID "04FFFF112233"/i)).toBeInTheDocument();
     });
 
     // Đóng modal
