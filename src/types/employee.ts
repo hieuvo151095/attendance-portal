@@ -69,6 +69,13 @@ export interface CameraFaceSyncPayload {
   faceScore?: number;
 }
 
+export interface CameraSyncBatchResult {
+  syncedCount: number;
+  deviceCount: number;
+  syncedEmployeeIds: string[];
+  syncedAt: string;
+}
+
 export interface ImportEmployeeRow {
   employeeCode: string;
   fullName: string;

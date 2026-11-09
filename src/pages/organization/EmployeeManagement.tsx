@@ -22,6 +22,7 @@ import { cardService } from '../../services/card';
 import { EmployeeModal } from './EmployeeModal';
 import { ExcelImportModal } from './ExcelImportModal';
 import { CardManagementModal } from './CardManagementModal';
+import { CameraSyncModal } from './CameraSyncModal';
 
 export interface EmployeeManagementProps {
   tenantId: string;
@@ -44,6 +45,7 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
   const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
 
   const [excelModalOpen, setExcelModalOpen] = useState(false);
+  const [cameraSyncModalOpen, setCameraSyncModalOpen] = useState(false);
 
   const [cardModalOpen, setCardModalOpen] = useState(false);
   const [employeeForCard, setEmployeeForCard] = useState<Employee | null>(null);
@@ -57,13 +59,7 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
         departmentService.getDepartmentsByTenant(tenantId),
         employeeService.getEmployeesByTenant(tenantId, {
           departmentId: selectedDeptId || undefined,
-          search: searchTerm || undefined,
-          faceIdStatus:
-            faceIdStatusFilter === 'enrolled'
-              ? 'enrolled'
-              : faceIdStatusFilter === 'pending'
-              ? 'pending'
-              : undefined
+          search: searchTerm || undefined
         }),
         cardService.getCardsByTenant(tenantId)
       ]);
@@ -75,7 +71,7 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
     } finally {
       setLoading(false);
     }
-  }, [tenantId, selectedDeptId, searchTerm, faceIdStatusFilter]);
+  }, [tenantId, selectedDeptId, searchTerm]);
 
   useEffect(() => {
     loadData();
@@ -89,21 +85,26 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
     }
   });
 
-  // Filter employees by card status if selected
+  // Filter employees by card status and camera/face ID status
   const filteredEmployees = employees.filter((emp) => {
-    if (cardStatusFilter === 'all') return true;
-    const card = activeCardMap.get(emp.id);
-    if (cardStatusFilter === 'active') return card?.status === 'active';
-    if (cardStatusFilter === 'locked') return card?.status === 'locked';
-    if (cardStatusFilter === 'none') return !card;
+    if (cardStatusFilter !== 'all') {
+      const card = activeCardMap.get(emp.id);
+      if (cardStatusFilter === 'active' && card?.status !== 'active') return false;
+      if (cardStatusFilter === 'locked' && card?.status !== 'locked') return false;
+      if (cardStatusFilter === 'none' && card) return false;
+    }
+    if (faceIdStatusFilter === 'synced' && !emp.cameraSyncInfo) return false;
+    if (faceIdStatusFilter === 'pending' && Boolean(emp.cameraSyncInfo)) return false;
+    if (faceIdStatusFilter === 'enrolled' && !emp.avatarUrl && emp.faceIdStatus !== 'enrolled') return false;
+    if (faceIdStatusFilter === 'hasPhoto' && !emp.avatarUrl) return false;
     return true;
   });
 
   // Statistics
   const totalCount = employees.length;
-  const enrolledCount = employees.filter((e) => e.faceIdStatus === 'enrolled').length;
+  const syncedCount = employees.filter((e) => Boolean(e.cameraSyncInfo)).length;
+  const unsyncedCount = employees.filter((e) => !e.cameraSyncInfo).length;
   const activeCardCount = employees.filter((e) => activeCardMap.get(e.id)?.status === 'active').length;
-  const pendingCount = employees.filter((e) => e.faceIdStatus === 'pending').length;
 
   const departmentMap = new Map<string, string>();
   departments.forEach((d) => departmentMap.set(d.id, d.name));
@@ -121,6 +122,17 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
   const handleOpenCardModal = (emp: Employee) => {
     setEmployeeForCard(emp);
     setCardModalOpen(true);
+  };
+
+  const handleSyncSingleEmployee = async (emp: Employee) => {
+    try {
+      await employeeService.syncEmployeesToCamera(tenantId, [emp.id]);
+      toast.success(`Đã đồng bộ thành công hồ sơ của "${emp.fullName}" đến các thiết bị Camera AI.`);
+      loadData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Lỗi đồng bộ đến Camera';
+      toast.danger(msg);
+    }
   };
 
   const handleDeleteEmployee = (emp: Employee) => {
@@ -151,8 +163,9 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
 
   const faceIdFilterOptions = [
     { value: 'all', label: 'Tất cả trạng thái Face ID' },
-    { value: 'enrolled', label: 'Đã có Face ID từ Camera' },
-    { value: 'pending', label: 'Chờ lấy mẫu tại Camera' }
+    { value: 'synced', label: 'Đã đồng bộ đến Camera' },
+    { value: 'pending', label: 'Chưa đồng bộ đến Camera' },
+    { value: 'hasPhoto', label: 'Đã có ảnh Face ID' }
   ];
 
   const cardFilterOptions = [
@@ -239,7 +252,7 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
       render: (emp: Employee) => {
         const card = activeCardMap.get(emp.id);
         const hasCard = Boolean(card);
-        const hasFaceId = emp.faceIdStatus === 'enrolled';
+        const hasFaceId = Boolean(emp.avatarUrl) || emp.faceIdStatus === 'enrolled';
         const hasFingerprint = (emp.fingerprintStatus ?? 'enrolled') === 'enrolled';
 
         const allowed = emp.allowedMethods || {
@@ -250,21 +263,25 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
 
         const methods = [];
 
-        // 1. Face ID: Chỉ hiển thị biểu tượng khi nhân viên đã có dữ liệu khuôn mặt từ Camera
+        // 1. Face ID:
         if (hasFaceId) {
           const isAllowed = allowed.faceId !== false;
+          const isSynced = Boolean(emp.cameraSyncInfo);
           methods.push({
             key: 'faceId',
             name: 'Khuôn mặt (Face ID)',
             icon: 'camera' as const,
             allowed: isAllowed,
+            isSynced,
             statusText: isAllowed
-              ? 'Đang bật nhận diện Face ID qua Camera Hikvision'
+              ? (isSynced
+                  ? 'Đang bật nhận diện Face ID qua Camera AI (Đã đồng bộ)'
+                  : 'Đã có ảnh Face ID trên Portal (Chưa đồng bộ đến Camera)')
               : 'Đã có Face ID nhưng Quản trị viên tạm tắt'
           });
         }
 
-        // 2. Vân tay: Chỉ hiển thị biểu tượng khi nhân viên đã lấy mẫu vân tay
+        // 2. Vân tay:
         if (hasFingerprint) {
           const isAllowed = allowed.fingerprint !== false;
           methods.push({
@@ -272,13 +289,14 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
             name: 'Vân tay',
             icon: 'fingerprint' as const,
             allowed: isAllowed,
+            isSynced: true,
             statusText: isAllowed
               ? 'Đang bật xác thực sinh trắc học vân tay'
               : 'Đã có mẫu vân tay nhưng Quản trị viên tạm tắt'
           });
         }
 
-        // 3. Thẻ nhân viên: Chỉ hiển thị biểu tượng khi nhân viên ĐÃ ĐƯỢC CẤP THẺ vật lý
+        // 3. Thẻ nhân viên:
         if (hasCard && card) {
           const isAllowed = (allowed.card !== false) && card.status === 'active';
           methods.push({
@@ -286,6 +304,7 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
             name: 'Thẻ nhân viên',
             icon: 'id-badge' as const,
             allowed: isAllowed,
+            isSynced: true,
             statusText: isAllowed
               ? `Đang bật quẹt thẻ (${card.cardUid})`
               : card.status === 'locked'
@@ -309,6 +328,7 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  position: 'relative',
                   width: 30,
                   height: 30,
                   borderRadius: 'var(--radius-6)',
@@ -320,6 +340,21 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
                 }}
               >
                 <Icon name={m.icon} size={15} />
+                {m.key === 'faceId' && !m.isSynced && (
+                  <span
+                    title="Chưa đồng bộ đến Camera AI"
+                    style={{
+                      position: 'absolute',
+                      top: -2,
+                      right: -2,
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      backgroundColor: '#f59e0b',
+                      border: '1.5px solid #ffffff'
+                    }}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -366,6 +401,11 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
               icon: 'pen',
               label: 'Chỉnh sửa hồ sơ',
               onClick: () => handleOpenEditModal(emp)
+            },
+            {
+              icon: 'rotate-right',
+              label: emp.cameraSyncInfo ? 'Đồng bộ lại đến Camera' : 'Đồng bộ đến Camera AI',
+              onClick: () => handleSyncSingleEmployee(emp)
             },
             {
               divider: true
@@ -436,22 +476,22 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
             tone="neutral"
           />
           <StatCard
-            label="Đã đồng bộ Face ID từ Camera"
-            value={enrolledCount}
+            label="Đã đồng bộ đến Camera"
+            value={syncedCount}
             icon="circle-check"
             tone="success"
+          />
+          <StatCard
+            label="Chưa đồng bộ đến Camera"
+            value={unsyncedCount}
+            icon="camera"
+            tone="warning"
           />
           <StatCard
             label="Đã cấp thẻ RFID/NFC"
             value={activeCardCount}
             icon="id-badge"
             tone="info"
-          />
-          <StatCard
-            label="Chờ lấy mẫu tại Camera"
-            value={pendingCount}
-            icon="camera"
-            tone="warning"
           />
         </StatCard.Group>
 
@@ -474,7 +514,7 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
               placeholder="Tìm theo tên, mã NV, CCCD..."
               value={searchTerm}
               onChange={(val) => setSearchTerm(val)}
-              width={300}
+              width={260}
             />
 
             <SelectField
@@ -499,7 +539,29 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
             />
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--space-8)' }}>
+          <div style={{ display: 'flex', gap: 'var(--space-8)', flexWrap: 'wrap' }}>
+            <Button
+              variant="secondary"
+              icon="rotate-right"
+              onClick={() => setCameraSyncModalOpen(true)}
+            >
+              Đồng bộ dữ liệu đến Camera
+              {unsyncedCount > 0 && (
+                <span
+                  style={{
+                    marginLeft: '6px',
+                    backgroundColor: 'var(--primary-100)',
+                    color: 'var(--primary-700)',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 7px',
+                    borderRadius: '10px'
+                  }}
+                >
+                  {unsyncedCount}
+                </span>
+              )}
+            </Button>
             <Button
               variant="secondary"
               icon="file-excel"
@@ -571,6 +633,16 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
         tenantId={tenantId}
         employee={employeeForCard}
         onSuccess={loadData}
+      />
+
+      <CameraSyncModal
+        open={cameraSyncModalOpen}
+        onClose={() => setCameraSyncModalOpen(false)}
+        tenantId={tenantId}
+        departments={departments}
+        onSuccess={() => {
+          loadData();
+        }}
       />
 
       {/* Delete Employee Confirmation PopupModal */}

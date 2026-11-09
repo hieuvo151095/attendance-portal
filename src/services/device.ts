@@ -241,3 +241,4 @@ class CameraDeviceService {
 }
 
 export const cameraDeviceService = new CameraDeviceService();
+export const deviceService = cameraDeviceService;

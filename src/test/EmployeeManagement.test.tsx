@@ -26,8 +26,8 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
     });
 
     expect(screen.getByText('Tổng nhân sự')).toBeInTheDocument();
-    expect(screen.getByText('Đã đồng bộ Face ID từ Camera')).toBeInTheDocument();
-    expect(screen.getAllByText('Chờ lấy mẫu tại Camera').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Đã đồng bộ đến Camera').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Chưa đồng bộ đến Camera').length).toBeGreaterThanOrEqual(1);
 
     // Check pre-seeded employee names
     await waitFor(() => {
@@ -95,7 +95,7 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
 
     // Nhãn "Số CCCD" và lưu ý đồng bộ mới
     expect(screen.getByText('Số CCCD')).toBeInTheDocument();
-    expect(screen.getByText(/tự động đồng bộ từ thiết bị Camera \/ thiết bị điểm danh vào hệ thống Portal/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ảnh khuôn mặt có thể nạp trực tiếp qua Portal để điểm danh Face ID/i)).toBeInTheDocument();
 
     // Điền thông tin nhân viên
     fireEvent.change(screen.getByPlaceholderText(/VD: NV-001, BCD-042/i), {
@@ -192,7 +192,7 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
     await waitFor(() => {
       expect(screen.getByText('Cập nhật hồ sơ nhân sự', { selector: 'h3' })).toBeInTheDocument();
       // Ghi chú nhắc nhở hiển thị rõ ràng
-      expect(screen.getByText(/Chưa có dữ liệu Face ID — Cần đăng ký lấy mẫu tại Camera/i)).toBeInTheDocument();
+      expect(screen.getByText(/Chưa có ảnh khuôn mặt — Hãy tải ảnh chân dung/i)).toBeInTheDocument();
       expect(screen.getByText(/Chưa cấp thẻ nhân sự — Cần cấp thẻ tại mục Quản lý thẻ/i)).toBeInTheDocument();
     });
 
@@ -312,6 +312,131 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
     await waitFor(() => {
       expect(screen.getByText('Nạp dữ liệu nhân sự thành công!')).toBeInTheDocument();
       expect(screen.getByText('Bỏ qua do lỗi / trùng')).toBeInTheDocument();
+    });
+  });
+
+  it('Thêm nhân sự mới có ảnh chân dung: kích hoạt sẵn Face ID mà không cần chụp tại camera Hikvision', async () => {
+    render(<EmployeeManagement tenantId={ubndTenant} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Thêm nhân sự mới')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Thêm nhân sự mới'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Ảnh chân dung nhận diện khuôn mặt (Face ID)')).toBeInTheDocument();
+    });
+
+    // Điền thông tin nhân viên
+    fireEvent.change(screen.getByPlaceholderText(/VD: NV-001, BCD-042/i), {
+      target: { value: 'NV-FACE-01' }
+    });
+    fireEvent.change(screen.getByPlaceholderText(/VD: Nguyễn Văn An/i), {
+      target: { value: 'Nguyễn Thanh Tùng' }
+    });
+    fireEvent.change(screen.getByPlaceholderText(/VD: 079085001234/i), {
+      target: { value: '079088776655' }
+    });
+    fireEvent.change(screen.getByPlaceholderText(/VD: Chuyên viên, Bác sĩ/i), {
+      target: { value: 'Cán bộ CNTT' }
+    });
+
+    // Chọn nhanh 1 ảnh chân dung mẫu
+    const samplePhotoBtn = screen.getByRole('button', { name: /Cán bộ Nam 1/i });
+    fireEvent.click(samplePhotoBtn);
+
+    // Xác nhận đã nhận ảnh chân dung và Face ID được kích hoạt sẵn
+    await waitFor(() => {
+      expect(screen.getByText('Ảnh chân dung hợp lệ cho Face ID')).toBeInTheDocument();
+      expect(screen.getByText(/Đã có ảnh khuôn mặt — Sẵn sàng đồng bộ đến Camera AI/i)).toBeInTheDocument();
+    });
+
+    // Checkbox Face ID được bật sẵn
+    const faceCheckbox = screen.getByLabelText('Cho phép điểm danh bằng Face ID');
+    expect(faceCheckbox).toBeChecked();
+    expect(faceCheckbox).not.toBeDisabled();
+
+    // Checkbox Vân tay vẫn khóa do chưa lấy mẫu tại thiết bị Hikvision
+    const fpCheckbox = screen.getByLabelText(/Chưa có dữ liệu vân tay/i);
+    expect(fpCheckbox).toBeDisabled();
+
+    // Lưu nhân viên
+    const submitBtn = screen.getByRole('button', { name: /^Thêm nhân sự$/i });
+    fireEvent.click(submitBtn);
+
+    // Xác nhận nhân viên đã được thêm và hiển thị trên bảng
+    await waitFor(() => {
+      expect(screen.getByText('Nguyễn Thanh Tùng')).toBeInTheDocument();
+      expect(screen.getByText('NV-FACE-01')).toBeInTheDocument();
+    });
+  });
+
+  it('Quy trình 2 bước Đồng bộ dữ liệu đến Camera AI: kiểm tra danh sách chưa đồng bộ, bỏ chọn, xem lại và xác nhận đồng bộ thành công', async () => {
+    render(<EmployeeManagement tenantId={ubndTenant} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Đồng bộ dữ liệu đến Camera/i)).toBeInTheDocument();
+    });
+
+    // Bấm nút "Đồng bộ dữ liệu đến Camera"
+    fireEvent.click(screen.getByText(/Đồng bộ dữ liệu đến Camera/i));
+
+    // BƯỚC 1: Hiển thị danh sách cán bộ chưa đồng bộ
+    await waitFor(() => {
+      expect(screen.getByText('Đồng Bộ Dữ Liệu Đến Camera AI')).toBeInTheDocument();
+      expect(screen.getByText('Bước 1: Chọn cán bộ')).toBeInTheDocument();
+      expect(screen.getByText('Bước 2: Xem lại & Đồng bộ')).toBeInTheDocument();
+    });
+
+    // Kiểm tra các cán bộ chưa đồng bộ xuất hiện trong modal
+    expect(screen.getAllByText('Ông Hoàng Văn Đức').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText('Ông Bùi Tiến Dũng').length).toBeGreaterThanOrEqual(2);
+
+    // Bỏ chọn 1 cán bộ (Hoàng Văn Đức)
+    const ducCheckbox = screen.getByLabelText(/Chọn cán bộ Ông Hoàng Văn Đức/i);
+    expect(ducCheckbox).toBeChecked();
+    fireEvent.click(ducCheckbox);
+    expect(ducCheckbox).not.toBeChecked();
+
+    // Bấm "Tiếp tục: Xem lại" để sang Bước 2
+    const nextBtn = screen.getByRole('button', { name: /Tiếp tục: Xem lại/i });
+    fireEvent.click(nextBtn);
+
+    // BƯỚC 2: Hiển thị danh sách xem lại và các camera tiếp nhận
+    await waitFor(() => {
+      expect(screen.getByText(/Thiết bị Camera AI tiếp nhận dữ liệu/i)).toBeInTheDocument();
+      expect(screen.getByText(/Danh sách cán bộ được duyệt đồng bộ/i)).toBeInTheDocument();
+    });
+
+    // Kiểm tra Bùi Tiến Dũng có trong danh sách duyệt modal (xuất hiện ở cả bảng và modal review),
+    // còn Hoàng Văn Đức chỉ có 1 ở bảng nền, không có trong danh sách duyệt modal
+    expect(screen.getAllByText('Ông Bùi Tiến Dũng').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText('Ông Hoàng Văn Đức').length).toBe(1);
+
+    // Bấm "← Quay lại chỉnh sửa" để kiểm tra tính năng quay lại
+    const backBtn = screen.getByRole('button', { name: /← Quay lại chỉnh sửa/i });
+    fireEvent.click(backBtn);
+
+    // Trở về Bước 1, Hoàng Văn Đức vẫn giữ trạng thái bỏ chọn
+    await waitFor(() => {
+      expect(screen.getByText('Bước 1: Chọn cán bộ')).toBeInTheDocument();
+    });
+    expect(screen.getByLabelText(/Chọn cán bộ Ông Hoàng Văn Đức/i)).not.toBeChecked();
+
+    // Tiến lại Bước 2
+    fireEvent.click(screen.getByRole('button', { name: /Tiếp tục: Xem lại/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Đồng bộ ngay/i)).toBeInTheDocument();
+    });
+
+    // Bấm "Đồng bộ ngay"
+    fireEvent.click(screen.getByText(/Đồng bộ ngay/i));
+
+    // Chờ modal đóng và đồng bộ hoàn tất
+    await waitFor(() => {
+      expect(screen.queryByText('Đồng Bộ Dữ Liệu Đến Camera AI')).not.toBeInTheDocument();
     });
   });
 });

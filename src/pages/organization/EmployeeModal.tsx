@@ -39,10 +39,13 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
 
   const [departments, setDepartments] = useState<Department[]>([]);
   const [hasCard, setHasCard] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const hasFaceId = employeeToEdit?.faceIdStatus === 'enrolled';
+  // Face ID chỉ cần ảnh khuôn mặt (tải trực tiếp trên Portal hoặc đã đồng bộ từ trước)
+  const hasFaceId = Boolean(avatarUrl && avatarUrl.trim());
+  // Vân tay mới cần lấy mẫu từ thiết bị phần cứng Hikvision
   const hasFingerprint = (employeeToEdit?.fingerprintStatus ?? (employeeToEdit ? 'enrolled' : 'pending')) === 'enrolled';
 
   useEffect(() => {
@@ -60,12 +63,13 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
         setEmail(employeeToEdit.email || '');
         setPhoneNumber(employeeToEdit.phoneNumber || '');
         setGender(employeeToEdit.gender || 'male');
+        setAvatarUrl(employeeToEdit.avatarUrl || '');
 
         const activeCard = await cardService.getActiveCardByEmployee(tenantId, employeeToEdit.id);
         const cardExists = Boolean(activeCard);
         setHasCard(cardExists);
 
-        const faceEnrolled = employeeToEdit.faceIdStatus === 'enrolled';
+        const faceEnrolled = Boolean(employeeToEdit.avatarUrl) || employeeToEdit.faceIdStatus === 'enrolled';
         const fpEnrolled = (employeeToEdit.fingerprintStatus ?? 'enrolled') === 'enrolled';
 
         setAllowedMethods({
@@ -82,6 +86,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
         setEmail('');
         setPhoneNumber('');
         setGender('male');
+        setAvatarUrl('');
         setHasCard(false);
         setAllowedMethods({
           faceId: false,
@@ -91,6 +96,36 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
       }
     });
   }, [open, tenantId, employeeToEdit]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Vui lòng chọn tệp hình ảnh hợp lệ (JPG, PNG, WebP).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setAvatarUrl(dataUrl);
+        setAllowedMethods((prev) => ({ ...prev, faceId: true }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setAvatarUrl('');
+    setAllowedMethods((prev) => ({ ...prev, faceId: false }));
+  };
+
+  const SAMPLE_AVATARS = [
+    { label: 'Cán bộ Nam 1', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
+    { label: 'Cán bộ Nữ 1', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' },
+    { label: 'Cán bộ Nam 2', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150' },
+    { label: 'Cán bộ Nữ 2', url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150' }
+  ];
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -119,6 +154,8 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
 
     try {
       setIsSubmitting(true);
+      const hasFacePhoto = Boolean(avatarUrl && avatarUrl.trim());
+
       if (isEditing && employeeToEdit) {
         const updateDto: UpdateEmployeeDTO = {
           employeeCode: employeeCode.trim(),
@@ -129,8 +166,10 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
           email: email.trim(),
           phoneNumber: phoneNumber.trim(),
           gender,
+          avatarUrl: hasFacePhoto ? avatarUrl.trim() : undefined,
+          faceIdStatus: hasFacePhoto ? 'enrolled' : 'pending',
           allowedMethods: {
-            faceId: hasFaceId ? allowedMethods.faceId : false,
+            faceId: hasFacePhoto ? allowedMethods.faceId : false,
             fingerprint: hasFingerprint ? allowedMethods.fingerprint : false,
             card: hasCard ? allowedMethods.card : false
           }
@@ -146,10 +185,11 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
           email: email.trim(),
           phoneNumber: phoneNumber.trim(),
           gender,
-          faceIdStatus: 'pending',
+          avatarUrl: hasFacePhoto ? avatarUrl.trim() : undefined,
+          faceIdStatus: hasFacePhoto ? 'enrolled' : 'pending',
           fingerprintStatus: 'pending',
           allowedMethods: {
-            faceId: false,
+            faceId: hasFacePhoto ? allowedMethods.faceId : false,
             fingerprint: false,
             card: false
           }
@@ -312,6 +352,230 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
           />
         </div>
 
+        {/* Section: Ảnh chân dung nhận diện khuôn mặt (Face ID) */}
+        <div
+          style={{
+            padding: 'var(--space-16)',
+            border: '1px solid var(--border-neutral-subtle)',
+            borderRadius: 'var(--radius-8)',
+            backgroundColor: 'var(--bg-surface)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-6)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
+              <Icon name="camera" size={18} style={{ color: 'var(--primary-600)' }} />
+              <span className="body-sm-semibold" style={{ color: 'var(--text-heading)' }}>
+                Ảnh chân dung nhận diện khuôn mặt (Face ID)
+              </span>
+            </div>
+            {hasFaceId && (
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  backgroundColor: '#ecfdf5',
+                  color: '#065f46',
+                  border: '1px solid #a7f3d0'
+                }}
+              >
+                Đã có ảnh Face ID
+              </span>
+            )}
+          </div>
+          <p className="body-xs" style={{ color: 'var(--text-subtle)', margin: '0 0 var(--space-12) 0' }}>
+            Tải ảnh chân dung rõ mặt để hệ thống kích hoạt điểm danh Face ID và sẵn sàng đồng bộ đến các Camera AI (Không cần chụp tại camera Hikvision).
+          </p>
+
+          {avatarUrl ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-16)',
+                padding: 'var(--space-12)',
+                backgroundColor: 'var(--bg-subtle)',
+                borderRadius: 'var(--radius-8)',
+                border: '1px solid var(--border-default)'
+              }}
+            >
+              <div style={{ position: 'relative', width: 68, height: 68, flexShrink: 0 }}>
+                <img
+                  src={avatarUrl}
+                  alt="Ảnh Face ID"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: 'var(--radius-8)',
+                    objectFit: 'cover',
+                    border: '2px solid var(--primary-500)'
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: -4,
+                    right: -4,
+                    backgroundColor: '#10b981',
+                    color: '#ffffff',
+                    borderRadius: '50%',
+                    width: 20,
+                    height: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  ✓
+                </div>
+              </div>
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="body-sm-medium" style={{ color: 'var(--text-heading)' }}>
+                  Ảnh chân dung hợp lệ cho Face ID
+                </div>
+                <div className="body-xs" style={{ color: 'var(--text-subtle)', marginTop: '2px' }}>
+                  Đã tải ảnh lên Portal • Sẵn sàng đồng bộ đến các thiết bị Camera AI
+                </div>
+                <div style={{ display: 'flex', gap: 'var(--space-8)', marginTop: 'var(--space-8)' }}>
+                  <label
+                    style={{
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '4px 10px',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      borderRadius: 'var(--radius-6)',
+                      border: '1px solid var(--border-default)',
+                      backgroundColor: 'var(--bg-surface)',
+                      color: 'var(--text-body)'
+                    }}
+                  >
+                    <Icon name="upload" size={12} />
+                    <span>Đổi ảnh khác</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleImageUpload}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '4px 10px',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      borderRadius: 'var(--radius-6)',
+                      border: '1px solid var(--border-default)',
+                      backgroundColor: 'var(--bg-surface)',
+                      color: 'var(--semantic-danger)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Icon name="trash" size={12} />
+                    <span>Xóa ảnh</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 'var(--space-16) var(--space-12)',
+                  border: '2px dashed var(--border-default)',
+                  borderRadius: 'var(--radius-8)',
+                  backgroundColor: 'var(--bg-subtle)',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  transition: 'background-color 0.15s ease'
+                }}
+              >
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--primary-100)',
+                    color: 'var(--primary-700)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 'var(--space-6)'
+                  }}
+                >
+                  <Icon name="upload" size={16} />
+                </div>
+                <span className="body-sm-medium" style={{ color: 'var(--text-heading)' }}>
+                  Nhấp để tải ảnh chân dung khuôn mặt (JPG, PNG)
+                </span>
+                <span className="body-xs" style={{ color: 'var(--text-subtle)', marginTop: '2px' }}>
+                  Có thể tải ảnh trực tiếp trên Portal, không cần chụp qua camera Hikvision
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleImageUpload}
+                />
+              </label>
+
+              {/* Gợi ý chọn ảnh chân dung mẫu */}
+              <div style={{ marginTop: 'var(--space-10)' }}>
+                <div className="body-xs" style={{ color: 'var(--text-subtle)', marginBottom: 'var(--space-6)' }}>
+                  Hoặc chọn nhanh ảnh mẫu có sẵn:
+                </div>
+                <div style={{ display: 'flex', gap: 'var(--space-8)', flexWrap: 'wrap' }}>
+                  {SAMPLE_AVATARS.map((sample, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setAvatarUrl(sample.url);
+                        setAllowedMethods((prev) => ({ ...prev, faceId: true }));
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '3px 8px',
+                        border: '1px solid var(--border-neutral-subtle)',
+                        borderRadius: 'var(--radius-6)',
+                        backgroundColor: 'var(--bg-surface)',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        color: 'var(--text-body)'
+                      }}
+                    >
+                      <img
+                        src={sample.url}
+                        alt={sample.label}
+                        style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }}
+                      />
+                      <span>{sample.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Section: Hình thức điểm danh cho phép */}
         <div
           style={{
@@ -373,13 +637,13 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                     Nhận diện khuôn mặt (Face ID)
                   </div>
                   {hasFaceId ? (
-                    <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>
-                      Ghi nhận qua Camera AI Hikvision tại cổng trụ sở và phòng họp
+                    <div className="body-xs" style={{ color: '#047857', fontWeight: 500 }}>
+                      ✅ Đã có ảnh khuôn mặt — Sẵn sàng đồng bộ đến Camera AI
                       {!allowedMethods.faceId && <span style={{ color: 'var(--text-disabled)', marginLeft: 6 }}>• Đang tạm tắt</span>}
                     </div>
                   ) : (
                     <div className="body-xs" style={{ color: '#b45309', fontWeight: 500, marginTop: 2 }}>
-                      ⚠️ Chưa có dữ liệu Face ID — Cần đăng ký lấy mẫu tại Camera Hikvision trước khi bật.
+                      ⚠️ Chưa có ảnh khuôn mặt — Hãy tải ảnh chân dung ở trên để kích hoạt Face ID (Không cần camera Hikvision).
                     </div>
                   )}
                 </div>
@@ -438,7 +702,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                     </div>
                   ) : (
                     <div className="body-xs" style={{ color: '#b45309', fontWeight: 500, marginTop: 2 }}>
-                      ⚠️ Chưa có dữ liệu vân tay — Cần lấy mẫu vân tay trên thiết bị trước khi bật.
+                      ⚠️ Chưa có dữ liệu vân tay — Cần lấy mẫu vân tay trực tiếp trên thiết bị Hikvision trước khi bật.
                     </div>
                   )}
                 </div>
@@ -521,7 +785,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
             color: 'var(--text-subtle)'
           }}
         >
-          💡 <b>Lưu ý đồng bộ:</b> Dữ liệu khuôn mặt và vân tay được tự động đồng bộ từ thiết bị Camera / thiết bị điểm danh vào hệ thống Portal khi nhân viên đăng ký tại thiết bị.
+          💡 <b>Lưu ý đồng bộ:</b> Ảnh khuôn mặt có thể nạp trực tiếp qua Portal để điểm danh Face ID và đồng bộ đến các thiết bị Camera AI. Thiết bị Hikvision chỉ bắt buộc khi đăng ký mẫu sinh trắc học vân tay.
         </div>
       </form>
     </SideSheet>

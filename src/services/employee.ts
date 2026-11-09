@@ -3,6 +3,7 @@ import {
   CreateEmployeeDTO,
   UpdateEmployeeDTO,
   CameraFaceSyncPayload,
+  CameraSyncBatchResult,
   ImportEmployeeRow,
   ImportEmployeeResult,
   ImportErrorRow,
@@ -656,22 +657,17 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     email: 'truc.lam@ubnd.gov.vn',
     phoneNumber: '0909 901 234',
     gender: 'female',
-    faceIdStatus: 'enrolled',
+    faceIdStatus: 'pending',
     fingerprintStatus: 'enrolled',
     avatarUrl: 'https://images.unsplash.com/photo-1558898479-33c0057a5d12?w=150',
-    cameraSyncInfo: {
-      deviceName: 'Camera AI Hikvision Cổng 1 - Trụ sở UBND',
-      syncedAt: '2026-11-01T09:42:00Z',
-      faceScore: 98.7
-    },
     allowedMethods: {
-      faceId: true,
+      faceId: false,
       fingerprint: true,
       card: true
     },
     status: 'active',
     createdAt: '2026-11-01T08:00:00Z',
-    updatedAt: '2026-11-01T09:42:00Z'
+    updatedAt: '2026-11-01T08:00:00Z'
   },
   {
     id: 'emp-ubnd-25',
@@ -955,6 +951,7 @@ class EmployeeService {
     }
 
     const now = new Date().toISOString();
+    const hasAvatar = Boolean(dto.avatarUrl && dto.avatarUrl.trim());
     const newEmp: Employee = {
       id: `emp-${tenantId.replace('tenant-', '')}-${Date.now().toString(36)}`,
       tenantId,
@@ -966,11 +963,12 @@ class EmployeeService {
       email: dto.email?.trim() || '',
       phoneNumber: dto.phoneNumber?.trim() || '',
       gender: dto.gender || 'male',
-      faceIdStatus: dto.faceIdStatus || (dto.avatarUrl ? 'enrolled' : 'pending'),
+      faceIdStatus: hasAvatar ? 'enrolled' : (dto.faceIdStatus || 'pending'),
       fingerprintStatus: dto.fingerprintStatus || 'pending',
-      avatarUrl: dto.avatarUrl,
+      avatarUrl: dto.avatarUrl?.trim(),
+      cameraSyncInfo: undefined,
       allowedMethods: dto.allowedMethods || {
-        faceId: false,
+        faceId: hasAvatar,
         fingerprint: false,
         card: false
       },
@@ -1101,6 +1099,69 @@ class EmployeeService {
     this.saveEmployees(all);
 
     return emp;
+  }
+
+  /**
+   * ĐỒNG BỘ DỮ LIỆU ĐẾN CAMERA AI (2-Step Camera Sync Flow)
+   * Đồng bộ danh sách cán bộ đã chọn xuống các thiết bị Camera AI đang hoạt động.
+   */
+  public async syncEmployeesToCamera(
+    tenantId: string,
+    employeeIds: string[],
+    targetDeviceNames?: string[]
+  ): Promise<CameraSyncBatchResult> {
+    authService.assertTenantAccess(tenantId);
+    const all = this.getAllEmployees();
+    const now = new Date().toISOString();
+    const targetName =
+      targetDeviceNames && targetDeviceNames.length > 0
+        ? targetDeviceNames.join(', ')
+        : 'Hệ thống Camera AI Finviet (5 thiết bị)';
+
+    let syncedCount = 0;
+    const syncedEmployeeIds: string[] = [];
+
+    for (const id of employeeIds) {
+      const idx = all.findIndex((e) => e.id === id && e.tenantId === tenantId);
+      if (idx !== -1) {
+        const emp = all[idx];
+        emp.cameraSyncInfo = {
+          deviceName: targetName,
+          syncedAt: now,
+          faceScore: 99.2
+        };
+        emp.faceIdStatus = 'enrolled';
+        if (emp.avatarUrl) {
+          emp.allowedMethods = {
+            faceId: true,
+            fingerprint: emp.allowedMethods?.fingerprint ?? false,
+            card: emp.allowedMethods?.card ?? false
+          };
+        }
+        emp.updatedAt = now;
+        all[idx] = emp;
+        syncedCount++;
+        syncedEmployeeIds.push(id);
+      }
+    }
+
+    this.saveEmployees(all);
+
+    return {
+      syncedCount,
+      deviceCount: targetDeviceNames?.length || 5,
+      syncedEmployeeIds,
+      syncedAt: now
+    };
+  }
+
+  /**
+   * Lấy danh sách cán bộ chưa đồng bộ dữ liệu đến Camera AI
+   */
+  public async getUnsyncedEmployees(tenantId: string): Promise<Employee[]> {
+    authService.assertTenantAccess(tenantId);
+    const all = this.getAllEmployees();
+    return all.filter((e) => e.tenantId === tenantId && !e.cameraSyncInfo);
   }
 
   /**
