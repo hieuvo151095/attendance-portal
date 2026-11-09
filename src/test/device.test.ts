@@ -96,4 +96,27 @@ describe('Quản trị thiết bị Camera (Camera Device Management)', () => {
     const listAfter = await cameraDeviceService.getDevicesByTenant(ubndTenant);
     expect(listAfter.some((d) => d.id === toDelete.id)).toBe(false);
   });
+
+  it('Hỗ trợ một camera áp dụng cho cả 2 loại hình điểm danh (Chấm công & Cuộc họp)', async () => {
+    const dto: CreateCameraDeviceDTO = {
+      name: 'Camera AI Đa Năng Cổng & Hội Trường',
+      code: 'CAM-DUAL-01',
+      attendanceType: 'both',
+      attendanceTypes: ['attendance', 'meeting'],
+      status: 'active',
+      location: 'Sảnh chính liên thông'
+    };
+
+    const created = await cameraDeviceService.createDevice(ubndTenant, dto);
+    expect(created.attendanceType).toBe('both');
+    expect(created.attendanceTypes).toContain('attendance');
+    expect(created.attendanceTypes).toContain('meeting');
+
+    // Cập nhật lại sang cả 2 loại hình
+    const updated = await cameraDeviceService.updateDevice(ubndTenant, created.id, {
+      attendanceType: 'both'
+    });
+    expect(updated.attendanceType).toBe('both');
+    expect(updated.attendanceTypes?.length).toBe(2);
+  });
 });

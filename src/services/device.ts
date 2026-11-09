@@ -9,6 +9,7 @@ export const DEFAULT_CAMERA_DEVICES: CameraDevice[] = [
     name: 'Camera AI Cổng Tiếp Dân',
     code: 'CAM-UBND-CC-01',
     attendanceType: 'attendance',
+    attendanceTypes: ['attendance'],
     status: 'active',
     location: 'Cổng chính tiếp dân UBND',
     createdAt: '2026-10-01T08:00:00Z',
@@ -19,9 +20,10 @@ export const DEFAULT_CAMERA_DEVICES: CameraDevice[] = [
     tenantId: 'tenant-ubnd-001',
     name: 'Camera AI Cổng Cán Bộ & Ban Chỉ Huy',
     code: 'CAM-UBND-CC-02',
-    attendanceType: 'attendance',
+    attendanceType: 'both',
+    attendanceTypes: ['attendance', 'meeting'],
     status: 'active',
-    location: 'Cổng nội bộ phía sau',
+    location: 'Cổng nội bộ & Lối vào hội trường',
     createdAt: '2026-10-01T08:00:00Z',
     updatedAt: '2026-10-01T08:00:00Z'
   },
@@ -31,6 +33,7 @@ export const DEFAULT_CAMERA_DEVICES: CameraDevice[] = [
     name: 'Camera AI Hội Trường Số 1',
     code: 'CAM-UBND-MTG-01',
     attendanceType: 'meeting',
+    attendanceTypes: ['meeting'],
     status: 'active',
     location: 'Hội trường số 1 - Tầng 2',
     createdAt: '2026-10-01T08:00:00Z',
@@ -42,6 +45,7 @@ export const DEFAULT_CAMERA_DEVICES: CameraDevice[] = [
     name: 'Camera AI Phòng Họp Hội Đồng Nhân Dân',
     code: 'CAM-UBND-MTG-02',
     attendanceType: 'meeting',
+    attendanceTypes: ['meeting'],
     status: 'active',
     location: 'Phòng họp HĐND - Tầng 2',
     createdAt: '2026-10-01T08:00:00Z',
@@ -53,6 +57,7 @@ export const DEFAULT_CAMERA_DEVICES: CameraDevice[] = [
     name: 'Camera AI Cổng Nhà Xe Cán Bộ (Bảo trì)',
     code: 'CAM-UBND-CC-03',
     attendanceType: 'attendance',
+    attendanceTypes: ['attendance'],
     status: 'locked',
     location: 'Lối vào nhà xe',
     createdAt: '2026-10-05T08:00:00Z',
@@ -137,12 +142,20 @@ class CameraDeviceService {
     }
 
     const now = new Date().toISOString();
+    const resolvedTypes: ('attendance' | 'meeting')[] =
+      dto.attendanceTypes && dto.attendanceTypes.length > 0
+        ? dto.attendanceTypes
+        : dto.attendanceType === 'both'
+        ? ['attendance', 'meeting']
+        : [dto.attendanceType as 'attendance' | 'meeting'];
+
     const newDevice: CameraDevice = {
       id: `cam-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       tenantId,
       name: dto.name.trim(),
       code: cleanCode,
       attendanceType: dto.attendanceType,
+      attendanceTypes: resolvedTypes,
       status: dto.status || 'active',
       location: dto.location?.trim() || '',
       createdAt: now,
@@ -182,6 +195,16 @@ class CameraDeviceService {
     }
     if (dto.attendanceType !== undefined) {
       current.attendanceType = dto.attendanceType;
+      current.attendanceTypes =
+        dto.attendanceTypes && dto.attendanceTypes.length > 0
+          ? dto.attendanceTypes
+          : dto.attendanceType === 'both'
+          ? ['attendance', 'meeting']
+          : [dto.attendanceType as 'attendance' | 'meeting'];
+    } else if (dto.attendanceTypes !== undefined) {
+      current.attendanceTypes = dto.attendanceTypes;
+      current.attendanceType =
+        dto.attendanceTypes.length > 1 ? 'both' : dto.attendanceTypes[0] || 'attendance';
     }
     if (dto.status !== undefined) {
       current.status = dto.status;

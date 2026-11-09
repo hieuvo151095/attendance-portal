@@ -376,4 +376,47 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
       expect(screen.getByText(/Đã xóa thiết bị "Camera AI Cổng Tiếp Dân" thành công/)).toBeInTheDocument();
     });
   });
+
+  it('Hỗ trợ một camera áp dụng cho cả 2 loại hình điểm danh (Chấm công & Cuộc họp) hiển thị đồng thời cả 2 nhãn', async () => {
+    render(<SettingsManagement tenantId={ubndTenant} />);
+
+    // Chuyển sang tab Quản trị thiết bị
+    fireEvent.click(screen.getByText('Quản trị thiết bị'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Thêm thiết bị mới')).toBeInTheDocument();
+    });
+
+    // Mở modal thêm thiết bị mới
+    fireEvent.click(screen.getByText('Thêm thiết bị mới'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Tạo mới thiết bị')).toBeInTheDocument();
+    });
+
+    const nameInput = screen.getByPlaceholderText('Nhập tên thiết bị (ví dụ: Camera Cổng Tiếp Dân)');
+    const codeInput = screen.getByPlaceholderText('Nhập mã thiết bị (ví dụ: CAM-099842)');
+
+    fireEvent.change(nameInput, { target: { value: 'Camera Đa Năng Sảnh & Phòng Họp' } });
+    fireEvent.change(codeInput, { target: { value: 'CAM-MULTI-99' } });
+
+    // Tích chọn cả 2 loại hình: Chấm công (mặc định đã chọn) và Cuộc họp
+    const meetingCheckbox = screen.getByTestId('device-type-meeting-checkbox');
+    expect(meetingCheckbox).not.toBeChecked();
+    fireEvent.click(meetingCheckbox);
+    expect(meetingCheckbox).toBeChecked();
+
+    const attCheckbox = screen.getByTestId('device-type-attendance-checkbox');
+    expect(attCheckbox).toBeChecked();
+
+    // Bấm nút lưu
+    const saveBtn = screen.getByRole('button', { name: 'Tạo mới' });
+    fireEvent.click(saveBtn);
+
+    // Kiểm tra thiết bị mới xuất hiện với cả 2 loại hình điểm danh
+    await waitFor(() => {
+      expect(screen.getByText('CAM-MULTI-99')).toBeInTheDocument();
+      expect(screen.getByText('Camera Đa Năng Sảnh & Phòng Họp')).toBeInTheDocument();
+    });
+  });
 });

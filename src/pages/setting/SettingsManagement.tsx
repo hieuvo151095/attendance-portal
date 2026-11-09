@@ -386,7 +386,7 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
         idx + 1,
         `"${d.code}"`,
         `"${d.name.replace(/"/g, '""')}"`,
-        `"${d.attendanceType === 'attendance' ? 'Chấm công' : 'Cuộc họp'}"`,
+        `"${d.attendanceType === 'both' ? 'Chấm công, Cuộc họp' : d.attendanceType === 'attendance' ? 'Chấm công' : 'Cuộc họp'}"`,
         `"${d.status === 'active' ? 'Hoạt động' : 'Tạm khoá'}"`,
         `"${(d.location || '').replace(/"/g, '""')}"`
       ].join(','))
@@ -407,7 +407,14 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
       d.code.toLowerCase().includes(deviceSearch.toLowerCase()) ||
       d.name.toLowerCase().includes(deviceSearch.toLowerCase()) ||
       (d.location && d.location.toLowerCase().includes(deviceSearch.toLowerCase()));
-    const matchesType = !deviceTypeFilter || d.attendanceType === deviceTypeFilter;
+    const matchesType = !deviceTypeFilter
+      ? true
+      : deviceTypeFilter === 'both'
+      ? d.attendanceType === 'both' ||
+        (d.attendanceTypes?.includes('attendance') && d.attendanceTypes?.includes('meeting'))
+      : d.attendanceType === deviceTypeFilter ||
+        d.attendanceType === 'both' ||
+        d.attendanceTypes?.includes(deviceTypeFilter as 'attendance' | 'meeting');
     const matchesStatus = !deviceStatusFilter || d.status === deviceStatusFilter;
     return matchesSearch && matchesType && matchesStatus;
   });
@@ -488,44 +495,60 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
     {
       key: 'attendanceType',
       title: 'Loại điểm danh',
-      width: '160px',
-      render: (d: CameraDevice) => (
-        d.attendanceType === 'attendance' ? (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '3px 10px',
-              borderRadius: '12px',
-              backgroundColor: '#eff6ff',
-              color: '#0070ce',
-              fontSize: '12px',
-              fontWeight: 600
-            }}
-          >
-            <Icon name="clock" size={12} color="#0070ce" />
-            Chấm công
-          </span>
-        ) : (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '3px 10px',
-              borderRadius: '12px',
-              backgroundColor: '#f5f3ff',
-              color: '#7c3aed',
-              fontSize: '12px',
-              fontWeight: 600
-            }}
-          >
-            <Icon name="calendar-days" size={12} color="#7c3aed" />
-            Cuộc họp
-          </span>
-        )
-      )
+      width: '210px',
+      render: (d: CameraDevice) => {
+        const isAtt =
+          d.attendanceType === 'attendance' ||
+          d.attendanceType === 'both' ||
+          d.attendanceTypes?.includes('attendance');
+        const isMtg =
+          d.attendanceType === 'meeting' ||
+          d.attendanceType === 'both' ||
+          d.attendanceTypes?.includes('meeting');
+
+        return (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            {isAtt && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '3px 9px',
+                  borderRadius: '12px',
+                  backgroundColor: '#eff6ff',
+                  color: '#0070ce',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <Icon name="clock" size={12} color="#0070ce" />
+                Chấm công
+              </span>
+            )}
+            {isMtg && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '3px 9px',
+                  borderRadius: '12px',
+                  backgroundColor: '#f5f3ff',
+                  color: '#7c3aed',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <Icon name="calendar-days" size={12} color="#7c3aed" />
+                Cuộc họp
+              </span>
+            )}
+          </div>
+        );
+      }
     },
     {
       key: 'status',
@@ -1163,7 +1186,8 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
                   options={[
                     { value: '', label: 'Tất cả loại điểm danh' },
                     { value: 'attendance', label: 'Chấm công' },
-                    { value: 'meeting', label: 'Cuộc họp' }
+                    { value: 'meeting', label: 'Cuộc họp' },
+                    { value: 'both', label: 'Cả hai (Chấm công & Cuộc họp)' }
                   ]}
                   width={180}
                 />
@@ -1302,7 +1326,12 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
               <div><strong>Mã thiết bị:</strong> <Tag variant="code">{deviceToDelete.code}</Tag></div>
               <div style={{ marginTop: '4px' }}><strong>Tên thiết bị:</strong> {deviceToDelete.name}</div>
               <div style={{ marginTop: '2px' }}>
-                <strong>Loại điểm danh:</strong> {deviceToDelete.attendanceType === 'attendance' ? 'Chấm công' : 'Cuộc họp'}
+                <strong>Loại điểm danh:</strong>{' '}
+                {deviceToDelete.attendanceType === 'both'
+                  ? 'Chấm công & Cuộc họp'
+                  : deviceToDelete.attendanceType === 'attendance'
+                  ? 'Chấm công'
+                  : 'Cuộc họp'}
               </div>
               <div style={{ marginTop: '2px' }}>
                 <strong>Trạng thái:</strong> {deviceToDelete.status === 'active' ? 'Hoạt động' : 'Tạm khoá'}
