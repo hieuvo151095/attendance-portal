@@ -1,4 +1,5 @@
 import { Meeting } from '../types/meeting';
+import { downloadExcelFile, ExcelSheetDefinition } from '../utils/excelExport';
 
 export interface MeetingReportData {
   meetingId: string;
@@ -286,87 +287,194 @@ class MeetingReportService {
   }
 
   /**
-   * Tải xuống file Excel (.csv UTF-8 BOM)
+   * Tải xuống biên bản chuyên cần cuộc họp định dạng file Excel (.xlsx) chuẩn OpenXML
    */
   public exportMeetingToExcel(meeting: Meeting, orgName?: string): void {
-    const csvContent = this.generateExcelCSV(meeting, orgName);
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const report = this.buildMeetingReportData(meeting, orgName);
     const safeTitle = meeting.title.replace(/[^a-zA-Z0-9À-ỹ\s]/g, '').trim().replace(/\s+/g, '_');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Bien_ban_chuyen_can_${safeTitle}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+
+    const sheet: ExcelSheetDefinition = {
+      name: 'Biên bản cuộc họp',
+      columns: [
+        { width: 8 },
+        { width: 14 },
+        { width: 26 },
+        { width: 20 },
+        { width: 26 },
+        { width: 16 },
+        { width: 14 },
+        { width: 16 },
+        { width: 18 },
+        { width: 14 },
+        { width: 16 },
+        { width: 16 },
+        { width: 18 }
+      ],
+      rows: [
+        { cells: [{ value: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', style: 'subtitle', colSpan: 13 }] },
+        { cells: [{ value: 'Độc lập - Tự do - Hạnh phúc', style: 'subtitle', colSpan: 13 }] },
+        { cells: [] },
+        { height: 28, cells: [{ value: 'BIÊN BẢN ĐIỂM DANH & BÁO CÁO CHUYÊN CẦN CUỘC HỌP', style: 'title', colSpan: 13 }] },
+        { cells: [{ value: `Đơn vị: ${report.orgName}  |  Phòng họp: ${report.roomName}`, style: 'subtitle', colSpan: 13 }] },
+        { cells: [{ value: `Tiêu đề cuộc họp: ${report.title}`, style: 'subtitle', colSpan: 13 }] },
+        { cells: [{ value: `Thời gian: ${report.scheduledTimeText}  |  Chốt biên bản: ${report.closedTimeText}`, style: 'subtitle', colSpan: 13 }] },
+        { cells: [{ value: `Chủ trì: ${report.hostName}  |  Thư ký: ${report.closedBy}`, style: 'subtitle', colSpan: 13 }] },
+        { cells: [] },
+        { height: 24, cells: [{ value: '1. TỔNG HỢP CHUYÊN CẦN THAM DỰ', style: 'section', colSpan: 13 }] },
+        {
+          height: 24,
+          cells: [
+            { value: 'Tổng triệu tập', style: 'header', colSpan: 2 },
+            { value: 'Có mặt', style: 'header', colSpan: 2 },
+            { value: 'Đến muộn', style: 'header', colSpan: 2 },
+            { value: 'Về sớm', style: 'header', colSpan: 2 },
+            { value: 'Vắng mặt', style: 'header', colSpan: 2 },
+            { value: 'Tỷ lệ chuyên cần', style: 'header', colSpan: 2 },
+            { value: 'Thời lượng TB', style: 'header' }
+          ]
+        },
+        {
+          cells: [
+            { value: report.summary.totalAttendees, style: 'boldBorderCenter', colSpan: 2 },
+            { value: report.summary.presentAttendees, style: 'boldBorderCenter', colSpan: 2 },
+            { value: report.summary.lateAttendees, style: 'borderCenter', colSpan: 2 },
+            { value: report.summary.earlyLeaveAttendees, style: 'borderCenter', colSpan: 2 },
+            { value: report.summary.absentAttendees, style: 'borderCenter', colSpan: 2 },
+            { value: `${report.summary.attendanceRate}%`, style: report.summary.attendanceRate >= 90 ? 'badgeSuccess' : 'badgeWarning', colSpan: 2 },
+            { value: `${report.summary.averageDurationMinutes} phút`, style: 'borderCenter' }
+          ]
+        },
+        { cells: [] },
+        { height: 24, cells: [{ value: '2. DANH SÁCH CHI TIẾT ĐẠI BIỂU & ĐỐI SOÁT ĐIỂM DANH', style: 'section', colSpan: 13 }] },
+        {
+          height: 26,
+          cells: [
+            { value: 'STT', style: 'header' },
+            { value: 'Mã cán bộ', style: 'header' },
+            { value: 'Họ và tên', style: 'header' },
+            { value: 'Chức vụ', style: 'header' },
+            { value: 'Phòng ban / Đơn vị', style: 'header' },
+            { value: 'Vai trò', style: 'header' },
+            { value: 'Giờ vào', style: 'header' },
+            { value: 'Trạng thái vào', style: 'header' },
+            { value: 'Phương thức', style: 'header' },
+            { value: 'Giờ ra', style: 'header' },
+            { value: 'Trạng thái ra', style: 'header' },
+            { value: 'Thời lượng (phút)', style: 'header' },
+            { value: 'Đánh giá', style: 'header' }
+          ]
+        },
+        ...report.attendees.map((att) => {
+          const isLate = att.checkInStatus.includes('Đi muộn');
+          const isAbsent = att.checkInTime === '--:--';
+          const inStyle = isAbsent ? ('badgeDanger' as const) : isLate ? ('badgeWarning' as const) : ('badgeSuccess' as const);
+
+          const isGoodConclusion = att.conclusion.includes('Đầy đủ') || att.conclusion.includes('Tốt');
+          const isCautionConclusion = att.conclusion.includes('Thiếu') || att.conclusion.includes('Muộn');
+          const concStyle = isGoodConclusion ? ('badgeSuccess' as const) : isCautionConclusion ? ('badgeWarning' as const) : ('badgeDanger' as const);
+
+          return {
+            height: 21,
+            cells: [
+              { value: att.stt, style: 'borderCenter' as const },
+              { value: att.employeeCode, style: 'borderCenter' as const },
+              { value: att.fullName, style: 'boldBorderLeft' as const },
+              { value: att.position, style: 'borderLeft' as const },
+              { value: att.departmentName, style: 'borderLeft' as const },
+              { value: att.role, style: 'borderCenter' as const },
+              { value: att.checkInTime, style: 'borderCenter' as const },
+              { value: att.checkInStatus, style: inStyle },
+              { value: att.checkInMethod, style: 'borderCenter' as const },
+              { value: att.checkOutTime, style: 'borderCenter' as const },
+              { value: att.checkOutStatus, style: 'borderCenter' as const },
+              { value: att.durationMinutes, style: 'borderRight' as const },
+              { value: att.conclusion, style: concStyle }
+            ]
+          };
+        }),
+        { cells: [] },
+        { height: 24, cells: [{ value: '3. CHỨNG THỰC DỮ LIỆU ĐIỆN TỬ BẤT BIẾN', style: 'section', colSpan: 13 }] },
+        { cells: [{ value: 'Mã băm toàn vẹn (SHA-256):', style: 'boldBorderLeft', colSpan: 4 }, { value: report.digitalSeal.hash, style: 'borderLeft', colSpan: 9 }] },
+        { cells: [{ value: 'Số sê-ri chứng thư số:', style: 'boldBorderLeft', colSpan: 4 }, { value: report.digitalSeal.serialNumber, style: 'borderLeft', colSpan: 9 }] },
+        { cells: [{ value: 'Cơ quan chứng thực:', style: 'boldBorderLeft', colSpan: 4 }, { value: report.digitalSeal.issuer, style: 'borderLeft', colSpan: 9 }] },
+        { cells: [{ value: 'Thời điểm ký số:', style: 'boldBorderLeft', colSpan: 4 }, { value: report.digitalSeal.signedAt, style: 'borderLeft', colSpan: 9 }] }
+      ]
+    };
+
+    downloadExcelFile(sheet, `Bien_ban_chuyen_can_${safeTitle}.xlsx`);
   }
 
   /**
-   * Xuất báo cáo tổng hợp danh mục các cuộc họp đã kết thúc trong kỳ ra file Excel
+   * Xuất báo cáo tổng hợp danh mục các cuộc họp đã kết thúc trong kỳ ra file Excel (.xlsx) chuẩn OpenXML
    */
   public exportConcludedMeetingsSummaryToExcel(
     meetings: Meeting[],
     orgName: string = 'Ủy Ban Nhân Dân Phường Bến Nghé',
     periodLabel: string = 'Tất cả các kỳ'
   ): void {
-    const escapeCsv = (val: string | number) => {
-      const str = String(val).replace(/"/g, '""');
-      return `"${str}"`;
+    const sheet: ExcelSheetDefinition = {
+      name: 'Tổng hợp kỳ họp',
+      columns: [
+        { width: 8 },
+        { width: 34 },
+        { width: 22 },
+        { width: 24 },
+        { width: 22 },
+        { width: 20 },
+        { width: 16 },
+        { width: 14 },
+        { width: 14 },
+        { width: 14 },
+        { width: 18 }
+      ],
+      rows: [
+        { cells: [{ value: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', style: 'subtitle', colSpan: 11 }] },
+        { cells: [{ value: 'Độc lập - Tự do - Hạnh phúc', style: 'subtitle', colSpan: 11 }] },
+        { cells: [] },
+        { height: 28, cells: [{ value: 'BÁO CÁO TỔNG HỢP DANH MỤC CUỘC HỌP ĐÃ KẾT THÚC & CHUYÊN CẦN', style: 'title', colSpan: 11 }] },
+        { cells: [{ value: `Đơn vị: ${orgName}  |  Kỳ tổng hợp: ${periodLabel}`, style: 'subtitle', colSpan: 11 }] },
+        { cells: [{ value: `Thời điểm xuất: ${new Date().toLocaleString('vi-VN')}`, style: 'subtitle', colSpan: 11 }] },
+        { cells: [] },
+        {
+          height: 26,
+          cells: [
+            { value: 'STT', style: 'header' },
+            { value: 'Tên cuộc họp', style: 'header' },
+            { value: 'Người chủ trì', style: 'header' },
+            { value: 'Phòng họp / Địa điểm', style: 'header' },
+            { value: 'Thời gian diễn ra', style: 'header' },
+            { value: 'Thời điểm kết thúc', style: 'header' },
+            { value: 'Triệu tập', style: 'header' },
+            { value: 'Có mặt', style: 'header' },
+            { value: 'Đến muộn', style: 'header' },
+            { value: 'Vắng mặt', style: 'header' },
+            { value: 'Tỷ lệ chuyên cần', style: 'header' }
+          ]
+        },
+        ...meetings.map((m, idx) => {
+          const rep = this.buildMeetingReportData(m, orgName);
+          const attRate = rep.summary.attendanceRate;
+          return {
+            height: 21,
+            cells: [
+              { value: idx + 1, style: 'borderCenter' as const },
+              { value: m.title, style: 'boldBorderLeft' as const },
+              { value: m.hostName || '--', style: 'borderLeft' as const },
+              { value: m.roomName, style: 'borderLeft' as const },
+              { value: rep.scheduledTimeText, style: 'borderCenter' as const },
+              { value: rep.closedTimeText, style: 'borderCenter' as const },
+              { value: rep.summary.totalAttendees, style: 'borderRight' as const },
+              { value: rep.summary.presentAttendees, style: 'borderRight' as const },
+              { value: rep.summary.lateAttendees, style: 'borderRight' as const },
+              { value: rep.summary.absentAttendees, style: 'borderRight' as const },
+              { value: `${attRate}%`, style: attRate >= 90 ? ('badgeSuccess' as const) : ('badgeWarning' as const) }
+            ]
+          };
+        })
+      ]
     };
 
-    const lines: string[] = [];
-    lines.push([escapeCsv('CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM')].join(','));
-    lines.push([escapeCsv('Độc lập - Tự do - Hạnh phúc')].join(','));
-    lines.push('');
-    lines.push([escapeCsv('ĐƠN VỊ:'), escapeCsv(orgName)].join(','));
-    lines.push([escapeCsv('BÁO CÁO TỔNG HỢP DANH MỤC CUỘC HỌP ĐÃ KẾT THÚC & CHUYÊN CẦN')].join(','));
-    lines.push([escapeCsv('Kỳ tổng hợp:'), escapeCsv(periodLabel)].join(','));
-    lines.push([escapeCsv('Ngày xuất báo cáo:'), escapeCsv(new Date().toLocaleDateString('vi-VN'))].join(','));
-    lines.push('');
-
-    // Headers
-    lines.push([
-      escapeCsv('STT'),
-      escapeCsv('Tên cuộc họp'),
-      escapeCsv('Người chủ trì'),
-      escapeCsv('Phòng họp / Địa điểm'),
-      escapeCsv('Thời gian diễn ra'),
-      escapeCsv('Thời điểm kết thúc'),
-      escapeCsv('Đại biểu triệu tập'),
-      escapeCsv('Có mặt'),
-      escapeCsv('Đến muộn'),
-      escapeCsv('Vắng mặt'),
-      escapeCsv('Tỷ lệ chuyên cần (%)')
-    ].join(','));
-
-    meetings.forEach((m, idx) => {
-      const rep = this.buildMeetingReportData(m, orgName);
-      lines.push([
-        escapeCsv(idx + 1),
-        escapeCsv(m.title),
-        escapeCsv(m.hostName || '--'),
-        escapeCsv(m.roomName),
-        escapeCsv(rep.scheduledTimeText),
-        escapeCsv(rep.closedTimeText),
-        escapeCsv(rep.summary.totalAttendees),
-        escapeCsv(rep.summary.presentAttendees),
-        escapeCsv(rep.summary.lateAttendees),
-        escapeCsv(rep.summary.absentAttendees),
-        escapeCsv(`${rep.summary.attendanceRate}%`)
-      ].join(','));
-    });
-
-    const csvContent = '\uFEFF' + lines.join('\r\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Bao_cao_tong_hop_cuoc_hop_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    downloadExcelFile(sheet, `Bao_cao_tong_hop_cuoc_hop_${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
 
   /**

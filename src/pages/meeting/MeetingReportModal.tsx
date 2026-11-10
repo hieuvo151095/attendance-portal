@@ -175,7 +175,7 @@ export const MeetingReportModal: React.FC<MeetingReportModalProps> = ({
             icon="file-excel"
             onClick={handleExportExcel}
           >
-            Xuất Excel (.csv)
+            Xuất Excel
           </Button>
           <Button
             variant="primary"

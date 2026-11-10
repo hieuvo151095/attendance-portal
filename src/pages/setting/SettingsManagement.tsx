@@ -19,6 +19,7 @@ import type { CameraDevice } from '../../types/device';
 import { attendanceSettingService } from '../../services/setting';
 import { roomService } from '../../services/room';
 import { cameraDeviceService } from '../../services/device';
+import { downloadExcelFile, ExcelSheetDefinition } from '../../utils/excelExport';
 import { RoomModal } from './RoomModal';
 import { DeviceModal } from './DeviceModal';
 
@@ -397,24 +398,67 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({
   };
 
   const handleExportDevices = () => {
-    const csvContent = [
-      ['STT', 'Mã thiết bị', 'Tên thiết bị', 'Loại điểm danh', 'Trạng thái', 'Vị trí lắp đặt'].join(','),
-      ...filteredDevices.map((d, idx) => [
-        idx + 1,
-        `"${d.code}"`,
-        `"${d.name.replace(/"/g, '""')}"`,
-        `"${d.attendanceType === 'both' ? 'Chấm công, Cuộc họp' : d.attendanceType === 'attendance' ? 'Chấm công' : 'Cuộc họp'}"`,
-        `"${d.status === 'active' ? 'Hoạt động' : 'Tạm khoá'}"`,
-        `"${(d.location || '').replace(/"/g, '""')}"`
-      ].join(','))
-    ].join('\n');
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Danh_sach_thiet_bi_${tenantId}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const sheet: ExcelSheetDefinition = {
+        name: 'Danh sách thiết bị',
+        columns: [
+          { width: 8 },  // STT
+          { width: 22 }, // Mã thiết bị
+          { width: 34 }, // Tên thiết bị
+          { width: 24 }, // Loại điểm danh
+          { width: 18 }, // Trạng thái
+          { width: 30 }  // Vị trí lắp đặt
+        ],
+        rows: [
+          { cells: [{ value: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', style: 'subtitle', colSpan: 6 }] },
+          { cells: [{ value: 'Độc lập - Tự do - Hạnh phúc', style: 'subtitle', colSpan: 6 }] },
+          { cells: [] },
+          { height: 28, cells: [{ value: 'DANH SÁCH THIẾT BỊ CAMERA AI & ĐẦU ĐỌC ĐIỂM DANH', style: 'title', colSpan: 6 }] },
+          { cells: [{ value: `Mã đơn vị: ${tenantId}  |  Tổng số thiết bị: ${filteredDevices.length}`, style: 'subtitle', colSpan: 6 }] },
+          { cells: [{ value: `Thời điểm xuất: ${new Date().toLocaleString('vi-VN')}`, style: 'subtitle', colSpan: 6 }] },
+          { cells: [] },
+          {
+            height: 26,
+            cells: [
+              { value: 'STT', style: 'header' },
+              { value: 'Mã thiết bị', style: 'header' },
+              { value: 'Tên thiết bị', style: 'header' },
+              { value: 'Loại điểm danh', style: 'header' },
+              { value: 'Trạng thái', style: 'header' },
+              { value: 'Vị trí lắp đặt', style: 'header' }
+            ]
+          },
+          ...filteredDevices.map((d, idx) => {
+            const typeLabel =
+              d.attendanceType === 'both'
+                ? 'Chấm công & Cuộc họp'
+                : d.attendanceType === 'attendance'
+                ? 'Chấm công'
+                : 'Cuộc họp';
+            const isActive = d.status === 'active';
+            return {
+              height: 21,
+              cells: [
+                { value: idx + 1, style: 'borderCenter' as const },
+                { value: d.code, style: 'boldBorderCenter' as const },
+                { value: d.name, style: 'boldBorderLeft' as const },
+                { value: typeLabel, style: 'borderCenter' as const },
+                {
+                  value: isActive ? 'Hoạt động' : 'Tạm khoá',
+                  style: isActive ? ('badgeSuccess' as const) : ('badgeWarning' as const)
+                },
+                { value: d.location || 'Chưa thiết lập', style: 'borderLeft' as const }
+              ]
+            };
+          })
+        ]
+      };
+
+      downloadExcelFile(sheet, `Danh_sach_thiet_bi_${tenantId}.xlsx`);
+      toast.success('Đã xuất danh sách thiết bị ra file Excel thành công!');
+    } catch (err) {
+      toast.danger('Lỗi xuất dữ liệu thiết bị: ' + (err instanceof Error ? err.message : ''));
+    }
   };
 
   // Filtered devices

@@ -124,6 +124,11 @@ Tài liệu quy định các nguyên tắc thiết kế bắt buộc được đ
 - **Bộ chọn lịch năm (Year Calendar Month Picker):** Nút mở popover lịch 12 tháng chuyên nghiệp, hỗ trợ xem dữ liệu bất kỳ tháng nào trong quá khứ (`Tháng 01` - `Tháng 11/2026`), vô hiệu hóa các tháng tương lai chưa diễn ra, kèm nút quay về tháng hiện tại.
 - **Cập nhật tiêu đề phụ & trạng thái trống:** Tiêu đề danh sách cập nhật động theo tháng (`Dựa trên các kỳ họp trong Tháng 11/2026 (Tháng hiện tại)`), hiển thị giao diện chúc mừng tích cực khi tháng không phát sinh vi phạm.
 
+### 19. Chuẩn Hóa Xuất Báo Cáo Định Dạng Excel (.xlsx) Thay Thế CSV
+- **Chuyển đổi triệt để sang file Excel chuẩn OpenXML (.xlsx):** Toàn bộ các chức năng xuất dữ liệu (Bảng chấm công ngày, Dashboard chấm công, Dashboard cuộc họp, Biên bản chuyên cần cuộc họp, Lưu trữ tổng hợp kỳ họp, Quản trị thiết bị) chuyển sang tạo tệp `.xlsx` thật, mở trực tiếp trên Excel/Google Sheets không bao giờ bị lỗi font tiếng Việt.
+- **Bộ sinh OpenXML thuần TypeScript (`src/utils/excelExport.ts`):** Tự sinh tệp nhị phân ZIP OpenXML không cần thêm thư viện npm ngoài, bảo đảm an toàn vận hành 100%.
+- **Thiết kế định dạng đồng bộ giao diện bảng:** Tiêu đề Quốc hiệu, đơn vị, tiêu đề bảng nền xanh Finviet Primary Blue (`#0070CE`) chữ trắng đậm, viền mỏng `#CBD5E1`, phân canh lề và các huy hiệu trạng thái màu mềm (xanh lá, vàng cam, đỏ, xanh dương) đồng bộ 100% với giao diện người dùng.
+
 ## Liên quan
 - [Tài liệu hướng dẫn chi tiết](file:///Users/hieuvo/Desktop/Finviet/Attendance%20Portal/docs/USER_FEEDBACK_GUIDELINES.md)
 - [Tổng quan Attendance Portal](project-overview.md)

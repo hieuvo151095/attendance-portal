@@ -143,8 +143,8 @@ describe('Bảng Điều Khiển Phân Tích Chuyên Cần Cuộc Họp (DASH-03
     });
   });
 
-  it('Bấm nút Xuất Báo Cáo kích hoạt tải file CSV UTF-8 với dữ liệu chi tiết', async () => {
-    const exportSpy = vi.spyOn(dashboardService, 'exportMeetingDashboardCsv').mockResolvedValue('MÃ CUỘC HỌP,TIÊU ĐỀ');
+  it('Bấm nút Xuất Báo Cáo kích hoạt tải file Excel OpenXML với dữ liệu chi tiết', async () => {
+    const exportSpy = vi.spyOn(dashboardService, 'exportMeetingDashboardExcel').mockResolvedValue();
 
     render(<MeetingDashboard tenantId={ubndTenant} />);
 

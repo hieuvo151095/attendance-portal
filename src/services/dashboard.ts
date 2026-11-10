@@ -7,6 +7,7 @@ import { cardService } from './card';
 import { roomService } from './room';
 import { Meeting, MeetingAttendee } from '../types/meeting';
 import { HISTORICAL_DASHBOARD_MEETINGS } from './mockHistoricalMeetings';
+import { downloadExcelFile, ExcelSheetDefinition } from '../utils/excelExport';
 
 export type DashboardPeriod = 'days' | 'weeks' | 'months' | 'today' | 'week' | 'month';
 
@@ -903,6 +904,159 @@ class DashboardService {
     ];
 
     return '\uFEFF' + lines.join('\n');
+  }
+
+  /**
+   * Xuất báo cáo tổng quan chuyên cần toàn cơ quan ra file Excel (.xlsx) chuẩn OpenXML
+   */
+  public async exportDashboardExcel(
+    tenantId: string,
+    period: DashboardPeriod = 'days',
+    selectedDepartmentId?: string,
+    options?: DashboardFilterOptions,
+    orgName: string = 'Ủy Ban Nhân Dân Phường Bến Nghé'
+  ): Promise<void> {
+    const data = await this.getDashboardData(tenantId, period, selectedDepartmentId, options);
+    let periodLabel = 'Hôm nay';
+    if (period === 'days' || period === 'today') {
+      periodLabel = `Theo ngày (${data.trends.length} ngày: ${data.trends[0]?.label || ''} - ${data.trends[data.trends.length - 1]?.label || ''})`;
+    } else if (period === 'weeks' || period === 'week') {
+      periodLabel = `Theo tuần (${data.trends.length} tuần gần nhất)`;
+    } else if (period === 'months' || period === 'month') {
+      periodLabel = `Theo tháng (${data.trends.length} tháng gần nhất)`;
+    }
+
+    const sheet: ExcelSheetDefinition = {
+      name: 'Chuyên cần cơ quan',
+      columns: [
+        { width: 8 },
+        { width: 14 },
+        { width: 32 },
+        { width: 14 },
+        { width: 14 },
+        { width: 14 },
+        { width: 14 },
+        { width: 18 },
+        { width: 18 }
+      ],
+      rows: [
+        { cells: [{ value: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', style: 'subtitle', colSpan: 9 }] },
+        { cells: [{ value: 'Độc lập - Tự do - Hạnh phúc', style: 'subtitle', colSpan: 9 }] },
+        { cells: [] },
+        { height: 28, cells: [{ value: 'BÁO CÁO PHÂN TÍCH HIỆN DIỆN VÀ CHUYÊN CẦN TOÀN CƠ QUAN', style: 'title', colSpan: 9 }] },
+        { cells: [{ value: `Đơn vị: ${orgName}  |  Kỳ thống kê: ${periodLabel}`, style: 'subtitle', colSpan: 9 }] },
+        { cells: [{ value: `Thời điểm xuất: ${new Date().toLocaleString('vi-VN')}`, style: 'subtitle', colSpan: 9 }] },
+        { cells: [] },
+        { height: 24, cells: [{ value: '1. CHỈ SỐ TỔNG HỢP TOÀN CƠ QUAN (KPIs)', style: 'section', colSpan: 9 }] },
+        { height: 24, cells: [{ value: 'Chỉ số', style: 'header', colSpan: 3 }, { value: 'Giá trị', style: 'header', colSpan: 2 }, { value: 'Ghi chú / Đơn vị', style: 'header', colSpan: 4 }] },
+        { cells: [{ value: 'Tổng số cán bộ nhân sự', style: 'boldBorderLeft', colSpan: 3 }, { value: data.kpis.totalStaff, style: 'boldBorderCenter', colSpan: 2 }, { value: 'Cán bộ đang biên chế tại cơ quan', style: 'borderLeft', colSpan: 4 }] },
+        { cells: [{ value: 'Số nhân sự hiện diện', style: 'boldBorderLeft', colSpan: 3 }, { value: data.kpis.presentToday, style: 'boldBorderCenter', colSpan: 2 }, { value: 'Cán bộ có mặt làm việc thực tế', style: 'borderLeft', colSpan: 4 }] },
+        { cells: [{ value: 'Tỷ lệ hiện diện toàn cơ quan', style: 'boldBorderLeft', colSpan: 3 }, { value: `${data.kpis.attendanceRate}%`, style: 'badgeSuccess', colSpan: 2 }, { value: 'Mục tiêu: >= 90%', style: 'borderLeft', colSpan: 4 }] },
+        { cells: [{ value: 'Tỷ lệ đúng giờ', style: 'boldBorderLeft', colSpan: 3 }, { value: `${data.kpis.onTimeRate}%`, style: data.kpis.onTimeRate >= 90 ? 'badgeSuccess' : 'badgeWarning', colSpan: 2 }, { value: 'Mục tiêu: >= 90%', style: 'borderLeft', colSpan: 4 }] },
+        { cells: [{ value: 'Số lượt đi muộn', style: 'borderLeft', colSpan: 3 }, { value: data.kpis.lateCount, style: 'borderCenter', colSpan: 2 }, { value: 'Lượt cán bộ đến trễ so với giờ ca', style: 'borderLeft', colSpan: 4 }] },
+        { cells: [{ value: 'Số lượt về sớm', style: 'borderLeft', colSpan: 3 }, { value: data.kpis.earlyLeaveCount, style: 'borderCenter', colSpan: 2 }, { value: 'Lượt cán bộ về trước giờ quy định', style: 'borderLeft', colSpan: 4 }] },
+        { cells: [{ value: 'Số lượt vắng mặt', style: 'borderLeft', colSpan: 3 }, { value: data.kpis.absentCount, style: 'borderCenter', colSpan: 2 }, { value: 'Lượt vắng mặt không lý do hoặc chưa điểm danh', style: 'borderLeft', colSpan: 4 }] },
+        { cells: [{ value: 'Tỷ lệ chuyên cần cuộc họp', style: 'borderLeft', colSpan: 3 }, { value: `${data.kpis.meetingAttendanceRate}%`, style: 'badgeInfo', colSpan: 2 }, { value: `Hoàn tất ${data.kpis.totalMeetingsCount} cuộc họp`, style: 'borderLeft', colSpan: 4 }] },
+        { cells: [{ value: 'Nhân sự đã đăng ký Face ID', style: 'borderLeft', colSpan: 3 }, { value: data.kpis.faceIdEnrolledCount, style: 'borderCenter', colSpan: 2 }, { value: 'Sinh trắc học nhận diện khuôn mặt', style: 'borderLeft', colSpan: 4 }] },
+        { cells: [{ value: 'Nhân sự đã đăng ký vân tay', style: 'borderLeft', colSpan: 3 }, { value: data.kpis.fingerprintEnrolledCount, style: 'borderCenter', colSpan: 2 }, { value: 'Sinh trắc học vân tay máy chấm công', style: 'borderLeft', colSpan: 4 }] },
+        { cells: [{ value: 'Thẻ RFID / NFC đang kích hoạt', style: 'borderLeft', colSpan: 3 }, { value: data.kpis.activeCardsCount, style: 'borderCenter', colSpan: 2 }, { value: 'Thẻ cán bộ công chức', style: 'borderLeft', colSpan: 4 }] },
+        { cells: [] },
+        { height: 24, cells: [{ value: '2. SO SÁNH CHUYÊN CẦN THEO PHÒNG BAN', style: 'section', colSpan: 9 }] },
+        {
+          height: 26,
+          cells: [
+            { value: 'STT', style: 'header' },
+            { value: 'Mã phòng', style: 'header' },
+            { value: 'Tên phòng ban / Bộ phận', style: 'header' },
+            { value: 'Tổng nhân sự', style: 'header' },
+            { value: 'Có mặt', style: 'header' },
+            { value: 'Đúng giờ', style: 'header' },
+            { value: 'Đi muộn', style: 'header' },
+            { value: 'Tỷ lệ hiện diện', style: 'header' },
+            { value: 'Tỷ lệ đúng giờ', style: 'header' }
+          ]
+        },
+        ...data.departmentMetrics.map((dept, idx) => ({
+          height: 21,
+          cells: [
+            { value: idx + 1, style: 'borderCenter' as const },
+            { value: dept.code, style: 'borderCenter' as const },
+            { value: dept.name, style: 'boldBorderLeft' as const },
+            { value: dept.totalStaff, style: 'borderRight' as const },
+            { value: dept.presentCount, style: 'borderRight' as const },
+            { value: dept.onTimeCount, style: 'borderRight' as const },
+            { value: dept.lateCount, style: 'borderRight' as const },
+            { value: `${dept.attendanceRate}%`, style: dept.attendanceRate >= 90 ? ('badgeSuccess' as const) : ('badgeWarning' as const) },
+            { value: `${dept.onTimeRate}%`, style: dept.onTimeRate >= 90 ? ('badgeSuccess' as const) : ('badgeWarning' as const) }
+          ]
+        })),
+        { cells: [] },
+        { height: 24, cells: [{ value: '3. CƠ CẤU PHƯƠNG THỨC ĐIỂM DANH', style: 'section', colSpan: 9 }] },
+        {
+          height: 24,
+          cells: [
+            { value: 'STT', style: 'header' },
+            { value: 'Phương thức xác thực', style: 'header', colSpan: 4 },
+            { value: 'Số lượt ghi nhận', style: 'header', colSpan: 2 },
+            { value: 'Tỷ trọng (%)', style: 'header', colSpan: 2 }
+          ]
+        },
+        {
+          cells: [
+            { value: 1, style: 'borderCenter' },
+            { value: 'Camera AI Hikvision (Face ID)', style: 'boldBorderLeft', colSpan: 4 },
+            { value: data.methodDistribution.faceId.count, style: 'borderRight', colSpan: 2 },
+            { value: `${data.methodDistribution.faceId.percentage}%`, style: 'boldBorderCenter', colSpan: 2 }
+          ]
+        },
+        {
+          cells: [
+            { value: 2, style: 'borderCenter' },
+            { value: 'Thẻ đại biểu / Cán bộ RFID / NFC', style: 'boldBorderLeft', colSpan: 4 },
+            { value: data.methodDistribution.card.count, style: 'borderRight', colSpan: 2 },
+            { value: `${data.methodDistribution.card.percentage}%`, style: 'boldBorderCenter', colSpan: 2 }
+          ]
+        },
+        {
+          cells: [
+            { value: 3, style: 'borderCenter' },
+            { value: 'Sinh trắc học vân tay máy chấm công', style: 'boldBorderLeft', colSpan: 4 },
+            { value: data.methodDistribution.fingerprint.count, style: 'borderRight', colSpan: 2 },
+            { value: `${data.methodDistribution.fingerprint.percentage}%`, style: 'boldBorderCenter', colSpan: 2 }
+          ]
+        },
+        { cells: [] },
+        { height: 24, cells: [{ value: '4. XU HƯỚNG HIỆN DIỆN VÀ CHUYÊN CẦN THEO THỜI GIAN', style: 'section', colSpan: 9 }] },
+        {
+          height: 26,
+          cells: [
+            { value: 'STT', style: 'header' },
+            { value: 'Thời gian / Ngày', style: 'header', colSpan: 2 },
+            { value: 'Tổng nhân sự', style: 'header' },
+            { value: 'Có mặt', style: 'header' },
+            { value: 'Đi muộn', style: 'header' },
+            { value: 'Vắng mặt', style: 'header' },
+            { value: 'Tỷ lệ hiện diện', style: 'header' },
+            { value: 'Tỷ lệ đúng giờ', style: 'header' }
+          ]
+        },
+        ...data.trends.map((t, idx) => ({
+          height: 21,
+          cells: [
+            { value: idx + 1, style: 'borderCenter' as const },
+            { value: t.label, style: 'boldBorderCenter' as const, colSpan: 2 },
+            { value: t.total, style: 'borderRight' as const },
+            { value: t.present, style: 'borderRight' as const },
+            { value: t.late, style: 'borderRight' as const },
+            { value: t.absent, style: 'borderRight' as const },
+            { value: `${t.rate}%`, style: t.rate >= 90 ? ('badgeSuccess' as const) : ('badgeWarning' as const) },
+            { value: `${t.onTimeRate}%`, style: t.onTimeRate >= 90 ? ('badgeSuccess' as const) : ('badgeWarning' as const) }
+          ]
+        }))
+      ]
+    };
+
+    downloadExcelFile(sheet, `Bao_Cao_Tong_Quan_Chuyen_Can_${period}_${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
 
   /**
@@ -1857,6 +2011,154 @@ class DashboardService {
     ];
 
     return '\uFEFF' + lines.join('\n');
+  }
+
+  /**
+   * Xuất báo cáo tổng quan chuyên cần cuộc họp ra file Excel (.xlsx) chuẩn OpenXML
+   */
+  public async exportMeetingDashboardExcel(
+    tenantId: string,
+    periodOrCount: DashboardPeriod | number = 10,
+    selectedDepartmentId?: string,
+    options?: DashboardFilterOptions,
+    orgName: string = 'Ủy Ban Nhân Dân Phường Bến Nghé'
+  ): Promise<void> {
+    const data = await this.getMeetingDashboardData(tenantId, periodOrCount, selectedDepartmentId, options);
+    const periodLabel = `${data.meetingCount} cuộc họp gần nhất`;
+
+    const sheet: ExcelSheetDefinition = {
+      name: 'Chuyên cần cuộc họp',
+      columns: [
+        { width: 8 },
+        { width: 34 },
+        { width: 16 },
+        { width: 14 },
+        { width: 14 },
+        { width: 14 },
+        { width: 14 },
+        { width: 14 },
+        { width: 18 },
+        { width: 18 },
+        { width: 16 }
+      ],
+      rows: [
+        { cells: [{ value: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', style: 'subtitle', colSpan: 11 }] },
+        { cells: [{ value: 'Độc lập - Tự do - Hạnh phúc', style: 'subtitle', colSpan: 11 }] },
+        { cells: [] },
+        { height: 28, cells: [{ value: 'BÁO CÁO PHÂN TÍCH CHUYÊN CẦN CUỘC HỌP TOÀN CƠ QUAN', style: 'title', colSpan: 11 }] },
+        { cells: [{ value: `Đơn vị: ${orgName}  |  Kỳ thống kê: ${periodLabel}`, style: 'subtitle', colSpan: 11 }] },
+        { cells: [{ value: `Thời điểm xuất: ${new Date().toLocaleString('vi-VN')}`, style: 'subtitle', colSpan: 11 }] },
+        { cells: [] },
+        { height: 24, cells: [{ value: '1. CHỈ SỐ TỔNG HỢP CUỘC HỌP (KPIs - Tính trên đại biểu bắt buộc)', style: 'section', colSpan: 11 }] },
+        { height: 24, cells: [{ value: 'Chỉ số', style: 'header', colSpan: 2 }, { value: 'Giá trị ghi nhận', style: 'header', colSpan: 2 }, { value: 'Đơn vị tính / Ghi chú', style: 'header', colSpan: 7 }] },
+        { cells: [{ value: 'Số cuộc họp trong kỳ phân tích', style: 'boldBorderLeft', colSpan: 2 }, { value: data.kpis.totalMeetings, style: 'boldBorderCenter', colSpan: 2 }, { value: 'Kỳ họp đã diễn ra & hoàn tất', style: 'borderLeft', colSpan: 7 }] },
+        { cells: [{ value: 'Đại biểu bắt buộc triệu tập', style: 'boldBorderLeft', colSpan: 2 }, { value: data.kpis.totalCompulsory, style: 'boldBorderCenter', colSpan: 2 }, { value: 'Lượt đại biểu theo danh sách bắt buộc', style: 'borderLeft', colSpan: 7 }] },
+        { cells: [{ value: 'Đại biểu tùy chọn mời thêm', style: 'borderLeft', colSpan: 2 }, { value: data.kpis.totalOptional, style: 'borderCenter', colSpan: 2 }, { value: 'Lượt khách mời mở rộng', style: 'borderLeft', colSpan: 7 }] },
+        { cells: [{ value: 'Tổng số khách mời triệu tập', style: 'borderLeft', colSpan: 2 }, { value: data.kpis.totalAttendeesSummoned, style: 'borderCenter', colSpan: 2 }, { value: 'Bắt buộc + Tùy chọn', style: 'borderLeft', colSpan: 7 }] },
+        { cells: [{ value: 'Đại biểu bắt buộc có mặt', style: 'boldBorderLeft', colSpan: 2 }, { value: data.kpis.compulsoryPresent, style: 'boldBorderCenter', colSpan: 2 }, { value: 'Hiện diện tham gia', style: 'borderLeft', colSpan: 7 }] },
+        { cells: [{ value: 'Tỷ lệ tham dự (bắt buộc)', style: 'boldBorderLeft', colSpan: 2 }, { value: `${data.kpis.attendanceRate}%`, style: 'badgeSuccess', colSpan: 2 }, { value: 'Mục tiêu: >= 90%', style: 'borderLeft', colSpan: 7 }] },
+        { cells: [{ value: 'Tỷ lệ đúng giờ (bắt buộc)', style: 'boldBorderLeft', colSpan: 2 }, { value: `${data.kpis.onTimeRate}%`, style: data.kpis.onTimeRate >= 90 ? 'badgeSuccess' : 'badgeWarning', colSpan: 2 }, { value: 'Mục tiêu: >= 90%', style: 'borderLeft', colSpan: 7 }] },
+        { cells: [{ value: 'Số lượt đi muộn', style: 'borderLeft', colSpan: 2 }, { value: data.kpis.lateCount, style: 'borderCenter', colSpan: 2 }, { value: 'Lượt đại biểu vào trễ', style: 'borderLeft', colSpan: 7 }] },
+        { cells: [{ value: 'Số lượt về sớm', style: 'borderLeft', colSpan: 2 }, { value: data.kpis.earlyLeaveCount, style: 'borderCenter', colSpan: 2 }, { value: 'Lượt đại biểu ra trước khi bế mạc', style: 'borderLeft', colSpan: 7 }] },
+        { cells: [{ value: 'Số lượt vắng mặt', style: 'borderLeft', colSpan: 2 }, { value: data.kpis.absentCount, style: 'borderCenter', colSpan: 2 }, { value: 'Lượt đại biểu vắng không tham dự', style: 'borderLeft', colSpan: 7 }] },
+        { cells: [] },
+        { height: 24, cells: [{ value: '2. XU HƯỚNG CHUYÊN CẦN TỪNG CUỘC HỌP', style: 'section', colSpan: 11 }] },
+        {
+          height: 26,
+          cells: [
+            { value: 'STT', style: 'header' },
+            { value: 'Tiêu đề cuộc họp', style: 'header' },
+            { value: 'Ngày tổ chức', style: 'header' },
+            { value: 'Bắt buộc', style: 'header' },
+            { value: 'Đúng giờ', style: 'header' },
+            { value: 'Đi muộn', style: 'header' },
+            { value: 'Về sớm', style: 'header' },
+            { value: 'Vắng mặt', style: 'header' },
+            { value: 'Tỷ lệ tham dự', style: 'header' },
+            { value: 'Tỷ lệ đúng giờ', style: 'header' },
+            { value: 'Đánh giá', style: 'header' }
+          ]
+        },
+        ...data.trends.map((item, idx) => {
+          const evalBadge = item.attendanceRate >= 90 ? ('badgeSuccess' as const) : item.attendanceRate >= 80 ? ('badgeWarning' as const) : ('badgeDanger' as const);
+          const evalText = item.attendanceRate >= 90 ? 'Tốt' : item.attendanceRate >= 80 ? 'Cần lưu ý' : 'Kém';
+          return {
+            height: 21,
+            cells: [
+              { value: idx + 1, style: 'borderCenter' as const },
+              { value: item.meetingTitle, style: 'boldBorderLeft' as const },
+              { value: item.date, style: 'borderCenter' as const },
+              { value: item.totalCompulsory, style: 'borderRight' as const },
+              { value: item.onTimeCount, style: 'borderRight' as const },
+              { value: item.lateCount, style: 'borderRight' as const },
+              { value: item.earlyLeaveCount, style: 'borderRight' as const },
+              { value: item.absentCount, style: 'borderRight' as const },
+              { value: `${item.attendanceRate}%`, style: evalBadge },
+              { value: `${item.onTimeRate}%`, style: evalBadge },
+              { value: evalText, style: evalBadge }
+            ]
+          };
+        }),
+        { cells: [] },
+        { height: 24, cells: [{ value: '3. CHUYÊN CẦN CUỘC HỌP THEO ĐƠN VỊ PHÒNG BAN', style: 'section', colSpan: 11 }] },
+        {
+          height: 26,
+          cells: [
+            { value: 'STT', style: 'header' },
+            { value: 'Mã phòng', style: 'header' },
+            { value: 'Tên phòng ban', style: 'header', colSpan: 2 },
+            { value: 'Triệu tập', style: 'header' },
+            { value: 'Hiện diện', style: 'header' },
+            { value: 'Đúng giờ', style: 'header' },
+            { value: 'Đi muộn', style: 'header' },
+            { value: 'Vắng', style: 'header' },
+            { value: 'Tỷ lệ tham gia', style: 'header' },
+            { value: 'Tỷ lệ đúng giờ', style: 'header' }
+          ]
+        },
+        ...data.departmentAttendance.map((dept, idx) => ({
+          height: 21,
+          cells: [
+            { value: idx + 1, style: 'borderCenter' as const },
+            { value: dept.code, style: 'borderCenter' as const },
+            { value: dept.name, style: 'boldBorderLeft' as const, colSpan: 2 },
+            { value: dept.totalSummoned, style: 'borderRight' as const },
+            { value: dept.presentCount, style: 'borderRight' as const },
+            { value: dept.onTimeCount, style: 'borderRight' as const },
+            { value: dept.lateCount, style: 'borderRight' as const },
+            { value: dept.absentCount, style: 'borderRight' as const },
+            { value: `${dept.attendanceRate}%`, style: dept.attendanceRate >= 90 ? ('badgeSuccess' as const) : ('badgeWarning' as const) },
+            { value: `${dept.onTimeRate}%`, style: dept.onTimeRate >= 90 ? ('badgeSuccess' as const) : ('badgeWarning' as const) }
+          ]
+        })),
+        { cells: [] },
+        { height: 24, cells: [{ value: '4. PHÒNG HỌP & TẦN SUẤT SỬ DỤNG', style: 'section', colSpan: 11 }] },
+        {
+          height: 26,
+          cells: [
+            { value: 'STT', style: 'header' },
+            { value: 'Tên phòng họp', style: 'header', colSpan: 2 },
+            { value: 'Vị trí', style: 'header', colSpan: 2 },
+            { value: 'Sức chứa', style: 'header', colSpan: 2 },
+            { value: 'Số kỳ họp', style: 'header', colSpan: 2 },
+            { value: 'Tỷ lệ sử dụng', style: 'header', colSpan: 2 }
+          ]
+        },
+        ...data.roomStats.rooms.map((r, idx) => ({
+          height: 21,
+          cells: [
+            { value: idx + 1, style: 'borderCenter' as const },
+            { value: r.name, style: 'boldBorderLeft' as const, colSpan: 2 },
+            { value: r.location, style: 'borderLeft' as const, colSpan: 2 },
+            { value: `${r.capacity} chỗ`, style: 'borderCenter' as const, colSpan: 2 },
+            { value: `${r.meetingCount} cuộc họp`, style: 'borderRight' as const, colSpan: 2 },
+            { value: `${r.percentage}%`, style: 'boldBorderCenter' as const, colSpan: 2 }
+          ]
+        }))
+      ]
+    };
+
+    downloadExcelFile(sheet, `Bao_Cao_Chuyen_Can_Cuoc_Hop_${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
 }
 

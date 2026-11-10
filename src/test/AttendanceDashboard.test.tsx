@@ -151,8 +151,8 @@ describe('Bảng Điều Khiển Tổng Quan Điểm Danh & Chuyên Cần Toàn 
     });
   });
 
-  it('Hỗ trợ xuất báo cáo tổng quan ra file Excel/CSV UTF-8', async () => {
-    const exportSpy = vi.spyOn(dashboardService, 'exportDashboardCsv');
+  it('Hỗ trợ xuất báo cáo tổng quan ra file Excel OpenXML', async () => {
+    const exportSpy = vi.spyOn(dashboardService, 'exportDashboardExcel').mockResolvedValue();
     render(<AttendanceDashboard tenantId={ubndTenant} />);
 
     await waitFor(() => {

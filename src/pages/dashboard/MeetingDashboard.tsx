@@ -108,26 +108,11 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
   const handleExportCsv = async () => {
     setExporting(true);
     try {
-      const csv = await dashboardService.exportMeetingDashboardCsv(
+      await dashboardService.exportMeetingDashboardExcel(
         tenantId,
         meetingCount,
         selectedDeptId || undefined
       );
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      if (typeof window !== 'undefined' && typeof window.URL?.createObjectURL === 'function') {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute(
-          'download',
-          `Bao_Cao_Chuyen_Can_Cuoc_Hop_${new Date().toISOString().slice(0, 10)}.csv`
-        );
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }
     } catch (err) {
       console.error('Lỗi xuất báo cáo cuộc họp:', err);
     } finally {

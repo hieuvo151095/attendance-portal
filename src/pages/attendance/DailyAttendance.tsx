@@ -106,23 +106,15 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
     setSelectedDate(dateStr);
   };
 
-  const handleExportCsv = async () => {
+  const handleExportExcel = async () => {
     try {
-      const csv = await dailyAttendanceService.exportDailyAttendanceCsv(tenantId, selectedDate);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Bang_Cham_Cong_Ngay_${selectedDate}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success('Đã xuất báo cáo chấm công thành công!');
+      await dailyAttendanceService.exportDailyAttendanceExcel(tenantId, selectedDate);
+      toast.success('Đã xuất file Excel chấm công thành công!');
     } catch (err) {
       toast.danger('Lỗi xuất dữ liệu chấm công: ' + (err instanceof Error ? err.message : ''));
     }
   };
+  const handleExportCsv = handleExportExcel;
 
   const departmentFilterOptions = [
     { value: '', label: 'Tất cả phòng ban' },
@@ -628,7 +620,7 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
             <Button
               variant="secondary"
               icon="file-excel"
-              onClick={handleExportCsv}
+              onClick={handleExportExcel}
             >
               Xuất Excel
             </Button>

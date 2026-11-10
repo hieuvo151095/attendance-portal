@@ -14,6 +14,7 @@ import { authService } from './auth';
 import { employeeService } from './employee';
 import { departmentService } from './department';
 import { attendanceSettingService } from './setting';
+import { downloadExcelFile, ExcelSheetDefinition } from '../utils/excelExport';
 
 export function normalizeLeaveReason(note?: string): string {
   if (!note) return 'Nghỉ việc riêng / Khẩn cấp';
@@ -1751,6 +1752,193 @@ class DailyAttendanceService {
 
     // Thêm BOM UTF-8 để mở tiếng Việt trên Microsoft Excel không bị lỗi font
     return '\uFEFF' + [header.join(','), ...rows.map((row) => row.join(','))].join('\r\n');
+  }
+
+  /**
+   * Xuất dữ liệu bảng chấm công ngày ra file Excel (.xlsx) chuẩn OpenXML với thiết kế bảng chuyên nghiệp
+   */
+  public async exportDailyAttendanceExcel(tenantId: string, date: string, orgName: string = 'Ủy Ban Nhân Dân Phường Bến Nghé'): Promise<void> {
+    const records = await this.getDailyAttendance(tenantId, { date });
+
+    const getStatusText = (status: string) => {
+      switch (status) {
+        case 'on_time':
+          return 'Đúng giờ';
+        case 'late':
+          return 'Đi muộn';
+        case 'early_leave':
+          return 'Về sớm';
+        case 'late_and_early':
+          return 'Muộn & Về sớm';
+        case 'leave':
+          return 'Nghỉ phép';
+        case 'absent':
+          return 'Chưa đến / Vắng';
+        default:
+          return status;
+      }
+    };
+
+    const getStatusStyle = (status: string) => {
+      switch (status) {
+        case 'on_time':
+          return 'badgeSuccess' as const;
+        case 'late':
+        case 'early_leave':
+        case 'late_and_early':
+          return 'badgeWarning' as const;
+        case 'leave':
+          return 'badgeInfo' as const;
+        case 'absent':
+          return 'badgeDanger' as const;
+        default:
+          return 'borderCenter' as const;
+      }
+    };
+
+    const getMethodText = (method?: string) => {
+      switch (method) {
+        case 'faceId':
+          return 'Face ID';
+        case 'fingerprint':
+          return 'Vân tay';
+        case 'card':
+          return 'Thẻ RFID';
+        case 'manual':
+          return 'Thủ công';
+        default:
+          return '—';
+      }
+    };
+
+    const sheet: ExcelSheetDefinition = {
+      name: `Chấm công ${date}`,
+      columns: [
+        { width: 7 },   // STT
+        { width: 14 },  // Mã NV
+        { width: 26 },  // Họ và Tên
+        { width: 28 },  // Phòng Ban
+        { width: 13 },  // Ngày
+        { width: 16 },  // Giờ vào
+        { width: 15 },  // Hình thức vào
+        { width: 22 },  // Thiết bị vào
+        { width: 16 },  // Giờ ra
+        { width: 15 },  // Hình thức ra
+        { width: 22 },  // Thiết bị ra
+        { width: 14 },  // Phút muộn
+        { width: 14 },  // Phút về sớm
+        { width: 18 },  // Trạng thái
+        { width: 30 }   // Ghi chú
+      ],
+      rows: [
+        // Quốc hiệu & Tiêu ngữ
+        {
+          cells: [
+            {
+              value: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
+              style: 'subtitle',
+              colSpan: 15
+            }
+          ]
+        },
+        {
+          cells: [
+            {
+              value: 'Độc lập - Tự do - Hạnh phúc',
+              style: 'subtitle',
+              colSpan: 15
+            }
+          ]
+        },
+        { cells: [] },
+        // Tiêu đề báo cáo
+        {
+          height: 28,
+          cells: [
+            {
+              value: 'BẢNG CHẤM CÔNG CÁN BỘ NHÂN SỰ HÀNG NGÀY',
+              style: 'title',
+              colSpan: 15
+            }
+          ]
+        },
+        {
+          cells: [
+            {
+              value: `Cơ quan / Đơn vị: ${orgName}  |  Ngày chấm công: ${date}`,
+              style: 'subtitle',
+              colSpan: 15
+            }
+          ]
+        },
+        {
+          cells: [
+            {
+              value: `Thời điểm xuất báo cáo: ${new Date().toLocaleString('vi-VN')}`,
+              style: 'subtitle',
+              colSpan: 15
+            }
+          ]
+        },
+        { cells: [] },
+        // Header bảng
+        {
+          height: 26,
+          cells: [
+            { value: 'STT', style: 'header' },
+            { value: 'Mã NV', style: 'header' },
+            { value: 'Họ và Tên', style: 'header' },
+            { value: 'Phòng Ban', style: 'header' },
+            { value: 'Ngày', style: 'header' },
+            { value: 'Giờ vào (Check-in)', style: 'header' },
+            { value: 'Hình thức vào', style: 'header' },
+            { value: 'Thiết bị vào', style: 'header' },
+            { value: 'Giờ ra (Check-out)', style: 'header' },
+            { value: 'Hình thức ra', style: 'header' },
+            { value: 'Thiết bị ra', style: 'header' },
+            { value: 'Đi muộn (phút)', style: 'header' },
+            { value: 'Về sớm (phút)', style: 'header' },
+            { value: 'Trạng thái', style: 'header' },
+            { value: 'Ghi chú', style: 'header' }
+          ]
+        },
+        // Danh sách cán bộ
+        ...records.map((r, idx) => ({
+          height: 21,
+          cells: [
+            { value: idx + 1, style: 'borderCenter' as const },
+            { value: r.employeeCode, style: 'boldBorderCenter' as const },
+            { value: r.employeeName, style: 'boldBorderLeft' as const },
+            { value: r.departmentName, style: 'borderLeft' as const },
+            { value: r.date, style: 'borderCenter' as const },
+            { value: r.checkInTime || '—', style: 'borderCenter' as const },
+            { value: getMethodText(r.checkInMethod), style: 'borderCenter' as const },
+            { value: r.checkInDevice || '—', style: 'borderLeft' as const },
+            { value: r.checkOutTime || '—', style: 'borderCenter' as const },
+            { value: getMethodText(r.checkOutMethod), style: 'borderCenter' as const },
+            { value: r.checkOutDevice || '—', style: 'borderLeft' as const },
+            { value: r.lateMinutes || 0, style: 'borderRight' as const },
+            { value: r.earlyLeaveMinutes || 0, style: 'borderRight' as const },
+            { value: getStatusText(r.status), style: getStatusStyle(r.status) },
+            { value: r.note || '', style: 'borderLeft' as const }
+          ]
+        })),
+        { cells: [] },
+        // Dòng tổng kết
+        {
+          height: 22,
+          cells: [
+            {
+              value: `TỔNG CỘNG: ${records.length} CÁN BỘ  (Đúng giờ: ${records.filter(r => r.status === 'on_time').length} | Đi muộn: ${records.filter(r => r.status === 'late' || r.status === 'late_and_early').length} | Nghỉ phép: ${records.filter(r => r.status === 'leave').length} | Vắng mặt: ${records.filter(r => r.status === 'absent').length})`,
+              style: 'subHeader',
+              colSpan: 15
+            }
+          ]
+        }
+      ]
+    };
+
+    downloadExcelFile(sheet, `Bang_Cham_Cong_Ngay_${date}.xlsx`);
   }
 }
 

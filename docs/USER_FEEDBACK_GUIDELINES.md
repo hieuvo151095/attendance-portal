@@ -283,4 +283,31 @@
   * Tiêu đề phụ của danh sách đơn vị và đại biểu cập nhật động: `"Dựa trên các kỳ họp trong {monthLabel} (Tháng hiện tại)"` hoặc `"Dựa trên các kỳ họp trong {monthLabel}"`.
   * Khi tháng được chọn không có vi phạm, hệ thống hiển thị khối thông báo tích cực: *"Tất cả các đơn vị đều tuân thủ tốt kỷ luật tham gia cuộc họp"* và *"Không ghi nhận đại biểu vắng hoặc trễ giờ trong tháng này"*.
 
+---
+
+### 19. Chuẩn Hóa Toàn Diện Chức Năng Xuất Dữ Liệu Sang Định Dạng Excel (.xlsx) Chuẩn OpenXML Thay Thế CSV
+* **Thay thế triệt để định dạng CSV thô bằng tệp Excel (.xlsx) chuẩn OpenXML:**
+  * Toàn bộ các nút bấm và chức năng xuất báo cáo trên hệ thống (Bảng Chấm Công Ngày, Bảng Điều Khiển Tổng Quan Chấm Công, Bảng Điều Khiển Cuộc Họp, Biên Bản Chuyên Cần Cuộc Họp, Báo Cáo Tổng Hợp Kỳ Họp Đã Kết Thúc, và Quản Trị Thiết Bị) chuyển đổi hoàn toàn sang xuất file Excel nhị phân thật (`.xlsx`, MIME `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`).
+  * Người dùng mở trực tiếp trên Microsoft Excel, Google Sheets hoặc Apple Numbers mà không bao giờ bị lỗi font UTF-8, không cần thao tác Text-to-Columns hay Import Wizard.
+* **Bộ sinh OpenXML thuần TypeScript độc lập (`src/utils/excelExport.ts`):**
+  * Tích hợp thuật toán tính CRC-32 chuẩn bảng và đóng gói cấu trúc lưu trữ ZIP (Store method 0) tuân thủ 100% chuẩn Open Packaging Conventions (OPC) và SpreadsheetML.
+  * Không phụ thuộc bất kỳ thư viện ngoài (zero external npm dependencies), bảo đảm vận hành an toàn, tin cậy tuyệt đối trong môi trường nội bộ và cổng kiểm thử CI/CD.
+* **Thiết kế tệp Excel chuẩn mực hành chính và khớp 100% giao diện hiển thị:**
+  * **Khối tiêu ngữ & thông tin cơ quan:** Quốc hiệu "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", Tiêu ngữ, Tên đơn vị hành chính, Tiêu đề biên bản/báo cáo in hoa đậm, thời điểm kết xuất dữ liệu.
+  * **Màu sắc thương hiệu & viền kẻ chuẩn hóa:** Dòng tiêu đề bảng mang sắc xanh chủ đạo Finviet Primary Blue (`#0070CE`), chữ trắng in đậm; các ô dữ liệu có viền mỏng (`#CBD5E1`) sắc nét, rõ ràng.
+  * **Huy hiệu trạng thái trực quan (Status Badges):**
+    * *Đúng giờ / Tốt / Hoạt động:* Nền xanh lá nhạt (`#DCFCE7`), chữ xanh đậm (`#15803D`).
+    * *Đi muộn / Cần lưu ý / Tạm khoá:* Nền vàng nhạt (`#FEF9C3`), chữ nâu sẫm (`#A16207`).
+    * *Vắng mặt / Không phép / Kém:* Nền đỏ nhạt (`#FEE2E2`), chữ đỏ đậm (`#B91C1C`).
+    * *Nghỉ phép / Thông tin bổ trợ:* Nền xanh dương nhạt (`#EFF6FF`), chữ xanh đậm (`#1D4ED8`).
+  * **Phân canh lề chính xác:** Cột STT, mã số, ngày giờ canh giữa; họ tên, tiêu đề, vị trí canh trái; số lượng nhân sự, số phút, tỷ lệ phần trăm canh phải.
+* **Danh mục 6 tính năng đã chuẩn hóa:**
+  1. *Chấm công ngày* (`DailyAttendance.tsx`): Bảng chấm công 15 cột với đầy đủ giờ vào/ra, thiết bị, phút trễ/về sớm, trạng thái và ghi chú.
+  2. *Tổng quan chấm công* (`AttendanceDashboard.tsx`): Báo cáo 4 phần gồm KPIs cơ quan, so sánh phòng ban, phương thức xác thực và xu hướng lịch sử.
+  3. *Tổng quan cuộc họp* (`MeetingDashboard.tsx`): Báo cáo 4 phần gồm KPIs họp, xu hướng từng cuộc họp kèm đánh giá, so sánh đơn vị và thống kê phòng họp.
+  4. *Biên bản chuyên cần cuộc họp* (`MeetingReportModal.tsx`): Cập nhật nhãn nút "Xuất Excel", xuất đầy đủ tóm tắt chỉ số, danh sách đại biểu 13 cột và khối chứng thực số điện tử (mã băm SHA-256).
+  5. *Lưu trữ tổng hợp kỳ họp* (`MeetingReportArchive.tsx`): Báo cáo tổng hợp danh mục cuộc họp đã kết thúc trong kỳ 11 cột.
+  6. *Quản trị thiết bị* (`SettingsManagement.tsx`): Nút "Xuất dữ liệu" xuất danh sách camera/đầu đọc điểm danh 6 cột đồng bộ với giao diện bảng cấu hình.
+
+
 
