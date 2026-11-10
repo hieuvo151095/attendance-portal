@@ -26,3 +26,4 @@ Hệ thống **Attendance Portal** (Cổng Quản trị Điểm danh & Chấm c�
 - [Danh mục wiki](../../index.md)
 - [SCHEMA](../../SCHEMA.md)
 - [Quyết định kiến trúc 2026-11-02](../sources/portal-architecture-decisions-2026-11-02.md)
+- [Quy chuẩn thiết kế phản hồi](user-feedback-guidelines.md)

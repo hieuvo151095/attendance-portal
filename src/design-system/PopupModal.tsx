@@ -71,11 +71,12 @@ export const PopupModal: React.FC<PopupModalProps> & {
 
   const pri = primaryAction;
   const ext = extraAction;
-  const hasFooter = footer || pri || sec || ext;
+  const hasFooter = footer !== undefined ? Boolean(footer) : Boolean(pri || sec || ext);
 
   const renderFooter =
-    footer ||
-    (hasFooter ? (
+    footer !== undefined
+      ? footer
+      : hasFooter ? (
       <div className="ecomd-modal__footer">
         <div>
           {ext && (
@@ -107,7 +108,7 @@ export const PopupModal: React.FC<PopupModalProps> & {
           )}
         </div>
       </div>
-    ) : null);
+    ) : null;
 
   const handleOverlayMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget && onClose && closeOnOverlay !== false) {

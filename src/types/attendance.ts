@@ -4,6 +4,16 @@ export type DailyAttendanceStatus = 'on_time' | 'late' | 'early_leave' | 'late_a
 
 export type LeavePeriod = 'full_day' | 'morning' | 'afternoon';
 
+export const STANDARD_LEAVE_REASONS = [
+  'Nghỉ việc riêng / Khẩn cấp',
+  'Nghỉ phép năm',
+  'Nghỉ ốm / Khám sức khỏe',
+  'Nghỉ chế độ / Thai sản',
+  'Đi công tác đột xuất'
+] as const;
+
+export type StandardLeaveReason = typeof STANDARD_LEAVE_REASONS[number];
+
 export interface AttendanceScanLog {
   id: string;
   timestamp: string; // ISO String (e.g. 2026-11-04T07:22:15Z)

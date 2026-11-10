@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import {
   PopupModal,
-  Button,
-  Tag,
-  Icon
+  Button
 } from '../../design-system';
 import { Meeting } from '../../types/meeting';
 import { meetingReportService, MeetingReportData } from '../../services/report';
@@ -57,45 +55,10 @@ export const MeetingReportModal: React.FC<MeetingReportModalProps> = ({
       onClose={onClose}
       width={1020}
       title="Biên bản cuộc họp & Báo cáo chuyên cần"
-      description="Đặc tả MTG-04: Tự động tổng hợp chuyên cần, niêm phong dấu mộc số Finviet và hỗ trợ xuất file PDF / Excel."
+      description="Tự động tổng hợp dữ liệu chuyên cần và hỗ trợ xuất file PDF / Excel."
       className="meeting-report-modal"
-      footer={
-        <div
-          className="no-print"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            width: '100%'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Tag variant="success">
-              <Icon name="shield" size={12} style={{ marginRight: '4px' }} />
-              Dấu mộc số Finviet: {reportData.digitalSeal.hash.substring(0, 16)}...
-            </Tag>
-          </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <Button
-              variant="secondary"
-              icon="file-excel"
-              onClick={handleExportExcel}
-            >
-              Tải file Excel (.csv)
-            </Button>
-            <Button
-              variant="primary"
-              icon="print"
-              onClick={handlePrint}
-            >
-              In / Lưu PDF
-            </Button>
-            <Button variant="ghost" onClick={onClose}>
-              Đóng
-            </Button>
-          </div>
-        </div>
-      }
+      footer={null}
+      secondaryAction={null}
     >
       {/* 1. Modal Interactive Controls Toolbar (Hidden when printing) */}
       <div

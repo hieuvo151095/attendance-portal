@@ -26,6 +26,7 @@ export const App: React.FC = () => {
     'dashboard' | 'attendance' | 'meetings' | 'reports' | 'employees' | 'departments' | 'settings'
   >('dashboard');
   const [meetingSubTab, setMeetingSubTab] = useState<'list' | 'reports'>('list');
+  const [settingsSubTab, setSettingsSubTab] = useState<'attendance' | 'rooms' | 'devices'>('attendance');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Pop-up modals state for user frame
@@ -108,6 +109,9 @@ export const App: React.FC = () => {
             );
             if (key === 'meetings') {
               setMeetingSubTab('list');
+            }
+            if (key === 'settings') {
+              setSettingsSubTab('attendance');
             }
           }
         }}
@@ -231,18 +235,6 @@ export const App: React.FC = () => {
                 },
                 { divider: true },
                 {
-                  icon: 'file-pdf',
-                  label: 'Tải tài liệu tổng quan (PDF)',
-                  onClick: () => {
-                    const link = document.createElement('a');
-                    link.href = '/Finviet_Attendance_Portal_Brief.pdf';
-                    link.download = 'Finviet_Attendance_Portal_Brief.pdf';
-                    link.target = '_blank';
-                    link.click();
-                  }
-                },
-                { divider: true },
-                {
                   icon: 'right-from-bracket',
                   label: 'Đăng xuất',
                   tone: 'danger',
@@ -281,10 +273,13 @@ export const App: React.FC = () => {
             {currentTab === 'dashboard' ? (
               <AttendanceDashboard
                 tenantId={session.tenant.id}
-                onNavigateTab={(tab) => {
+                onNavigateTab={(tab, subTab) => {
                   if (tab === 'reports') {
                     setCurrentTab('meetings');
                     setMeetingSubTab('reports');
+                  } else if (tab === 'settings') {
+                    setCurrentTab('settings');
+                    setSettingsSubTab((subTab as 'attendance' | 'rooms' | 'devices') || 'attendance');
                   } else {
                     setCurrentTab(tab);
                     if (tab === 'meetings') {
@@ -307,7 +302,11 @@ export const App: React.FC = () => {
             ) : currentTab === 'departments' ? (
               <DepartmentManagement session={session} />
             ) : (
-              <SettingsManagement tenantId={session.tenant.id} />
+              <SettingsManagement
+                tenantId={session.tenant.id}
+                initialTab={settingsSubTab}
+                onTabChange={(tab) => setSettingsSubTab(tab)}
+              />
             )}
           </div>
         </main>

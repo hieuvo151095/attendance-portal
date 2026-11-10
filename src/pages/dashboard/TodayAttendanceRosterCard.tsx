@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Icon, Button, StatusTag, Tag, EmptyValue } from '../../design-system';
-import { TodayAttendanceRoster } from '../../services/dashboard';
+import { TodayAttendanceRoster, TodayRosterItem } from '../../services/dashboard';
 
 export interface TodayAttendanceRosterCardProps {
   roster: TodayAttendanceRoster;
@@ -23,6 +23,221 @@ export const TodayAttendanceRosterCard: React.FC<TodayAttendanceRosterCardProps>
     return true;
   });
 
+  const sections = [
+    {
+      id: 'leave',
+      title: 'Nghỉ phép',
+      dotColor: 'var(--eco-blue-strong)',
+      items: roster.items.filter((i) => i.status === 'leave')
+    },
+    {
+      id: 'absent',
+      title: 'Chưa đến / Vắng',
+      dotColor: 'var(--semantic-warning)',
+      items: roster.items.filter((i) => i.status === 'absent')
+    },
+    {
+      id: 'present',
+      title: 'Đang có mặt',
+      dotColor: 'var(--semantic-success)',
+      items: roster.items.filter((i) => i.status === 'present' || i.status === 'late')
+    }
+  ];
+
+  const renderRosterItem = (item: TodayRosterItem) => {
+    const isLeave = item.status === 'leave';
+    const isAbsent = item.status === 'absent';
+    const isLate = item.status === 'late';
+
+    let tagTone: 'success' | 'warning' | 'neutral' | 'danger' = 'success';
+    if (isLeave) tagTone = 'neutral';
+    else if (isAbsent) tagTone = 'warning';
+    else if (isLate) tagTone = 'warning';
+
+    return (
+      <div
+        key={item.id}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 14px',
+          borderRadius: 'var(--radius-8)',
+          backgroundColor: isLeave
+            ? 'rgba(0, 112, 206, 0.04)'
+            : isAbsent
+            ? 'rgba(239, 68, 68, 0.04)'
+            : 'var(--bg-surface)',
+          border: isLeave
+            ? '1px solid rgba(0, 112, 206, 0.2)'
+            : isAbsent
+            ? '1px solid rgba(239, 68, 68, 0.2)'
+            : '1px solid var(--border-subtle)',
+          gap: '12px'
+        }}
+      >
+        {/* Left: Avatar & Info */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+          <div
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: 'var(--radius-full)',
+              backgroundColor: isLeave
+                ? 'var(--eco-blue-subtle)'
+                : isAbsent
+                ? '#FEE2E2'
+                : 'var(--bg-subtle)',
+              color: isLeave
+                ? 'var(--eco-blue-strong)'
+                : isAbsent
+                ? '#DC2626'
+                : 'var(--text-heading)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              fontWeight: 600,
+              flexShrink: 0,
+              overflow: 'hidden',
+              position: 'relative'
+            }}
+          >
+            <span>{item.employeeName.charAt(0)}</span>
+            {item.avatarUrl && (
+              <img
+                src={item.avatarUrl}
+                alt={item.employeeName}
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+              />
+            )}
+          </div>
+
+          <div style={{ minWidth: 0 }}>
+            <div
+              className="body-sm"
+              style={{
+                fontWeight: 600,
+                color: 'var(--text-heading)',
+                lineHeight: 1.3,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {item.employeeName}{' '}
+              <code style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>
+                ({item.employeeCode})
+              </code>
+            </div>
+            <div
+              className="body-xs"
+              style={{
+                color: 'var(--text-subtle)',
+                marginTop: '2px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {item.departmentName}
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Status details */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            gap: '4px',
+            flexShrink: 0
+          }}
+        >
+          {item.checkInTime ? (
+            <span
+              className="body-xs"
+              style={{
+                color: 'var(--text-heading)',
+                fontWeight: 600,
+                fontSize: '12px',
+                fontVariantNumeric: 'tabular-nums',
+                lineHeight: '16px'
+              }}
+            >
+              {item.checkInTime}
+            </span>
+          ) : isAbsent ? (
+            <span
+              className="body-xs"
+              style={{
+                color: 'var(--text-subtle)',
+                fontStyle: 'italic',
+                fontSize: '11px',
+                lineHeight: '16px'
+              }}
+            >
+              Chưa check-in
+            </span>
+          ) : isLeave && item.leaveReason ? (
+            <span
+              className="body-xs"
+              style={{
+                color: 'var(--text-subtle)',
+                fontStyle: 'italic',
+                maxWidth: '180px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                fontSize: '11px',
+                lineHeight: '16px'
+              }}
+            >
+              {item.leaveReason}
+            </span>
+          ) : null}
+
+          {/* Dòng dưới: Label "Đi muộn", "Chưa đến", "Đúng giờ" hoặc "Nghỉ phép" */}
+          <div>
+            {isLeave ? (
+              <Tag variant="default">
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    color: 'var(--eco-blue-strong)',
+                    fontWeight: 600,
+                    fontSize: '11px'
+                  }}
+                >
+                  <Icon name="calendar-check" size={12} />
+                  Nghỉ phép
+                </span>
+              </Tag>
+            ) : isAbsent ? (
+              <StatusTag tone="warning" label="Chưa đến" />
+            ) : (
+              <StatusTag tone={tagTone} label={item.statusLabel} />
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div
       className="dashboard-card"
@@ -35,7 +250,8 @@ export const TodayAttendanceRosterCard: React.FC<TodayAttendanceRosterCardProps>
         boxShadow: 'var(--shadow-xs)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px'
+        gap: '16px',
+        minHeight: '610px'
       }}
     >
       {/* 1. Header */}
@@ -64,7 +280,7 @@ export const TodayAttendanceRosterCard: React.FC<TodayAttendanceRosterCardProps>
             Chấm công hôm nay và Nghỉ phép
           </h2>
           <span className="body-xs" style={{ color: 'var(--text-subtle)', marginTop: '2px', display: 'inline-block' }}>
-            Theo dõi cán bộ có mặt thực tế, nghỉ phép có đơn và vắng mặt trong ngày
+            Theo dõi cán bộ có mặt thực tế, nghỉ phép và vắng mặt trong ngày
           </span>
         </div>
 
@@ -103,18 +319,20 @@ export const TodayAttendanceRosterCard: React.FC<TodayAttendanceRosterCardProps>
             transition: 'all 0.15s ease'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span className="body-xs-medium" style={{ color: 'var(--text-subtle)' }}>
-              Đang có mặt
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span
               style={{
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                backgroundColor: 'var(--semantic-success)'
+                backgroundColor: 'var(--semantic-success)',
+                display: 'inline-block',
+                flexShrink: 0
               }}
             />
+            <span className="body-xs-medium" style={{ color: 'var(--text-subtle)' }}>
+              Đang có mặt
+            </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '4px' }}>
             <span className="title-sm" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>
@@ -139,18 +357,20 @@ export const TodayAttendanceRosterCard: React.FC<TodayAttendanceRosterCardProps>
             transition: 'all 0.15s ease'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span className="body-xs-medium" style={{ color: 'var(--text-subtle)' }}>
-              Nghỉ phép có đơn
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span
               style={{
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                backgroundColor: 'var(--eco-blue-strong)'
+                backgroundColor: 'var(--eco-blue-strong)',
+                display: 'inline-block',
+                flexShrink: 0
               }}
             />
+            <span className="body-xs-medium" style={{ color: 'var(--text-subtle)' }}>
+              Nghỉ phép
+            </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '4px' }}>
             <span className="title-sm" style={{ fontWeight: 700, color: 'var(--eco-blue-strong)' }}>
@@ -175,18 +395,20 @@ export const TodayAttendanceRosterCard: React.FC<TodayAttendanceRosterCardProps>
             transition: 'all 0.15s ease'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span className="body-xs-medium" style={{ color: 'var(--text-subtle)' }}>
-              Chưa đến / Vắng
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span
               style={{
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                backgroundColor: roster.absentCount > 0 ? 'var(--semantic-warning)' : 'var(--text-disabled)'
+                backgroundColor: roster.absentCount > 0 ? 'var(--semantic-warning)' : 'var(--text-disabled)',
+                display: 'inline-block',
+                flexShrink: 0
               }}
             />
+            <span className="body-xs-medium" style={{ color: 'var(--text-subtle)' }}>
+              Chưa đến / Vắng
+            </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '4px' }}>
             <span
@@ -287,216 +509,90 @@ export const TodayAttendanceRosterCard: React.FC<TodayAttendanceRosterCardProps>
         </button>
       </div>
 
-      {/* 4. Scrollable List of Personnel */}
-      {filteredItems.length === 0 ? (
-        <EmptyValue label="Không có cán bộ nào thuộc nhóm này" />
-      ) : (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            maxHeight: '340px',
-            overflowY: 'auto',
-            paddingRight: '4px'
-          }}
-        >
-          {filteredItems.map((item) => {
-            const isLeave = item.status === 'leave';
-            const isAbsent = item.status === 'absent';
-            const isLate = item.status === 'late';
-
-            let tagTone: 'success' | 'warning' | 'neutral' | 'danger' = 'success';
-            if (isLeave) tagTone = 'neutral';
-            else if (isAbsent) tagTone = 'warning';
-            else if (isLate) tagTone = 'warning';
-
-            return (
+      {/* 4. Scrollable List of Personnel (Fixed height to prevent screen jumping/moving) */}
+      <div
+        style={{
+          height: '380px',
+          minHeight: '380px',
+          maxHeight: '380px',
+          overflowY: 'auto',
+          paddingRight: '4px',
+          scrollbarGutter: 'stable',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: filter === 'all' ? '12px' : '8px'
+        }}
+      >
+        {filteredItems.length === 0 ? (
+          <div
+            style={{
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <EmptyValue label="Không có cán bộ nào thuộc nhóm này" />
+          </div>
+        ) : filter === 'all' ? (
+          sections
+            .filter((sec) => sec.items.length > 0)
+            .map((section) => (
               <div
-                key={item.id}
+                key={section.id}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 14px',
+                  border: '1px solid var(--border-default)',
                   borderRadius: 'var(--radius-8)',
-                  backgroundColor: isLeave
-                    ? 'rgba(0, 112, 206, 0.04)'
-                    : isAbsent
-                    ? 'rgba(239, 68, 68, 0.04)'
-                    : 'var(--bg-canvas)',
-                  border: isLeave
-                    ? '1px solid rgba(0, 112, 206, 0.2)'
-                    : isAbsent
-                    ? '1px solid rgba(239, 68, 68, 0.2)'
-                    : '1px solid var(--border-subtle)',
-                  gap: '12px'
+                  padding: '12px',
+                  backgroundColor: 'var(--bg-subtle)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
                 }}
               >
-                {/* Left: Avatar & Info */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                  <div
+                {/* Frame Header with dot before text */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span
                     style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: 'var(--radius-full)',
-                      backgroundColor: isLeave
-                        ? 'var(--eco-blue-subtle)'
-                        : isAbsent
-                        ? '#FEE2E2'
-                        : 'var(--bg-subtle)',
-                      color: isLeave
-                        ? 'var(--eco-blue-strong)'
-                        : isAbsent
-                        ? '#DC2626'
-                        : 'var(--text-heading)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      flexShrink: 0,
-                      overflow: 'hidden',
-                      position: 'relative'
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      backgroundColor: section.dotColor,
+                      display: 'inline-block',
+                      flexShrink: 0
+                    }}
+                  />
+                  <span
+                    className="body-xs-bold"
+                    style={{
+                      color: 'var(--text-heading)',
+                      fontSize: '12px',
+                      fontWeight: 600
                     }}
                   >
-                    <span>{item.employeeName.charAt(0)}</span>
-                    {item.avatarUrl && (
-                      <img
-                        src={item.avatarUrl}
-                        alt={item.employeeName}
-                        onError={(e) => {
-                          (e.target as HTMLElement).style.display = 'none';
-                        }}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover'
-                        }}
-                      />
-                    )}
-                  </div>
-
-                  <div style={{ minWidth: 0 }}>
-                    <div
-                      className="body-sm"
-                      style={{
-                        fontWeight: 600,
-                        color: 'var(--text-heading)',
-                        lineHeight: 1.3,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                    >
-                      {item.employeeName}{' '}
-                      <code style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>
-                        ({item.employeeCode})
-                      </code>
-                    </div>
-                    <div
-                      className="body-xs"
-                      style={{
-                        color: 'var(--text-subtle)',
-                        marginTop: '2px',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                    >
-                      {item.departmentName}
-                    </div>
-                  </div>
+                    {section.title}
+                  </span>
+                  <span
+                    className="body-xs"
+                    style={{
+                      color: 'var(--text-subtle)',
+                      fontSize: '12px'
+                    }}
+                  >
+                    ({section.items.length})
+                  </span>
                 </div>
 
-                {/* Right: Status details */}
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    justifyContent: 'center',
-                    gap: '4px',
-                    flexShrink: 0
-                  }}
-                >
-                  {/* Dòng trên: Time hoặc text "Chưa check-in" hoặc lý do nghỉ */}
-                  {item.checkInTime ? (
-                    <span
-                      className="body-xs"
-                      style={{
-                        color: 'var(--text-heading)',
-                        fontWeight: 600,
-                        fontSize: '12px',
-                        fontVariantNumeric: 'tabular-nums',
-                        lineHeight: '16px'
-                      }}
-                    >
-                      {item.checkInTime}
-                    </span>
-                  ) : isAbsent ? (
-                    <span
-                      className="body-xs"
-                      style={{
-                        color: 'var(--text-subtle)',
-                        fontStyle: 'italic',
-                        fontSize: '11px',
-                        lineHeight: '16px'
-                      }}
-                    >
-                      Chưa check-in
-                    </span>
-                  ) : isLeave && item.leaveReason ? (
-                    <span
-                      className="body-xs"
-                      style={{
-                        color: 'var(--text-subtle)',
-                        fontStyle: 'italic',
-                        maxWidth: '180px',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        fontSize: '11px',
-                        lineHeight: '16px'
-                      }}
-                    >
-                      {item.leaveReason}
-                    </span>
-                  ) : null}
-
-                  {/* Dòng dưới: Label "Đi muộn", "Chưa đến", "Đúng giờ" hoặc "Nghỉ phép" */}
-                  <div>
-                    {isLeave ? (
-                      <Tag variant="default">
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            color: 'var(--eco-blue-strong)',
-                            fontWeight: 600,
-                            fontSize: '11px'
-                          }}
-                        >
-                          <Icon name="calendar-check" size={12} />
-                          Nghỉ phép
-                        </span>
-                      </Tag>
-                    ) : isAbsent ? (
-                      <StatusTag tone="warning" label="Chưa đến" />
-                    ) : (
-                      <StatusTag tone={tagTone} label={item.statusLabel} />
-                    )}
-                  </div>
+                {/* Items in section */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {section.items.map(renderRosterItem)}
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
+            ))
+        ) : (
+          filteredItems.map(renderRosterItem)
+        )}
+      </div>
     </div>
   );
 };

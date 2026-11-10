@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { SideSheet, StatusTag, Icon, EmptyValue, Button, PopupModal, toast } from '../../design-system';
-import { DailyAttendanceRecord, LeavePeriod } from '../../types/attendance';
-import { dailyAttendanceService } from '../../services/attendance';
+import { SideSheet, StatusTag, Icon, EmptyValue, Button, PopupModal, SelectField, toast } from '../../design-system';
+import { DailyAttendanceRecord, LeavePeriod, STANDARD_LEAVE_REASONS } from '../../types/attendance';
+import { dailyAttendanceService, normalizeLeaveReason, formatScanLogTime } from '../../services/attendance';
 import { authService } from '../../services/auth';
 
 export interface AttendanceLogModalProps {
@@ -23,113 +23,97 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
   const adminName = session?.tenant.contactName || session?.tenant.orgName || 'Đ/c Nguyễn Văn An';
 
   const hasCheckedIn = Boolean(record?.checkInTime);
-  const [isLeave, setIsLeave] = useState(record?.status === 'leave');
   const [currentStatus, setCurrentStatus] = useState(record?.status);
-  const [leaveReason, setLeaveReason] = useState(record?.note || 'Nghỉ việc riêng / Khẩn cấp');
-  const [leavePeriod, setLeavePeriod] = useState<LeavePeriod>(
+
+  // Leave Form State (pending confirmation)
+  const [pendingIsLeave, setPendingIsLeave] = useState(record?.status === 'leave');
+  const [pendingLeaveReason, setPendingLeaveReason] = useState(
+    record?.status === 'leave' && record?.note ? normalizeLeaveReason(record.note) : 'Nghỉ việc riêng / Khẩn cấp'
+  );
+  const [pendingLeavePeriod, setPendingLeavePeriod] = useState<LeavePeriod>(
     record?.leavePeriod || (hasCheckedIn ? 'afternoon' : 'full_day')
   );
+  const [confirmLeaveModalOpen, setConfirmLeaveModalOpen] = useState(false);
+  const [isAdjustingLeave, setIsAdjustingLeave] = useState(false);
+
+  // Check-out State
+  const [isEditingCheckOut, setIsEditingCheckOut] = useState(false);
   const [supplementTime, setSupplementTime] = useState(record?.checkOutTime || '17:00');
   const [confirmCheckOutModalOpen, setConfirmCheckOutModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (record) {
-      setIsLeave(record.status === 'leave');
+      setPendingIsLeave(record.status === 'leave');
       setCurrentStatus(record.status);
-      setLeaveReason(record.status === 'leave' && record.note ? record.note : 'Nghỉ việc riêng / Khẩn cấp');
-      setLeavePeriod(record.leavePeriod || (Boolean(record.checkInTime) ? 'afternoon' : 'full_day'));
+      setPendingLeaveReason(record.status === 'leave' && record.note ? normalizeLeaveReason(record.note) : 'Nghỉ việc riêng / Khẩn cấp');
+      setPendingLeavePeriod(record.leavePeriod || (Boolean(record.checkInTime) ? 'afternoon' : 'full_day'));
       setSupplementTime(record.checkOutTime || '17:00');
+      setIsEditingCheckOut(false);
+      setIsAdjustingLeave(false);
     }
   }, [record, record?.status, record?.note, record?.leavePeriod, record?.checkOutTime, record?.checkInTime]);
 
   if (!record) return null;
 
-  const handleToggleLeave = async (checked: boolean) => {
-    if (submitting || !tenantId) return;
+  const handleToggleLeave = (checked: boolean) => {
+    setPendingIsLeave(checked);
+    if (checked && !pendingLeavePeriod) {
+      setPendingLeavePeriod(hasCheckedIn ? 'afternoon' : 'full_day');
+    }
+  };
+
+  const handleLeavePeriodChange = (newPeriod: LeavePeriod) => {
+    setPendingLeavePeriod(newPeriod);
+  };
+
+  const handleReasonChange = (newReason: string) => {
+    setPendingLeaveReason(newReason);
+  };
+
+  const handleConfirmLeave = async () => {
+    if (submitting || !tenantId || !record) return;
 
     try {
       setSubmitting(true);
-      const period = leavePeriod || (hasCheckedIn ? 'afternoon' : 'full_day');
+      const period = pendingLeavePeriod || (hasCheckedIn ? 'afternoon' : 'full_day');
       const updated = await dailyAttendanceService.toggleEmployeeLeave(
         tenantId,
         record.employeeId,
         record.date,
-        checked,
-        checked ? leaveReason : undefined,
+        pendingIsLeave,
+        pendingIsLeave ? pendingLeaveReason : undefined,
         period
       );
-      setIsLeave(checked);
-      setCurrentStatus(updated.status);
       record.status = updated.status;
       record.note = updated.note;
       record.leavePeriod = updated.leavePeriod;
+      record.checkInTime = updated.checkInTime;
+      record.checkInMethod = updated.checkInMethod;
+      record.checkInDevice = updated.checkInDevice;
+      record.checkOutTime = updated.checkOutTime;
+      record.checkOutMethod = updated.checkOutMethod;
+      record.checkOutDevice = updated.checkOutDevice;
+      record.scanLogs = updated.scanLogs;
+      record.auditLogs = updated.auditLogs;
+      setCurrentStatus(updated.status);
+      setIsAdjustingLeave(false);
+      setConfirmLeaveModalOpen(false);
+
       toast.success(
-        checked
+        pendingIsLeave
           ? `Đã xác nhận nghỉ phép (${period === 'morning' ? 'Buổi sáng' : period === 'afternoon' ? 'Buổi chiều' : 'Cả ngày'}) cho cán bộ ${record.employeeName}.`
           : `Đã hủy ghi nhận nghỉ phép cho cán bộ ${record.employeeName}.`
       );
+
       if (onRecordUpdated) {
         onRecordUpdated();
       }
     } catch (err) {
-      console.error('Failed to toggle leave:', err);
+      console.error('Failed to update leave:', err);
       toast.error('Lỗi cập nhật trạng thái nghỉ phép: ' + (err instanceof Error ? err.message : ''));
-      setIsLeave(!checked);
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleLeavePeriodChange = async (newPeriod: LeavePeriod) => {
-    setLeavePeriod(newPeriod);
-    if (!tenantId || !isLeave || submitting) return;
-    try {
-      setSubmitting(true);
-      const updated = await dailyAttendanceService.toggleEmployeeLeave(
-        tenantId,
-        record.employeeId,
-        record.date,
-        true,
-        leaveReason,
-        newPeriod
-      );
-      record.leavePeriod = updated.leavePeriod;
-      record.note = updated.note;
-      record.status = updated.status;
-      setCurrentStatus(updated.status);
-      toast.success(
-        `Đã chuyển sang nghỉ phép ${newPeriod === 'morning' ? 'Buổi sáng' : newPeriod === 'afternoon' ? 'Buổi chiều' : 'Cả ngày'}.`
-      );
-      if (onRecordUpdated) {
-        onRecordUpdated();
-      }
-    } catch (err) {
-      console.error('Failed to update leave period:', err);
-      toast.error('Lỗi chuyển thời gian nghỉ phép');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleReasonChange = async (newReason: string) => {
-    setLeaveReason(newReason);
-    if (!tenantId || !isLeave || submitting) return;
-    try {
-      const updated = await dailyAttendanceService.toggleEmployeeLeave(
-        tenantId,
-        record.employeeId,
-        record.date,
-        true,
-        newReason,
-        leavePeriod
-      );
-      record.note = updated.note;
-      if (onRecordUpdated) {
-        onRecordUpdated();
-      }
-    } catch (err) {
-      console.error('Failed to update leave reason:', err);
     }
   };
 
@@ -162,9 +146,10 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
       record.scanLogs = updated.scanLogs;
       record.auditLogs = updated.auditLogs;
       setCurrentStatus(updated.status);
+      setIsEditingCheckOut(false);
+      setConfirmCheckOutModalOpen(false);
 
       toast.success(`Đã bổ sung giờ về lúc ${timeVal} cho cán bộ ${record.employeeName}.`);
-      setConfirmCheckOutModalOpen(false);
       if (onRecordUpdated) onRecordUpdated();
     } catch (err) {
       console.error('Lỗi khi bổ sung giờ về:', err);
@@ -175,9 +160,10 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
   };
 
   const getLeaveStatusLabel = () => {
-    if (record.leavePeriod === 'morning' || leavePeriod === 'morning') return 'Nghỉ buổi sáng';
-    if (record.leavePeriod === 'afternoon' || leavePeriod === 'afternoon') return 'Nghỉ buổi chiều';
-    if (record.leavePeriod === 'full_day' || leavePeriod === 'full_day') return 'Nghỉ cả ngày';
+    const period = record.leavePeriod || pendingLeavePeriod;
+    if (period === 'morning') return 'Nghỉ buổi sáng';
+    if (period === 'afternoon') return 'Nghỉ buổi chiều';
+    if (period === 'full_day') return 'Nghỉ cả ngày';
     return 'Nghỉ phép';
   };
 
@@ -202,11 +188,7 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
           </span>
         );
       case 'manual':
-        return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--eco-blue-strong, #0284c7)', fontWeight: 500 }}>
-            <Icon name="pencil" size={13} /> Admin bổ sung
-          </span>
-        );
+        return null;
       default:
         return <span>Thủ công</span>;
     }
@@ -261,11 +243,18 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
             <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>Giờ đến (Check-in)</div>
             <div className="body-sm-medium" style={{ color: 'var(--text-heading)', marginTop: 2 }}>
               {record.checkInTime ? (
-                <span>
-                  <b>{record.checkInTime}</b> ({getMethodBadge(record.checkInMethod || '')})
-                </span>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <b>{record.checkInTime}</b>
+                    {record.checkInMethod && getMethodBadge(record.checkInMethod) && (
+                      <span style={{ color: 'var(--text-subtle)' }}> ({getMethodBadge(record.checkInMethod)})</span>
+                    )}
+                  </div>
+                </div>
               ) : currentStatus === 'leave' ? (
-                <span style={{ color: 'var(--primary-700)', fontStyle: 'italic' }}>{getLeaveStatusLabel()}</span>
+                <div>
+                  <span style={{ color: 'var(--text-disabled)' }}>—</span>
+                </div>
               ) : (
                 <EmptyValue italic>Chưa vào</EmptyValue>
               )}
@@ -275,210 +264,374 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
           <div>
             <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>Giờ về (Check-out)</div>
             <div className="body-sm-medium" style={{ color: 'var(--text-heading)', marginTop: 2 }}>
-              {record.checkOutTime ? (
-                <div>
-                  <span>
-                    <b>{record.checkOutTime}</b> ({getMethodBadge(record.checkOutMethod || '')})
-                  </span>
-                  {(record.checkOutMethod === 'manual' || record.checkOutAdminName) && (
-                    <div style={{ fontSize: 11, color: 'var(--text-subtle)', fontStyle: 'italic', marginTop: 3 }}>
-                      Thông tin check-out được bổ sung bởi &ldquo;{record.checkOutAdminName || adminName}&rdquo;
+              <div>
+                {/* Dòng 1: Giờ về check-out thực tế hoặc trạng thái chưa về */}
+                {record.checkOutTime ? (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>
+                        <b>{record.checkOutTime}</b>
+                        {record.checkOutMethod && record.checkOutMethod !== 'manual' && getMethodBadge(record.checkOutMethod) && (
+                          <span style={{ color: 'var(--text-subtle)' }}> ({getMethodBadge(record.checkOutMethod)})</span>
+                        )}
+                      </span>
+                      {!isEditingCheckOut && (
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            setIsEditingCheckOut(true);
+                            setSupplementTime(record.checkOutTime || '17:00');
+                          }}
+                          style={{ padding: '0 6px', height: 24, fontSize: '11px', color: 'var(--eco-blue-strong)' }}
+                          title="Chỉnh sửa giờ về"
+                        >
+                          Chỉnh sửa
+                        </Button>
+                      )}
                     </div>
-                  )}
-                </div>
-              ) : currentStatus === 'leave' ? (
-                <span style={{ color: 'var(--primary-700)', fontStyle: 'italic' }}>{getLeaveStatusLabel()}</span>
-              ) : (
-                <EmptyValue italic>Chưa về</EmptyValue>
-              )}
+                    {isEditingCheckOut && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: 4 }}>
+                        <input
+                          type="time"
+                          aria-label="Giờ về bổ sung"
+                          value={supplementTime}
+                          onChange={(e) => setSupplementTime(e.target.value)}
+                          disabled={submitting}
+                          style={{
+                            height: 28,
+                            padding: '0 6px',
+                            borderRadius: 'var(--radius-4)',
+                            border: '1px solid var(--border-default)',
+                            backgroundColor: 'var(--bg-canvas)',
+                            color: 'var(--text-heading)',
+                            fontSize: 13,
+                            fontWeight: 600
+                          }}
+                        />
+                        <Button
+                          variant="primary"
+                          onClick={() => setConfirmCheckOutModalOpen(true)}
+                          disabled={submitting || !supplementTime.trim()}
+                          style={{ padding: '2px 8px', height: 28, fontSize: '12px' }}
+                        >
+                          Xác nhận
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setIsEditingCheckOut(false)}
+                          style={{ padding: '2px 6px', height: 28, fontSize: '12px', color: 'var(--text-subtle)' }}
+                        >
+                          Hủy
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Chưa có giờ về */
+                  <div>
+                    {!isEditingCheckOut ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <EmptyValue italic>Chưa về</EmptyValue>
+                        <Button
+                          variant="primary"
+                          onClick={() => {
+                            setIsEditingCheckOut(true);
+                            setSupplementTime('17:00');
+                          }}
+                          style={{
+                            padding: '2px 10px',
+                            height: 26,
+                            fontSize: '12px',
+                            fontWeight: 500
+                          }}
+                        >
+                          Chấm công
+                        </Button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <input
+                          type="time"
+                          aria-label="Giờ về bổ sung"
+                          value={supplementTime}
+                          onChange={(e) => setSupplementTime(e.target.value)}
+                          disabled={submitting}
+                          style={{
+                            height: 28,
+                            padding: '0 6px',
+                            borderRadius: 'var(--radius-4)',
+                            border: '1px solid var(--border-default)',
+                            backgroundColor: 'var(--bg-canvas)',
+                            color: 'var(--text-heading)',
+                            fontSize: 13,
+                            fontWeight: 600
+                          }}
+                        />
+                        <Button
+                          variant="primary"
+                          onClick={() => setConfirmCheckOutModalOpen(true)}
+                          disabled={submitting || !supplementTime.trim()}
+                          style={{ padding: '2px 8px', height: 28, fontSize: '12px' }}
+                        >
+                          Xác nhận
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setIsEditingCheckOut(false)}
+                          style={{ padding: '2px 6px', height: 28, fontSize: '12px', color: 'var(--text-subtle)' }}
+                        >
+                          Hủy
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Dòng 2: Ghi chú người bổ sung check-out nếu có */}
+                {(record.checkOutMethod === 'manual' || record.checkOutAdminName) && (
+                  <div style={{ fontSize: 11, color: 'var(--text-subtle)', fontStyle: 'italic', marginTop: 3 }}>
+                    Thông tin check-out được bổ sung bởi &ldquo;{record.checkOutAdminName || adminName}&rdquo;
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Khối quản trị: Xác nhận nghỉ phép */}
-        <div
-          style={{
-            padding: 'var(--space-16)',
-            borderRadius: 'var(--radius-8)',
-            border: isLeave ? '1px solid var(--primary-300)' : '1px solid var(--border-default)',
-            backgroundColor: isLeave ? 'var(--primary-50)' : 'var(--bg-subtle)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-12)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-12)' }}>
-            <label
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 'var(--space-10)',
-                cursor: submitting ? 'not-allowed' : 'pointer',
-                userSelect: 'none'
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={isLeave}
-                disabled={submitting}
-                onChange={(e) => handleToggleLeave(e.target.checked)}
-                aria-label="Xác nhận nghỉ phép"
-                style={{
-                  width: 18,
-                  height: 18,
-                  cursor: 'pointer',
-                  accentColor: 'var(--primary-600)'
-                }}
-              />
-              <span
-                className="body-sm-bold"
-                style={{
-                  color: 'var(--text-heading)'
-                }}
-              >
-                Xác nhận nghỉ phép ngày {record.date}
-              </span>
-            </label>
+        {currentStatus === 'leave' && !isAdjustingLeave ? (
+          <div
+            style={{
+              padding: 'var(--space-16)',
+              borderRadius: 'var(--radius-8)',
+              border: '1px solid var(--primary-300, #93c5fd)',
+              backgroundColor: 'var(--primary-50, #eff6ff)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-10)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-12)' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+                <Icon name="calendar-check" size={18} color="var(--primary-600, #2563eb)" />
+                <span
+                  className="body-sm-bold"
+                  style={{
+                    color: 'var(--text-heading)',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Xác nhận nghỉ phép ngày {record.date}
+                </span>
+              </div>
 
-            {isLeave ? (
-              <span
-                className="body-xs-medium"
-                style={{
-                  color: 'var(--primary-700)',
-                  backgroundColor: 'var(--primary-100)',
-                  padding: '2px 8px',
-                  borderRadius: 'var(--radius-4)',
-                  border: '1px solid var(--primary-200)'
-                }}
-              >
-                {leavePeriod === 'morning' ? 'Nghỉ buổi sáng' : leavePeriod === 'afternoon' ? 'Nghỉ buổi chiều' : 'Nghỉ cả ngày'}
-              </span>
-            ) : hasCheckedIn ? (
-              <span
-                className="body-xs-medium"
-                style={{
-                  color: 'var(--semantic-success)',
-                  backgroundColor: 'var(--semantic-success-light, #dcfce7)',
-                  padding: '2px 8px',
-                  borderRadius: 'var(--radius-4)',
-                  border: '1px solid #bbf7d0'
-                }}
-              >
-                Đã vào ca ({record.checkInTime})
-              </span>
-            ) : (
-              <span
-                className="body-xs-medium"
-                style={{
-                  color: 'var(--semantic-danger)',
-                  backgroundColor: '#fee2e2',
-                  padding: '2px 8px',
-                  borderRadius: 'var(--radius-4)',
-                  border: '1px solid #fecaca'
-                }}
-              >
-                Chưa đến / Vắng (Không phép)
-              </span>
-            )}
-          </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsAdjustingLeave(true)}
+                  style={{
+                    padding: '2px 8px',
+                    height: 26,
+                    fontSize: '12px',
+                    color: 'var(--eco-blue-strong)',
+                    fontWeight: 600
+                  }}
+                >
+                  Điều chỉnh
+                </Button>
+              </div>
+            </div>
 
-          {/* Lựa chọn phạm vi nghỉ phép: Cả ngày / Buổi sáng / Buổi chiều */}
-          {isLeave && (
             <div
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 'var(--space-6)',
-                padding: 'var(--space-10) var(--space-12)',
+                gap: '6px',
+                padding: '10px 12px',
                 backgroundColor: 'var(--bg-canvas)',
                 borderRadius: 'var(--radius-6)',
-                border: '1px solid var(--border-neutral-subtle)'
+                border: '1px solid var(--border-subtle)',
+                fontSize: '12px'
               }}
             >
-              <div className="body-xs-medium" style={{ color: 'var(--text-subtle)' }}>
-                Thời gian nghỉ phép:
+              <div>
+                <span style={{ color: 'var(--text-subtle)' }}>Thời gian nghỉ: </span>
+                <strong style={{ color: 'var(--text-heading)' }}>
+                  {record.leavePeriod === 'morning' || pendingLeavePeriod === 'morning'
+                    ? 'Buổi sáng'
+                    : record.leavePeriod === 'afternoon' || pendingLeavePeriod === 'afternoon'
+                    ? 'Buổi chiều'
+                    : 'Cả ngày'}
+                </strong>
               </div>
-              <div style={{ display: 'flex', gap: 'var(--space-16)', alignItems: 'center' }}>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: 'var(--text-heading)' }}>
-                  <input
-                    type="radio"
-                    name="leavePeriod"
-                    value="full_day"
-                    checked={leavePeriod === 'full_day'}
-                    disabled={submitting}
-                    onChange={() => handleLeavePeriodChange('full_day')}
-                    style={{ cursor: 'pointer' }}
-                  />
-                  <span>Cả ngày</span>
-                </label>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: 'var(--text-heading)' }}>
-                  <input
-                    type="radio"
-                    name="leavePeriod"
-                    value="morning"
-                    checked={leavePeriod === 'morning'}
-                    disabled={submitting}
-                    onChange={() => handleLeavePeriodChange('morning')}
-                    style={{ cursor: 'pointer' }}
-                  />
-                  <span>Buổi sáng</span>
-                </label>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: 'var(--text-heading)' }}>
-                  <input
-                    type="radio"
-                    name="leavePeriod"
-                    value="afternoon"
-                    checked={leavePeriod === 'afternoon'}
-                    disabled={submitting}
-                    onChange={() => handleLeavePeriodChange('afternoon')}
-                    style={{ cursor: 'pointer' }}
-                  />
-                  <span>Buổi chiều</span>
-                </label>
+              <div>
+                <span style={{ color: 'var(--text-subtle)' }}>Lý do nghỉ phép: </span>
+                <strong style={{ color: 'var(--text-heading)' }}>
+                  {normalizeLeaveReason(record.note || pendingLeaveReason)}
+                </strong>
               </div>
+              {hasCheckedIn && (
+                <div style={{ color: 'var(--semantic-warning-dark)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Icon name="info" size={13} style={{ color: 'var(--semantic-warning)' }} />
+                  <span>Cán bộ có dữ liệu vào ca lúc <b>{record.checkInTime}</b> và được bảo lưu lịch sử quét.</span>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+        ) : (
+          <div
+            style={{
+              padding: 'var(--space-16)',
+              borderRadius: 'var(--radius-8)',
+              border: pendingIsLeave ? '1px solid var(--primary-300, #93c5fd)' : '1px solid var(--border-default)',
+              backgroundColor: pendingIsLeave ? 'var(--primary-50, #eff6ff)' : 'var(--bg-subtle)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-12)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-12)' }}>
+              <label
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-10)',
+                  cursor: submitting ? 'not-allowed' : 'pointer',
+                  userSelect: 'none'
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={pendingIsLeave}
+                  disabled={submitting}
+                  onChange={(e) => handleToggleLeave(e.target.checked)}
+                  aria-label="Xác nhận nghỉ phép"
+                  style={{
+                    width: 18,
+                    height: 18,
+                    cursor: 'pointer',
+                    accentColor: 'var(--primary-600, #2563eb)'
+                  }}
+                />
+                <span
+                  className="body-sm-bold"
+                  style={{
+                    color: 'var(--text-heading)',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Xác nhận nghỉ phép ngày {record.date}
+                </span>
+              </label>
 
-          {hasCheckedIn && isLeave && (
-            <div
-              className="body-xs"
-              style={{
-                color: 'var(--semantic-warning-dark, #b45309)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--space-6)',
-                backgroundColor: '#fffbeb',
-                padding: '6px 10px',
-                borderRadius: 'var(--radius-4)',
-                border: '1px solid #fef3c7'
-              }}
-            >
-              <Icon name="info" size={14} style={{ color: 'var(--semantic-warning)' }} />
-              <span>
-                Cán bộ đã có dữ liệu check-in lúc <b>{record.checkInTime}</b>. Hệ thống ghi nhận nghỉ phép đột xuất (việc khẩn cấp về sớm) và bảo lưu dữ liệu vào ca.
-              </span>
+              {!pendingIsLeave && (hasCheckedIn ? (
+                <span
+                  className="body-xs-medium"
+                  style={{
+                    color: 'var(--semantic-success)',
+                    backgroundColor: 'var(--semantic-success-light, #dcfce7)',
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-4)',
+                    border: '1px solid #bbf7d0'
+                  }}
+                >
+                  Đã vào ca ({record.checkInTime})
+                </span>
+              ) : (
+                <span
+                  className="body-xs-medium"
+                  style={{
+                    color: 'var(--semantic-danger)',
+                    backgroundColor: '#fee2e2',
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-4)',
+                    border: '1px solid #fecaca'
+                  }}
+                >
+                  Chưa đến / Vắng (Không phép)
+                </span>
+              ))}
             </div>
-          )}
 
-          {hasCheckedIn && !isLeave && (
-            <div
-              className="body-xs"
-              style={{
-                color: 'var(--text-subtle)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--space-6)'
-              }}
-            >
-              <Icon name="info" size={14} style={{ color: 'var(--primary-600)' }} />
-              <span>
-                Cán bộ đã check-in lúc <b>{record.checkInTime}</b>. Trường hợp có việc khẩn cấp cần về sớm, Quản trị viên vẫn có thể tích chọn để ghi nhận nghỉ phép (Buổi chiều hoặc Cả ngày).
-              </span>
-            </div>
-          )}
+            {/* Lựa chọn phạm vi nghỉ phép: Cả ngày / Buổi sáng / Buổi chiều */}
+            {pendingIsLeave && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'var(--space-6)',
+                  padding: 'var(--space-10) var(--space-12)',
+                  backgroundColor: 'var(--bg-canvas)',
+                  borderRadius: 'var(--radius-6)',
+                  border: '1px solid var(--border-neutral-subtle)'
+                }}
+              >
+                <div className="body-xs-medium" style={{ color: 'var(--text-subtle)' }}>
+                  Thời gian nghỉ phép:
+                </div>
+                <div style={{ display: 'flex', gap: 'var(--space-16)', alignItems: 'center' }}>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: 'var(--text-heading)' }}>
+                    <input
+                      type="radio"
+                      name="leavePeriod"
+                      value="full_day"
+                      checked={pendingLeavePeriod === 'full_day'}
+                      disabled={submitting}
+                      onChange={() => handleLeavePeriodChange('full_day')}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <span>Cả ngày</span>
+                  </label>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: 'var(--text-heading)' }}>
+                    <input
+                      type="radio"
+                      name="leavePeriod"
+                      value="morning"
+                      checked={pendingLeavePeriod === 'morning'}
+                      disabled={submitting}
+                      onChange={() => handleLeavePeriodChange('morning')}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <span>Buổi sáng</span>
+                  </label>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: 'var(--text-heading)' }}>
+                    <input
+                      type="radio"
+                      name="leavePeriod"
+                      value="afternoon"
+                      checked={pendingLeavePeriod === 'afternoon'}
+                      disabled={submitting}
+                      onChange={() => handleLeavePeriodChange('afternoon')}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <span>Buổi chiều</span>
+                  </label>
+                </div>
+              </div>
+            )}
 
-          {!hasCheckedIn && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
+            {hasCheckedIn && pendingIsLeave && (
+              <div
+                className="body-xs"
+                style={{
+                  color: 'var(--semantic-warning-dark, #b45309)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-6)',
+                  backgroundColor: '#fffbeb',
+                  padding: '6px 10px',
+                  borderRadius: 'var(--radius-4)',
+                  border: '1px solid #fef3c7'
+                }}
+              >
+                <Icon name="info" size={14} style={{ color: 'var(--semantic-warning)' }} />
+                <span>
+                  Cán bộ đã có dữ liệu check-in lúc <b>{record.checkInTime}</b>. Hệ thống ghi nhận nghỉ phép đột xuất (việc khẩn cấp về sớm) và bảo lưu dữ liệu vào ca.
+                </span>
+              </div>
+            )}
+
+            {hasCheckedIn && !pendingIsLeave && (
               <div
                 className="body-xs"
                 style={{
@@ -488,109 +641,76 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
                   gap: 'var(--space-6)'
                 }}
               >
-                <Icon name="info" size={14} style={{ color: 'var(--primary-600)' }} />
+                <Icon name="info" size={14} style={{ color: 'var(--primary-600, #2563eb)' }} />
                 <span>
-                  {isLeave
-                    ? 'Cán bộ đang được ghi nhận nghỉ phép có lý do. Quản trị viên có thể bỏ tích để chuyển lại thành Chưa đến / Vắng.'
-                    : 'Cán bộ chưa vào ca (Vắng mặt). Quản trị viên có thể tích chọn để ghi nhận nghỉ phép.'}
+                  Cán bộ đã check-in lúc <b>{record.checkInTime}</b>. Trường hợp có việc khẩn cấp cần về sớm, Quản trị viên vẫn có thể tích chọn để ghi nhận nghỉ phép (Buổi chiều hoặc Cả ngày).
                 </span>
               </div>
-            </div>
-          )}
+            )}
 
-          {isLeave && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', marginTop: 'var(--space-4)' }}>
-              <label className="body-xs-medium" style={{ color: 'var(--text-subtle)' }}>
-                Lý do nghỉ phép:
-              </label>
-              <select
-                value={leaveReason}
-                onChange={(e) => handleReasonChange(e.target.value)}
-                disabled={submitting}
-                className="body-sm"
-                style={{
-                  width: '100%',
-                  height: 36,
-                  padding: '0 10px',
-                  borderRadius: 'var(--radius-6)',
-                  border: '1px solid var(--border-default)',
-                  backgroundColor: 'var(--bg-canvas)',
-                  color: 'var(--text-heading)'
-                }}
-              >
-                <option value="Nghỉ việc riêng / Khẩn cấp">Nghỉ việc riêng / Khẩn cấp</option>
-                <option value="Nghỉ phép năm">Nghỉ phép năm</option>
-                <option value="Nghỉ ốm / Khám sức khỏe">Nghỉ ốm / Khám sức khỏe</option>
-                <option value="Nghỉ chế độ / Thai sản">Nghỉ chế độ / Thai sản</option>
-                <option value="Đi công tác đột xuất">Đi công tác đột xuất</option>
-              </select>
-            </div>
-          )}
-        </div>
-
-        {/* Khối quản trị: Bổ sung giờ về (Check-out bù) ngay trong right-sheet */}
-        {hasCheckedIn && (
-          <div
-            style={{
-              padding: 'var(--space-16)',
-              borderRadius: 'var(--radius-8)',
-              border: '1px solid var(--semantic-warning, #f59e0b)',
-              backgroundColor: 'var(--semantic-warning-light, #fef3c7)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-12)'
-            }}
-          >
-            <div>
-              <div
-                className="body-sm-bold"
-                style={{
-                  color: 'var(--semantic-warning-dark, #b45309)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                <Icon name="clock" size={15} />
-                {record.checkOutTime ? 'Điều chỉnh giờ về (Check-out)' : 'Cán bộ chưa có giờ về (Quên check-out)'}
-              </div>
-              <div className="body-xs" style={{ color: 'var(--text-body)', marginTop: 4 }}>
-                {record.checkOutTime
-                  ? `Giờ về hiện tại: ${record.checkOutTime}. Quản trị viên có thể điều chỉnh giờ về và bấm Bổ sung.`
-                  : `Cán bộ đã vào ca lúc ${record.checkInTime} nhưng chưa ghi nhận giờ tan ca. Quản trị viên có thể chỉnh giờ về trực tiếp tại đây và bấm Bổ sung.`}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-12)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
-                <label className="body-xs-medium" style={{ color: 'var(--text-heading)', whiteSpace: 'nowrap' }}>
-                  Giờ về:
-                </label>
-                <input
-                  type="time"
-                  aria-label="Giờ về bổ sung"
-                  value={supplementTime}
-                  onChange={(e) => setSupplementTime(e.target.value)}
-                  disabled={submitting}
+            {!hasCheckedIn && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
+                <div
+                  className="body-xs"
                   style={{
-                    height: 36,
-                    padding: '0 10px',
-                    borderRadius: 'var(--radius-6)',
-                    border: '1px solid var(--border-default)',
-                    backgroundColor: 'var(--bg-canvas)',
-                    color: 'var(--text-heading)',
-                    fontSize: 14,
-                    fontWeight: 600
+                    color: 'var(--text-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--space-6)'
                   }}
+                >
+                  <Icon name="info" size={14} style={{ color: 'var(--primary-600, #2563eb)' }} />
+                  <span>
+                    {pendingIsLeave
+                      ? 'Cán bộ đang được ghi nhận nghỉ phép có lý do. Quản trị viên có thể bỏ tích để chuyển lại thành Chưa đến / Vắng.'
+                      : 'Cán bộ chưa vào ca (Vắng mặt). Quản trị viên có thể tích chọn để ghi nhận nghỉ phép.'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {pendingIsLeave && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', marginTop: 'var(--space-4)' }}>
+                <label className="body-xs-medium" style={{ color: 'var(--text-subtle)' }}>
+                  Lý do nghỉ phép:
+                </label>
+                <SelectField
+                  options={[...STANDARD_LEAVE_REASONS]}
+                  value={pendingLeaveReason}
+                  onChange={(val) => handleReasonChange(val)}
+                  disabled={submitting}
+                  width="100%"
                 />
               </div>
-              <Button
-                variant="primary"
-                onClick={() => setConfirmCheckOutModalOpen(true)}
-                disabled={submitting || !supplementTime.trim()}
-              >
-                Bổ sung
-              </Button>
+            )}
+
+            {/* Nút Xác nhận cho khối nghỉ phép */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: 'var(--space-6)' }}>
+              {isAdjustingLeave && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setIsAdjustingLeave(false);
+                    setPendingIsLeave(record.status === 'leave');
+                    setPendingLeavePeriod(record.leavePeriod || 'full_day');
+                    setPendingLeaveReason(normalizeLeaveReason(record.note || 'Nghỉ việc riêng / Khẩn cấp'));
+                  }}
+                  disabled={submitting}
+                  style={{ padding: '6px 12px', fontSize: '13px' }}
+                >
+                  Hủy
+                </Button>
+              )}
+              {(pendingIsLeave || record.status === 'leave') && (
+                <Button
+                  variant="primary"
+                  onClick={() => setConfirmLeaveModalOpen(true)}
+                  disabled={submitting}
+                  style={{ padding: '6px 16px', fontSize: '13px' }}
+                >
+                  Xác nhận
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -710,7 +830,7 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
 
                   <div style={{ textAlign: 'right' }}>
                     <div className="body-sm-bold" style={{ color: 'var(--text-heading)' }}>
-                      {new Date(log.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      {formatScanLogTime(log.timestamp)}
                     </div>
                     <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>
                       {getMethodBadge(log.method)}
@@ -722,6 +842,60 @@ export const AttendanceLogModal: React.FC<AttendanceLogModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* Pop-up modal xác nhận ghi nhận nghỉ phép */}
+      <PopupModal
+        open={confirmLeaveModalOpen}
+        onClose={() => setConfirmLeaveModalOpen(false)}
+        title={pendingIsLeave ? "Xác nhận ghi nhận nghỉ phép" : "Xác nhận hủy nghỉ phép"}
+        description={
+          pendingIsLeave
+            ? "Xác nhận cập nhật trạng thái nghỉ phép vào hệ thống điểm danh."
+            : "Hủy bỏ ghi nhận nghỉ phép và khôi phục trạng thái điểm danh ban đầu."
+        }
+        width={460}
+        primaryAction={{
+          label: submitting ? 'Đang lưu...' : 'Xác nhận',
+          onClick: handleConfirmLeave,
+          disabled: submitting
+        }}
+        secondaryAction={{
+          label: 'Hủy bỏ',
+          onClick: () => setConfirmLeaveModalOpen(false),
+          disabled: submitting
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-12)' }}>
+          <div className="body-sm" style={{ color: 'var(--text-heading)', lineHeight: 1.6 }}>
+            {pendingIsLeave ? (
+              <>
+                Bạn có chắc chắn muốn xác nhận nghỉ phép (
+                <b>{pendingLeavePeriod === 'morning' ? 'Buổi sáng' : pendingLeavePeriod === 'afternoon' ? 'Buổi chiều' : 'Cả ngày'}</b>
+                ) ngày <b>{record.date}</b> cho cán bộ <b>{record.employeeName}</b>?
+              </>
+            ) : (
+              <>
+                Bạn có chắc chắn muốn hủy bỏ trạng thái nghỉ phép ngày <b>{record.date}</b> của cán bộ <b>{record.employeeName}</b>?
+              </>
+            )}
+          </div>
+          {pendingIsLeave && (
+            <div
+              className="body-xs"
+              style={{
+                padding: '10px 14px',
+                backgroundColor: 'var(--primary-50)',
+                borderRadius: 'var(--radius-6)',
+                color: 'var(--primary-900)',
+                border: '1px solid var(--primary-200)',
+                lineHeight: 1.5
+              }}
+            >
+              Lý do ghi nhận: <b>{pendingLeaveReason}</b>
+            </div>
+          )}
+        </div>
+      </PopupModal>
 
       {/* Pop-up modal xác nhận bổ sung giờ về */}
       <PopupModal

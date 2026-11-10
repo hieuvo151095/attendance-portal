@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { AttendanceDashboard } from '../pages/dashboard/AttendanceDashboard';
 import { authService } from '../services/auth';
 import { dashboardService } from '../services/dashboard';
@@ -107,14 +107,13 @@ describe('Bảng Điều Khiển Tổng Quan Điểm Danh & Chuyên Cần Toàn 
     expect(screen.queryByText('Cuộc Họp Đã Hoàn Tất Gần Nhất')).not.toBeInTheDocument();
 
     // Thẻ Quân Số Hiện Diện & Nghỉ Phép Hôm Nay có các mục trạng thái
-    expect(screen.getByText('Đang có mặt')).toBeInTheDocument();
-    expect(screen.getByText('Nghỉ phép có đơn')).toBeInTheDocument();
-    expect(screen.getByText('Chưa đến / Vắng')).toBeInTheDocument();
+    expect(screen.getAllByText('Đang có mặt').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Nghỉ phép').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Chưa đến / Vắng').length).toBeGreaterThanOrEqual(1);
 
     // Trung tâm cảnh báo bất thường hiển thị các nhóm việc cần xử lý
     expect(screen.getAllByText(/Quên check-out/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Chuyên cần đột biến/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Đơn chờ duyệt/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Thiết bị/).length).toBeGreaterThan(0);
 
     // Nút chuyển tab sang màn hình chấm công
@@ -215,5 +214,42 @@ describe('Bảng Điều Khiển Tổng Quan Điểm Danh & Chuyên Cần Toàn 
       expect(screen.getByText('Tổng Quan Điểm Danh & Chuyên Cần')).toBeInTheDocument();
       expect(screen.getByTestId('attendance-overview-group')).toBeInTheDocument();
     });
+  });
+
+  it('Action Center: Chuyển đổi tab Tất cả, Chuyên cần đột biến và bấm Kiểm tra thiết bị dẫn đến settings devices', async () => {
+    const handleNavigateTab = vi.fn();
+    render(<AttendanceDashboard tenantId={ubndTenant} onNavigateTab={handleNavigateTab} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Cảnh Báo Bất Thường & Việc Cần Xử Lý Trong Ngày/)).toBeInTheDocument();
+    });
+
+    const actionCenter = screen.getByTestId('attendance-action-center-card');
+    const withinAC = within(actionCenter);
+
+    // Mặc định tab "Tất cả" được chọn
+    const tabAll = withinAC.getByRole('button', { name: /Tất cả/ });
+    expect(tabAll).toHaveStyle({ backgroundColor: '#eff6ff', color: '#1d4ed8' });
+
+    // Bấm sang tab "Chuyên cần đột biến"
+    const tabAnomaly = withinAC.getByRole('button', { name: /Chuyên cần đột biến/ });
+    fireEvent.click(tabAnomaly);
+    expect(tabAnomaly).toHaveStyle({ backgroundColor: '#fee2e2', color: '#b91c1c' });
+
+    // Bấm sang tab "Thiết bị"
+    const tabDevice = withinAC.getByRole('button', { name: /Thiết bị/ });
+    fireEvent.click(tabDevice);
+    expect(tabDevice).toHaveStyle({ backgroundColor: '#f1f5f9', color: '#334155' });
+
+    // Kiểm tra tỉ lệ thiết bị đồng bộ đúng với Quản trị thiết bị (3/5 đang hoạt động)
+    expect(withinAC.getByText('3/5 đang hoạt động')).toBeInTheDocument();
+
+    // Bấm nút "Kiểm tra" trong mục thiết bị
+    const checkBtns = withinAC.getAllByRole('button', { name: 'Kiểm tra' });
+    expect(checkBtns.length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(checkBtns[0]);
+
+    // Xác nhận gọi onNavigateTab('settings', 'devices')
+    expect(handleNavigateTab).toHaveBeenCalledWith('settings', 'devices');
   });
 });

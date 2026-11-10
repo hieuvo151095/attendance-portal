@@ -69,10 +69,20 @@ export interface CameraFaceSyncPayload {
   faceScore?: number;
 }
 
+export interface CameraSyncFailureItem {
+  employeeId: string;
+  employeeCode: string;
+  fullName: string;
+  reason: string;
+}
+
 export interface CameraSyncBatchResult {
+  totalRequested: number;
   syncedCount: number;
+  failedCount: number;
   deviceCount: number;
   syncedEmployeeIds: string[];
+  failedItems?: CameraSyncFailureItem[];
   syncedAt: string;
 }
 

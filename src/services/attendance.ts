@@ -7,12 +7,104 @@ import {
   AttendanceAuditLog,
   AdminCheckOutPayload,
   DailyAttendanceStatus,
-  LeavePeriod
+  LeavePeriod,
+  STANDARD_LEAVE_REASONS
 } from '../types/attendance';
 import { authService } from './auth';
 import { employeeService } from './employee';
 import { departmentService } from './department';
 import { attendanceSettingService } from './setting';
+
+export function normalizeLeaveReason(note?: string): string {
+  if (!note) return 'Nghỉ việc riêng / Khẩn cấp';
+  let cleaned = note.trim();
+  // Loại bỏ triệt để mọi hậu tố trùng lặp như (Buổi chiều) (Buổi chiều)
+  while (/\s*\((?:Buổi sáng|Buổi chiều|Cả ngày)\)\s*$/i.test(cleaned)) {
+    cleaned = cleaned.replace(/\s*\((?:Buổi sáng|Buổi chiều|Cả ngày)\)\s*$/i, '').trim();
+  }
+  if ((STANDARD_LEAVE_REASONS as readonly string[]).includes(cleaned)) return cleaned;
+  if (cleaned.includes('công tác')) return 'Đi công tác đột xuất';
+  if (cleaned.includes('ốm') || cleaned.includes('khám') || cleaned.includes('bệnh') || cleaned.includes('sức khỏe')) return 'Nghỉ ốm / Khám sức khỏe';
+  if (cleaned.includes('phép năm')) return 'Nghỉ phép năm';
+  if (cleaned.includes('thai sản') || cleaned.includes('chế độ')) return 'Nghỉ chế độ / Thai sản';
+  if (cleaned.includes('việc riêng') || cleaned.includes('Khẩn cấp')) return 'Nghỉ việc riêng / Khẩn cấp';
+  return cleaned;
+}
+
+export function formatScanLogTime(timestamp?: string): string {
+  if (!timestamp) return '--:--:--';
+  // Trích xuất trực tiếp giờ:phút:giây từ chuỗi ISO để không bị lệch múi giờ (+7h)
+  const match = timestamp.match(/T(\d{2}:\d{2}(?::\d{2})?)/);
+  if (match) {
+    const timePart = match[1];
+    return timePart.length === 5 ? `${timePart}:00` : timePart;
+  }
+  try {
+    return new Date(timestamp).toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  } catch {
+    return timestamp;
+  }
+}
+
+export function sanitizeRecordConsistency(r: DailyAttendanceRecord): DailyAttendanceRecord {
+  if (r.status === 'leave') {
+    if (r.leavePeriod === 'afternoon') {
+      // Nghỉ buổi chiều: giữ checkIn buổi sáng, không có checkOut và loại bỏ mọi scanLog check_out
+      r.checkOutTime = undefined;
+      r.checkOutMethod = undefined;
+      r.checkOutDevice = undefined;
+      r.earlyLeaveMinutes = 0;
+      r.scanLogs = (r.scanLogs || []).filter((l) => l.type === 'check_in');
+    } else if (r.leavePeriod === 'full_day') {
+      // Nghỉ cả ngày: xóa cả checkIn và checkOut, scanLogs trống
+      r.checkInTime = undefined;
+      r.checkInMethod = undefined;
+      r.checkInDevice = undefined;
+      r.checkOutTime = undefined;
+      r.checkOutMethod = undefined;
+      r.checkOutDevice = undefined;
+      r.lateMinutes = 0;
+      r.earlyLeaveMinutes = 0;
+      r.scanLogs = [];
+    } else if (r.leavePeriod === 'morning') {
+      // Nghỉ buổi sáng: không có checkIn sáng, chỉ giữ checkOut chiều nếu có
+      r.checkInTime = undefined;
+      r.checkInMethod = undefined;
+      r.checkInDevice = undefined;
+      r.lateMinutes = 0;
+      r.scanLogs = (r.scanLogs || []).filter((l) => l.type === 'check_out');
+    }
+    if (r.note) {
+      r.note = normalizeLeaveReason(r.note);
+    }
+  } else {
+    // Không nghỉ phép: đồng bộ tuyệt đối giữa checkOutTime và scanLogs
+    if (!r.checkOutTime) {
+      // Chưa về: scanLogs không được chứa lượt quét check_out
+      r.scanLogs = (r.scanLogs || []).filter((l) => l.type === 'check_in');
+    } else {
+      // Đã có giờ về: đảm bảo scanLogs có lượt quét check_out tương ứng
+      const hasCheckOutLog = (r.scanLogs || []).some((l) => l.type === 'check_out');
+      if (!hasCheckOutLog) {
+        r.scanLogs = [
+          ...(r.scanLogs || []),
+          {
+            id: `scan-${r.id}-out`,
+            timestamp: `${r.date}T${r.checkOutTime}:00+07:00`,
+            type: 'check_out',
+            method: r.checkOutMethod || 'manual',
+            deviceName: r.checkOutDevice || 'Ghi nhận thủ công từ Quản trị viên'
+          }
+        ];
+      }
+    }
+  }
+  return r;
+}
 
 const STORAGE_ATTENDANCE_KEY = 'finviet_daily_attendance_records';
 
@@ -806,7 +898,7 @@ const BASE_RECORDS_20261104: DailyAttendanceRecord[] = [
     earlyLeaveMinutes: 0,
     status: 'leave',
     scanLogs: [],
-    note: 'Đi công tác theo kế hoạch (Kế hoạch số 48/KH-CAP đã phê duyệt)',
+    note: 'Đi công tác đột xuất',
     createdAt: '2026-11-04T07:00:00Z',
     updatedAt: '2026-11-04T07:00:00Z'
   },
@@ -1004,7 +1096,7 @@ function buildMultiDayRecords(base20261104: DailyAttendanceRecord[]): DailyAtten
         } else if (date === '2026-11-03') {
           if (r.employeeId === 'emp-ubnd-13') {
             rec.status = 'leave';
-            rec.note = 'Nghỉ việc riêng';
+            rec.note = 'Nghỉ việc riêng / Khẩn cấp';
             rec.checkInTime = undefined;
             rec.checkOutTime = undefined;
             rec.lateMinutes = 0;
@@ -1013,7 +1105,7 @@ function buildMultiDayRecords(base20261104: DailyAttendanceRecord[]): DailyAtten
         } else if (date === '2026-11-05') {
           if (r.employeeId === 'emp-ubnd-16') {
             rec.status = 'leave';
-            rec.note = 'Nghỉ khám sức khỏe';
+            rec.note = 'Nghỉ ốm / Khám sức khỏe';
             rec.checkInTime = undefined;
             rec.checkOutTime = undefined;
             rec.lateMinutes = 0;
@@ -1031,13 +1123,14 @@ function buildMultiDayRecords(base20261104: DailyAttendanceRecord[]): DailyAtten
           // Ngày hôm nay (06/11/2026): Cán bộ đang trong ca làm việc chưa tan ca
           if (r.employeeId === 'emp-ubnd-09') {
             rec.status = 'leave';
-            rec.note = 'Nghỉ phép năm đã phê duyệt';
+            rec.note = 'Nghỉ phép năm';
             rec.checkInTime = undefined;
             rec.checkOutTime = undefined;
             rec.lateMinutes = 0;
             rec.earlyLeaveMinutes = 0;
-          } else if (r.employeeId !== 'emp-ubnd-01' && r.employeeId !== 'emp-ubnd-06' && r.employeeId !== 'emp-ubnd-23') {
-            // Các cán bộ khác chưa hết giờ làm việc
+            rec.scanLogs = [];
+          } else if (r.employeeId !== 'emp-ubnd-01' && r.employeeId !== 'emp-ubnd-06') {
+            // Các cán bộ khác chưa hết giờ làm việc (chưa có giờ về)
             rec.checkOutTime = undefined;
             rec.checkOutMethod = undefined;
             rec.checkOutDevice = undefined;
@@ -1045,7 +1138,7 @@ function buildMultiDayRecords(base20261104: DailyAttendanceRecord[]): DailyAtten
           }
         }
 
-        return rec;
+        return sanitizeRecordConsistency(rec);
       }).filter((r): r is DailyAttendanceRecord => r !== null);
       all.push(...dayRecords);
     }
@@ -1079,15 +1172,22 @@ class DailyAttendanceService {
       } else {
         try {
           const list = JSON.parse(stored);
-          if (Array.isArray(list) && list.length < INITIAL_ATTENDANCE_RECORDS.length) {
-            localStorage.setItem(STORAGE_ATTENDANCE_KEY, JSON.stringify(INITIAL_ATTENDANCE_RECORDS));
+          if (Array.isArray(list)) {
+            if (list.length < INITIAL_ATTENDANCE_RECORDS.length) {
+              localStorage.setItem(STORAGE_ATTENDANCE_KEY, JSON.stringify(INITIAL_ATTENDANCE_RECORDS));
+            } else {
+              list.forEach((rec: DailyAttendanceRecord) => {
+                sanitizeRecordConsistency(rec);
+              });
+              localStorage.setItem(STORAGE_ATTENDANCE_KEY, JSON.stringify(list));
+            }
           }
         } catch {
           localStorage.setItem(STORAGE_ATTENDANCE_KEY, JSON.stringify(INITIAL_ATTENDANCE_RECORDS));
         }
       }
     } else {
-      INITIAL_ATTENDANCE_RECORDS.forEach((r) => this.memoryRecords.set(r.id, { ...r }));
+      INITIAL_ATTENDANCE_RECORDS.forEach((r) => this.memoryRecords.set(r.id, sanitizeRecordConsistency({ ...r })));
     }
   }
 
@@ -1096,7 +1196,7 @@ class DailyAttendanceService {
       localStorage.setItem(STORAGE_ATTENDANCE_KEY, JSON.stringify(INITIAL_ATTENDANCE_RECORDS));
     }
     this.memoryRecords.clear();
-    INITIAL_ATTENDANCE_RECORDS.forEach((r) => this.memoryRecords.set(r.id, { ...r }));
+    INITIAL_ATTENDANCE_RECORDS.forEach((r) => this.memoryRecords.set(r.id, sanitizeRecordConsistency({ ...r })));
   }
 
   private getAllRecords(): DailyAttendanceRecord[] {
@@ -1104,14 +1204,15 @@ class DailyAttendanceService {
       const raw = localStorage.getItem(STORAGE_ATTENDANCE_KEY);
       if (raw) {
         try {
-          return JSON.parse(raw);
+          const parsed: DailyAttendanceRecord[] = JSON.parse(raw);
+          return parsed.map((r) => sanitizeRecordConsistency({ ...r }));
         } catch {
-          return INITIAL_ATTENDANCE_RECORDS;
+          return INITIAL_ATTENDANCE_RECORDS.map((r) => sanitizeRecordConsistency({ ...r }));
         }
       }
-      return INITIAL_ATTENDANCE_RECORDS;
+      return INITIAL_ATTENDANCE_RECORDS.map((r) => sanitizeRecordConsistency({ ...r }));
     }
-    return Array.from(this.memoryRecords.values());
+    return Array.from(this.memoryRecords.values()).map((r) => sanitizeRecordConsistency({ ...r }));
   }
 
   private saveRecords(records: DailyAttendanceRecord[]): void {
@@ -1458,16 +1559,9 @@ class DailyAttendanceService {
     if (isLeave) {
       record.status = 'leave';
       record.leavePeriod = leavePeriod;
-      const periodLabel = leavePeriod === 'morning' ? 'Buổi sáng' : leavePeriod === 'afternoon' ? 'Buổi chiều' : 'Cả ngày';
-      record.note = reason?.trim() ? `${reason.trim()} (${periodLabel})` : `Nghỉ phép (${periodLabel})`;
-      // Giữ lại giờ check-in nếu nhân sự đã quét vào ca và xin nghỉ đột xuất buổi chiều
-      if (leavePeriod === 'afternoon' && record.checkInTime) {
-        record.checkOutTime = undefined;
-        record.earlyLeaveMinutes = 0;
-      } else if (leavePeriod === 'full_day') {
-        record.lateMinutes = 0;
-        record.earlyLeaveMinutes = 0;
-      }
+      record.note = reason?.trim() ? normalizeLeaveReason(reason.trim()) : 'Nghỉ việc riêng / Khẩn cấp';
+      // Áp dụng chuẩn hóa tính nhất quán dữ liệu nghỉ phép
+      sanitizeRecordConsistency(record);
     } else {
       record.leavePeriod = undefined;
       record.note = 'Đã hủy trạng thái nghỉ phép';
@@ -1480,6 +1574,7 @@ class DailyAttendanceService {
         record.lateMinutes = 0;
         record.earlyLeaveMinutes = 0;
       }
+      sanitizeRecordConsistency(record);
     }
 
     record.updatedAt = now.toISOString();
@@ -1543,7 +1638,7 @@ class DailyAttendanceService {
     // Thêm vào scanLogs
     const newScanLog: AttendanceScanLog = {
       id: `scan-admin-${Date.now().toString(36)}`,
-      timestamp: now.toISOString(),
+      timestamp: `${payload.date}T${payload.checkOutTime}:00+07:00`,
       type: 'check_out',
       method: 'manual',
       deviceName: `Thông tin check-out được bổ sung bởi ${payload.adminName}`,

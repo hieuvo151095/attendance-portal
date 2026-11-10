@@ -7,7 +7,6 @@ import {
   Avatar,
   SearchField,
   InlineNotice,
-  SelectField,
   StatCard,
   PopupModal
 } from '../../design-system';
@@ -16,6 +15,8 @@ import { Employee } from '../../types/employee';
 import { meetingService } from '../../services/meeting';
 import { employeeService } from '../../services/employee';
 import { attendanceSettingService } from '../../services/setting';
+import { dailyAttendanceService } from '../../services/attendance';
+import { DailyAttendanceRecord } from '../../types/attendance';
 import { MeetingReportModal } from './MeetingReportModal';
 
 export interface MeetingLiveScreenProps {
@@ -41,51 +42,14 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
   const [statusFilter, setStatusFilter] = useState<'all' | 'joined' | 'late' | 'early_leave' | 'left' | 'not_joined'>('all');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
-  // Simulation Controls
-  const [selectedSimEmployeeId, setSelectedSimEmployeeId] = useState<string>('');
-  const [simMethod, setSimMethod] = useState<'face_id' | 'card' | 'manual'>('face_id');
-  const [simTiming, setSimTiming] = useState<'realtime' | 'on_time' | 'late' | 'early_leave'>('realtime');
+  // Operation processing
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // Recent Event Logs
-  interface EventLog {
-    id: string;
-    timestamp: string;
-    employeeName: string;
-    employeeCode: string;
-    type: 'check_in' | 'check_out';
-    method: 'face_id' | 'card' | 'manual';
-    statusText: string;
-    isLate?: boolean;
-    isEarlyLeave?: boolean;
-    photoUrl?: string;
-  }
-  const [eventLogs, setEventLogs] = useState<EventLog[]>([]);
-
-  // Camera flash animation state
-  const [flashCamera, setFlashCamera] = useState(false);
-  const [lastCapturedPhoto, setLastCapturedPhoto] = useState<string | null>(null);
 
   // Close meeting confirmation modal
   const [showCloseModal, setShowCloseModal] = useState(false);
   // Meeting report modal (MTG-04)
   const [showReportModal, setShowReportModal] = useState(false);
-
-  // Clock
-  const [currentTime, setCurrentTime] = useState<string>('');
-
-  useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
-      const h = String(now.getHours()).padStart(2, '0');
-      const m = String(now.getMinutes()).padStart(2, '0');
-      const s = String(now.getSeconds()).padStart(2, '0');
-      setCurrentTime(`${h}:${m}:${s}`);
-    };
-    updateClock();
-    const interval = setInterval(updateClock, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const [dailyRecords, setDailyRecords] = useState<DailyAttendanceRecord[]>([]);
 
   const loadData = async () => {
     try {
@@ -97,8 +61,15 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
       ]);
       setMeeting(mtg);
       setAllEmployees(emps);
-      if (mtg.attendees.length > 0 && !selectedSimEmployeeId) {
-        setSelectedSimEmployeeId(mtg.attendees[0].employeeId);
+
+      if (mtg) {
+        const meetingDate = mtg.startTime.includes('T') ? mtg.startTime.slice(0, 10) : '2026-11-06';
+        try {
+          const dRecords = await dailyAttendanceService.getDailyAttendance(tenantId, { date: meetingDate });
+          setDailyRecords(dRecords);
+        } catch {
+          // ignore error if offline
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không thể tải thông tin cuộc họp');
@@ -110,6 +81,48 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
   useEffect(() => {
     loadData();
   }, [meetingId, tenantId]);
+
+  // Phân loại đại biểu vắng: Có phép vs Không phép theo quy chuẩn:
+  // - Có phép: Cán bộ được duyệt nghỉ Cả ngày, Buổi sáng hoặc Buổi chiều khớp với thời gian diễn ra cuộc họp
+  // - Không phép: Cán bộ không tham dự họp và không có thông tin duyệt nghỉ phép trong ca này
+  const absentAttendeesAnalysis = useMemo(() => {
+    if (!meeting) return { excused: [], unexcused: [] };
+    const notJoined = meeting.attendees.filter((a) => !a.attendanceStatus || a.attendanceStatus === 'not_joined');
+    const meetingHour = meeting.startTime ? new Date(meeting.startTime).getHours() : 8;
+    const isMorningMeeting = meetingHour < 12;
+
+    const excused: Array<{ attendee: (typeof notJoined)[0]; reason: string }> = [];
+    const unexcused: Array<{ attendee: (typeof notJoined)[0]; hasCheckedIn: boolean }> = [];
+
+    notJoined.forEach((a) => {
+      const dailyRec = dailyRecords.find((r) => r.employeeId === a.employeeId);
+      const isLeave =
+        dailyRec?.status === 'leave' &&
+        (dailyRec.leavePeriod === 'full_day' ||
+          (isMorningMeeting && dailyRec.leavePeriod === 'morning') ||
+          (!isMorningMeeting && dailyRec.leavePeriod === 'afternoon'));
+
+      if (isLeave) {
+        excused.push({
+          attendee: a,
+          reason:
+            dailyRec.note ||
+            (dailyRec.leavePeriod === 'full_day'
+              ? 'Nghỉ cả ngày (đã duyệt)'
+              : isMorningMeeting
+              ? 'Nghỉ buổi sáng (đã duyệt)'
+              : 'Nghỉ buổi chiều (đã duyệt)')
+        });
+      } else {
+        unexcused.push({
+          attendee: a,
+          hasCheckedIn: Boolean(dailyRec?.checkInTime)
+        });
+      }
+    });
+
+    return { excused, unexcused };
+  }, [meeting, dailyRecords]);
 
   // Grace deadlines
   const graceMinutes = meeting?.checkInGraceMinutes ?? 5;
@@ -156,56 +169,23 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
     });
   }, [attendees, statusFilter, search]);
 
-  // Handle Simulation: Check-in
+  // Handle Check-in from card
   const handleSimulateCheckIn = async (employeeIdToUse?: string) => {
-    const targetEmpId = employeeIdToUse || selectedSimEmployeeId;
-    if (!meeting || !targetEmpId) return;
+    if (!meeting || !employeeIdToUse) return;
 
     try {
       setIsProcessing(true);
-      setFlashCamera(true);
-      setTimeout(() => setFlashCamera(false), 500);
-
-      const emp = allEmployees.find((e) => e.id === targetEmpId);
+      const emp = allEmployees.find((e) => e.id === employeeIdToUse);
       const photoUrl = emp?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
-      setLastCapturedPhoto(photoUrl);
+      const timestamp = new Date().toISOString();
 
-      // Determine simulated timestamp
-      let timestamp = new Date().toISOString();
-      const startDate = new Date(meeting.startTime);
-
-      if (simTiming === 'on_time') {
-        // 2 phút trước hạn chót
-        const targetMs = startDate.getTime() + (graceMinutes - 2) * 60000;
-        timestamp = new Date(targetMs).toISOString();
-      } else if (simTiming === 'late') {
-        // 10 phút sau hạn chót
-        const targetMs = startDate.getTime() + (graceMinutes + 10) * 60000;
-        timestamp = new Date(targetMs).toISOString();
-      }
-
-      const res = await meetingService.recordCheckIn(tenantId, meeting.id, targetEmpId, {
-        method: simMethod,
+      const res = await meetingService.recordCheckIn(tenantId, meeting.id, employeeIdToUse, {
+        method: 'face_id',
         timestamp,
         photoUrl
       });
 
       setMeeting({ ...res.meeting });
-
-      // Add log
-      const timeFormatted = new Date(timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const newLog: EventLog = {
-        id: `log-${Date.now()}`,
-        timestamp: timeFormatted,
-        employeeName: res.attendee.fullName,
-        employeeCode: res.attendee.employeeCode,
-        type: 'check_in',
-        method: simMethod,
-        isLate: res.attendee.isLate,
-        statusText: res.attendee.isLate ? `Đi muộn (Trễ ${res.attendee.lateMinutes} phút)` : 'Có mặt đúng giờ',
-        photoUrl
-      };
-      setEventLogs((prev) => [newLog, ...prev.slice(0, 19)]);
       if (onMeetingUpdated) onMeetingUpdated();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Có lỗi khi điểm danh');
@@ -214,43 +194,19 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
     }
   };
 
-  // Handle Simulation: Check-out
+  // Handle Check-out from card
   const handleSimulateCheckOut = async (employeeIdToUse?: string) => {
-    const targetEmpId = employeeIdToUse || selectedSimEmployeeId;
-    if (!meeting || !targetEmpId) return;
+    if (!meeting || !employeeIdToUse) return;
 
     try {
       setIsProcessing(true);
+      const timestamp = new Date().toISOString();
 
-      // Determine simulated timestamp
-      let timestamp = new Date().toISOString();
-      const endDate = new Date(meeting.endTime);
-
-      if (simTiming === 'early_leave') {
-        // 15 phút trước giờ kết thúc
-        const targetMs = endDate.getTime() - (checkOutGraceMinutes + 15) * 60000;
-        timestamp = new Date(targetMs).toISOString();
-      }
-
-      const res = await meetingService.recordCheckOut(tenantId, meeting.id, targetEmpId, {
+      const res = await meetingService.recordCheckOut(tenantId, meeting.id, employeeIdToUse, {
         timestamp
       });
 
       setMeeting({ ...res.meeting });
-
-      const timeFormatted = new Date(timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const newLog: EventLog = {
-        id: `log-${Date.now()}`,
-        timestamp: timeFormatted,
-        employeeName: res.attendee.fullName,
-        employeeCode: res.attendee.employeeCode,
-        type: 'check_out',
-        method: res.attendee.checkInMethod || 'face_id',
-        isEarlyLeave: res.attendee.isEarlyLeave,
-        statusText: res.attendee.isEarlyLeave ? `Về sớm (${res.attendee.earlyLeaveMinutes} phút)` : 'Ra về đúng giờ',
-        photoUrl: res.attendee.checkInPhoto
-      };
-      setEventLogs((prev) => [newLog, ...prev.slice(0, 19)]);
       if (onMeetingUpdated) onMeetingUpdated();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Có lỗi khi điểm danh ra về');
@@ -259,31 +215,28 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
     }
   };
 
+  // Open Close Meeting Modal (opens modal immediately & refreshes daily records)
+  const handleOpenCloseModal = () => {
+    setShowCloseModal(true);
+    if (meeting) {
+      const meetingDate = meeting.startTime.includes('T') ? meeting.startTime.slice(0, 10) : '2026-11-06';
+      dailyAttendanceService
+        .getDailyAttendance(tenantId, { date: meetingDate })
+        .then((dRecords) => setDailyRecords(dRecords))
+        .catch(() => {});
+    }
+  };
+
   // Close Meeting
   const handleConfirmClose = async () => {
     if (!meeting) return;
     try {
-      const closed = await meetingService.closeMeeting(tenantId, meeting.id, 'Chủ tọa / Thư ký');
+      const closed = await meetingService.closeMeeting(tenantId, meeting.id, 'Đ/c Nguyễn Văn An');
       setMeeting({ ...closed });
       setShowCloseModal(false);
       if (onMeetingUpdated) onMeetingUpdated();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Không thể kết thúc cuộc họp');
-    }
-  };
-
-  // Reset Attendance (for rehearsal)
-  const handleResetAttendance = async () => {
-    if (!meeting) return;
-    if (!window.confirm('Bạn có chắc chắn muốn đặt lại toàn bộ điểm danh về trạng thái ban đầu?')) return;
-    try {
-      const reset = await meetingService.resetMeetingAttendance(tenantId, meeting.id);
-      setMeeting({ ...reset });
-      setEventLogs([]);
-      setLastCapturedPhoto(null);
-      if (onMeetingUpdated) onMeetingUpdated();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Không thể đặt lại điểm danh');
     }
   };
 
@@ -351,7 +304,7 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
             Quay lại
           </Button>
 
-          <div style={{ height: '24px', width: '1px', backgroundColor: 'var(--border-default)' }} />
+          <div style={{ height: '36px', width: '1px', backgroundColor: 'var(--border-default)' }} />
 
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -394,54 +347,27 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
                 </span>
               )}
             </div>
+            {meeting.description && (
+              <div
+                className="body-xs"
+                style={{
+                  color: 'var(--text-subtle)',
+                  marginTop: '3px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+                title={meeting.description}
+              >
+                {meeting.description}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Real-time Clock & Actions */}
+        {/* Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-          {/* Live digital clock */}
-          <div
-            style={{
-              padding: '6px 14px',
-              backgroundColor: 'var(--bg-subtle)',
-              border: '1px solid var(--border-default)',
-              borderRadius: 'var(--radius-6)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontFamily: 'monospace',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--text-heading)'
-            }}
-          >
-            <span
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--semantic-success)',
-                display: 'inline-block',
-                boxShadow: '0 0 6px var(--semantic-success)'
-              }}
-            />
-            {currentTime}
-          </div>
-
-          <Button variant="ghost" onClick={handleResetAttendance} title="Đặt lại dữ liệu để diễn tập">
-            <Icon name="rotate-left" size={12} style={{ marginRight: '4px' }} />
-            Đặt lại
-          </Button>
-
-          <Button
-            variant="secondary"
-            icon="file-lines"
-            onClick={() => setShowReportModal(true)}
-          >
-            Biên bản & Báo cáo
-          </Button>
-
-          {meeting.status !== 'completed' ? (
+          {meeting.status === 'in_progress' && (
             <Button
               variant="secondary"
               icon="flag-checkered"
@@ -449,15 +375,33 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
                 borderColor: 'var(--semantic-danger)',
                 color: 'var(--semantic-danger)'
               }}
-              onClick={() => setShowCloseModal(true)}
+              onClick={handleOpenCloseModal}
             >
               Kết thúc cuộc họp
             </Button>
-          ) : (
-            <Tag variant="success">
-              <Icon name="lock" size={11} style={{ marginRight: '4px' }} />
-              Đã chốt biên bản
-            </Tag>
+          )}
+
+          {meeting.status === 'completed' && (
+            <>
+              <Button
+                variant="secondary"
+                icon="file-lines"
+                onClick={() => setShowReportModal(true)}
+              >
+                Biên bản & Báo cáo
+              </Button>
+              <Button
+                variant="secondary"
+                icon="flag-checkered"
+                style={{
+                  borderColor: 'var(--semantic-danger)',
+                  color: 'var(--semantic-danger)'
+                }}
+                onClick={handleOpenCloseModal}
+              >
+                Kết thúc cuộc họp
+              </Button>
+            </>
           )}
         </div>
       </header>
@@ -488,10 +432,6 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
               Mốc về sớm: Được phép check-out từ <b>{earliestCheckOutTime}</b> (dung sai <b>{checkOutGraceMinutes} phút</b>).
             </span>
           </div>
-        </div>
-
-        <div className="caption-bold" style={{ color: '#1e40af', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-          HIKVISION AI LIVE TERMINAL
         </div>
       </div>
 
@@ -530,7 +470,7 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
             </div>
             <div>
               <div className="body-sm-bold" style={{ color: 'var(--text-heading)' }}>
-                Biên bản cuộc họp đã được chốt và đóng băng dữ liệu bất biến (MTG-03)
+                Biên bản cuộc họp đã được chốt
               </div>
               <div className="body-xs" style={{ color: 'var(--text-subtle)', marginTop: '2px' }}>
                 Đóng lúc {new Date(meeting.closedAt || '').toLocaleTimeString('vi-VN')} ngày{' '}
@@ -540,46 +480,13 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div className="caption" style={{ color: 'var(--text-muted)' }}>Thời lượng TB</div>
-              <div className="body-sm-bold" style={{ color: 'var(--text-heading)' }}>
-                {meeting.summary.averageDurationMinutes} phút
-              </div>
-            </div>
-            <div style={{ height: '24px', width: '1px', backgroundColor: '#cbd5e1' }} />
-            <div style={{ textAlign: 'center' }}>
-              <div className="caption" style={{ color: 'var(--text-muted)' }}>Về sớm</div>
-              <div
-                className="body-sm-bold"
-                style={{
-                  color: meeting.summary.earlyLeaveAttendees > 0 ? '#b45309' : 'var(--text-heading)'
-                }}
-              >
-                {meeting.summary.earlyLeaveAttendees}
-              </div>
-            </div>
-            <div style={{ height: '24px', width: '1px', backgroundColor: '#cbd5e1' }} />
-            <div style={{ textAlign: 'center' }}>
-              <div className="caption" style={{ color: 'var(--text-muted)' }}>Vắng mặt</div>
-              <div
-                className="body-sm-bold"
-                style={{
-                  color: meeting.summary.absentAttendees > 0 ? '#b91c1c' : 'var(--text-heading)'
-                }}
-              >
-                {meeting.summary.absentAttendees}
-              </div>
-            </div>
-
-            <Button
-              variant="primary"
-              icon="file-lines"
-              onClick={() => setShowReportModal(true)}
-            >
-              Xuất biên bản (PDF/Excel)
-            </Button>
-          </div>
+          <Button
+            variant="primary"
+            icon="file-lines"
+            onClick={() => setShowReportModal(true)}
+          >
+            Biên bản & Báo cáo
+          </Button>
         </div>
       )}
 
@@ -618,7 +525,7 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
           tone="warning"
         />
         <StatCard
-          label="Chưa đến"
+          label="Chưa đến/ Không tham dự"
           value={notJoinedCount}
           icon="clock"
           tone="neutral"
@@ -631,21 +538,20 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
         />
       </div>
 
-      {/* 4. Main Body: Split View (Attendees Grid on Left, Hikvision Simulator on Right) */}
+      {/* 4. Main Body: Attendees Roll-call Roster */}
       <div
         style={{
           flex: 1,
-          display: 'grid',
-          gridTemplateColumns: '1fr 380px',
-          gap: '16px',
+          display: 'flex',
+          flexDirection: 'column',
           padding: '8px 24px 20px 24px',
           minHeight: 0,
           overflow: 'hidden'
         }}
       >
-        {/* LEFT PANEL: Attendees Roll-call Roster */}
         <div
           style={{
+            flex: 1,
             backgroundColor: 'var(--bg-surface)',
             borderRadius: 'var(--radius-8)',
             border: '1px solid var(--border-default)',
@@ -662,68 +568,80 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: '12px'
+              gap: '16px',
+              flexWrap: 'wrap'
             }}
           >
-            <div style={{ flex: 1, maxWidth: '280px' }}>
-              <SearchField
-                placeholder="Tìm đại biểu theo tên, mã, chức vụ..."
-                value={search}
-                onChange={setSearch}
-                block
-              />
-            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                flex: 1,
+                minWidth: 0,
+                flexWrap: 'wrap'
+              }}
+            >
+              <div style={{ width: '280px', flexShrink: 0 }}>
+                <SearchField
+                  placeholder="Tìm đại biểu theo tên, mã, chức vụ..."
+                  value={search}
+                  onChange={setSearch}
+                  block
+                />
+              </div>
 
-            {/* Filter buttons */}
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <button
-                type="button"
-                className={`ecomd-tag ${statusFilter === 'all' ? 'ecomd-tag--default is-active' : ''}`}
-                onClick={() => setStatusFilter('all')}
-                style={{ cursor: 'pointer', border: 'none', background: statusFilter === 'all' ? 'var(--eco-blue-subtle)' : 'var(--bg-subtle)' }}
-              >
-                Tất cả ({totalCount})
-              </button>
-              <button
-                type="button"
-                className={`ecomd-tag ${statusFilter === 'joined' ? 'ecomd-tag--success is-active' : ''}`}
-                onClick={() => setStatusFilter('joined')}
-                style={{ cursor: 'pointer', border: 'none', background: statusFilter === 'joined' ? '#dcfce7' : 'var(--bg-subtle)' }}
-              >
-                Đã đến ({joinedCount})
-              </button>
-              <button
-                type="button"
-                className={`ecomd-tag ${statusFilter === 'late' ? 'ecomd-tag--warning is-active' : ''}`}
-                onClick={() => setStatusFilter('late')}
-                style={{ cursor: 'pointer', border: 'none', background: statusFilter === 'late' ? '#fef3c7' : 'var(--bg-subtle)' }}
-              >
-                Đi muộn ({lateCount})
-              </button>
-              <button
-                type="button"
-                className={`ecomd-tag ${statusFilter === 'early_leave' ? 'ecomd-tag--warning is-active' : ''}`}
-                onClick={() => setStatusFilter('early_leave')}
-                style={{ cursor: 'pointer', border: 'none', background: statusFilter === 'early_leave' ? '#ffedd5' : 'var(--bg-subtle)' }}
-              >
-                Về sớm ({earlyLeaveCount})
-              </button>
-              <button
-                type="button"
-                className={`ecomd-tag ${statusFilter === 'not_joined' ? 'ecomd-tag--default is-active' : ''}`}
-                onClick={() => setStatusFilter('not_joined')}
-                style={{ cursor: 'pointer', border: 'none', background: statusFilter === 'not_joined' ? 'var(--border-default)' : 'var(--bg-subtle)' }}
-              >
-                Chưa đến ({notJoinedCount})
-              </button>
-              <button
-                type="button"
-                className={`ecomd-tag ${statusFilter === 'left' ? 'ecomd-tag--default is-active' : ''}`}
-                onClick={() => setStatusFilter('left')}
-                style={{ cursor: 'pointer', border: 'none', background: statusFilter === 'left' ? '#e0f2fe' : 'var(--bg-subtle)' }}
-              >
-                Đã về ({leftCount})
-              </button>
+              {/* Filter buttons */}
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className={`ecomd-tag ${statusFilter === 'all' ? 'ecomd-tag--default is-active' : ''}`}
+                  onClick={() => setStatusFilter('all')}
+                  style={{ cursor: 'pointer', border: 'none', background: statusFilter === 'all' ? 'var(--eco-blue-subtle)' : 'var(--bg-subtle)' }}
+                >
+                  Tất cả ({totalCount})
+                </button>
+                <button
+                  type="button"
+                  className={`ecomd-tag ${statusFilter === 'joined' ? 'ecomd-tag--success is-active' : ''}`}
+                  onClick={() => setStatusFilter('joined')}
+                  style={{ cursor: 'pointer', border: 'none', background: statusFilter === 'joined' ? '#dcfce7' : 'var(--bg-subtle)' }}
+                >
+                  Đã đến ({joinedCount})
+                </button>
+                <button
+                  type="button"
+                  className={`ecomd-tag ${statusFilter === 'late' ? 'ecomd-tag--warning is-active' : ''}`}
+                  onClick={() => setStatusFilter('late')}
+                  style={{ cursor: 'pointer', border: 'none', background: statusFilter === 'late' ? '#fef3c7' : 'var(--bg-subtle)' }}
+                >
+                  Đi muộn ({lateCount})
+                </button>
+                <button
+                  type="button"
+                  className={`ecomd-tag ${statusFilter === 'early_leave' ? 'ecomd-tag--warning is-active' : ''}`}
+                  onClick={() => setStatusFilter('early_leave')}
+                  style={{ cursor: 'pointer', border: 'none', background: statusFilter === 'early_leave' ? '#ffedd5' : 'var(--bg-subtle)' }}
+                >
+                  Về sớm ({earlyLeaveCount})
+                </button>
+                <button
+                  type="button"
+                  className={`ecomd-tag ${statusFilter === 'not_joined' ? 'ecomd-tag--default is-active' : ''}`}
+                  onClick={() => setStatusFilter('not_joined')}
+                  style={{ cursor: 'pointer', border: 'none', background: statusFilter === 'not_joined' ? 'var(--border-default)' : 'var(--bg-subtle)' }}
+                >
+                  Chưa đến/ Không tham dự ({notJoinedCount})
+                </button>
+                <button
+                  type="button"
+                  className={`ecomd-tag ${statusFilter === 'left' ? 'ecomd-tag--default is-active' : ''}`}
+                  onClick={() => setStatusFilter('left')}
+                  style={{ cursor: 'pointer', border: 'none', background: statusFilter === 'left' ? '#e0f2fe' : 'var(--bg-subtle)' }}
+                >
+                  Đã về ({leftCount})
+                </button>
+              </div>
             </div>
 
             {/* View Mode Toggle: Cards vs Table */}
@@ -732,7 +650,8 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
                 display: 'flex',
                 border: '1px solid var(--border-default)',
                 borderRadius: 'var(--radius-6)',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                flexShrink: 0
               }}
             >
               <button
@@ -866,7 +785,20 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
                           ) : att.attendanceStatus === 'joined' ? (
                             <Tag variant="default">Đang trong phòng</Tag>
                           ) : (
-                            <Tag variant="default">Vắng mặt</Tag>
+                            (() => {
+                              const abs = absentAttendeesAnalysis.excused.find((x) => x.attendee.employeeId === att.employeeId);
+                              if (abs) {
+                                return (
+                                  <Tag variant="default">
+                                    <span style={{ color: 'var(--primary-700)', fontWeight: 600 }}>Có phép</span>
+                                  </Tag>
+                                );
+                              }
+                              if (meeting.status === 'completed') {
+                                return <StatusTag tone="danger">Không phép</StatusTag>;
+                              }
+                              return <Tag variant="default">Chưa đến</Tag>;
+                            })()
                           )}
                         </td>
                       </tr>
@@ -976,6 +908,22 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
                             {att.isAdHoc && (
                               <Tag variant="warning">Khách mời</Tag>
                             )}
+                            {!isJoined && (
+                              (() => {
+                                const abs = absentAttendeesAnalysis.excused.find((x) => x.attendee.employeeId === att.employeeId);
+                                if (abs) {
+                                  return (
+                                    <Tag variant="default">
+                                      <span style={{ color: 'var(--primary-700)', fontWeight: 600 }}>Có phép</span>
+                                    </Tag>
+                                  );
+                                }
+                                if (meeting.status === 'completed') {
+                                  return <StatusTag tone="danger">Không phép</StatusTag>;
+                                }
+                                return null;
+                              })()
+                            )}
                           </div>
                           <div
                             className="body-xs"
@@ -1047,10 +995,24 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
                             )}
                           </>
                         ) : (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-subtle)' }}>
-                            <Icon name="hourglass-half" size={11} />
-                            <span>Chưa có mặt tại phòng họp</span>
-                          </div>
+                          (() => {
+                            const abs = absentAttendeesAnalysis.excused.find((x) => x.attendee.employeeId === att.employeeId);
+                            if (abs) {
+                              return (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--primary-700)' }}>
+                                  <Icon name="calendar-check" size={12} color="var(--primary-600)" />
+                                  <span style={{ fontWeight: 600 }}>Có phép:</span>
+                                  <span style={{ color: 'var(--text-subtle)' }}>{abs.reason}</span>
+                                </div>
+                              );
+                            }
+                            return (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-subtle)' }}>
+                                <Icon name="hourglass-half" size={11} />
+                                <span>{meeting.status === 'completed' ? 'Vắng không phép' : 'Chưa có mặt tại phòng họp'}</span>
+                              </div>
+                            );
+                          })()
                         )}
                       </div>
 
@@ -1115,298 +1077,6 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
             </div>
           )}
         </div>
-
-        {/* RIGHT PANEL: Hikvision Camera AI Terminal & Event Feed */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            overflowY: 'auto'
-          }}
-        >
-          {/* 1. Hikvision AI Video Viewport */}
-          <div
-            style={{
-              backgroundColor: '#0f172a',
-              borderRadius: 'var(--radius-8)',
-              overflow: 'hidden',
-              border: '1px solid #334155',
-              position: 'relative'
-            }}
-          >
-            {/* Camera Header Banner */}
-            <div
-              style={{
-                padding: '8px 12px',
-                backgroundColor: 'rgba(30, 41, 59, 0.8)',
-                borderBottom: '1px solid #334155',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                color: '#94a3b8',
-                fontSize: '11px',
-                fontFamily: 'monospace'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span
-                  style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: '#22c55e',
-                    boxShadow: '0 0 4px #22c55e'
-                  }}
-                />
-                <span style={{ color: '#f8fafc', fontWeight: 600 }}>CAM-01 [HỘI TRƯỜNG]</span>
-              </div>
-              <span>HIKVISION MinMoe AI</span>
-            </div>
-
-            {/* Camera Screen Preview */}
-            <div
-              style={{
-                height: '180px',
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: flashCamera ? '#ffffff' : '#020617',
-                transition: 'background-color 0.2s ease',
-                overflow: 'hidden'
-              }}
-            >
-              {lastCapturedPhoto ? (
-                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                  <img
-                    src={lastCapturedPhoto}
-                    alt="Captured attendee"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      opacity: 0.85
-                    }}
-                  />
-                  {/* Face recognition reticle */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '20px',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      width: '120px',
-                      height: '130px',
-                      border: '2px solid #22c55e',
-                      borderRadius: '8px',
-                      boxShadow: '0 0 10px rgba(34, 197, 94, 0.6)'
-                    }}
-                  >
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: '-18px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        backgroundColor: '#22c55e',
-                        color: '#020617',
-                        fontSize: '9px',
-                        fontWeight: 700,
-                        padding: '1px 6px',
-                        borderRadius: '4px',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      MATCH: 98.6%
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ textAlign: 'center', color: '#64748b' }}>
-                  <Icon name="camera" size={32} style={{ marginBottom: '8px', opacity: 0.4 }} />
-                  <p style={{ margin: 0, fontSize: '12px' }}>Sẵn sàng nhận diện khuôn mặt / Quẹt thẻ</p>
-                </div>
-              )}
-
-              {/* Timestamp watermark */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '6px',
-                  right: '8px',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  fontFamily: 'monospace',
-                  fontSize: '10px'
-                }}
-              >
-                {currentTime} | 1080P AI
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Simulation Controller */}
-          <div
-            style={{
-              backgroundColor: 'var(--bg-surface)',
-              borderRadius: 'var(--radius-8)',
-              border: '1px solid var(--border-default)',
-              padding: '14px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px'
-            }}
-          >
-            <div className="caption-bold" style={{ color: 'var(--text-subtle)', textTransform: 'uppercase' }}>
-              Mô phỏng quét Camera / Quẹt thẻ
-            </div>
-
-            <div>
-              <label className="body-xs-medium" style={{ display: 'block', marginBottom: '4px', color: 'var(--text-heading)' }}>
-                Chọn cán bộ điểm danh
-              </label>
-              <SelectField
-                aria-label="Chọn cán bộ điểm danh"
-                value={selectedSimEmployeeId}
-                onChange={setSelectedSimEmployeeId}
-                options={allEmployees.map((e) => ({
-                  value: e.id,
-                  label: `${e.fullName} (${e.employeeCode}) - ${e.position}`
-                }))}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <div>
-                <label className="body-xs-medium" style={{ display: 'block', marginBottom: '4px', color: 'var(--text-heading)' }}>
-                  Phương thức
-                </label>
-                <SelectField
-                  aria-label="Phương thức"
-                  value={simMethod}
-                  onChange={(val) => setSimMethod(val as 'face_id' | 'card' | 'manual')}
-                  options={[
-                    { value: 'face_id', label: 'Face ID AI' },
-                    { value: 'card', label: 'Thẻ RFID' },
-                    { value: 'manual', label: 'Thủ công' }
-                  ]}
-                />
-              </div>
-
-              <div>
-                <label className="body-xs-medium" style={{ display: 'block', marginBottom: '4px', color: 'var(--text-heading)' }}>
-                  Thời điểm giả lập
-                </label>
-                <SelectField
-                  aria-label="Thời điểm giả lập"
-                  value={simTiming}
-                  onChange={(val) => setSimTiming(val as 'realtime' | 'on_time' | 'late' | 'early_leave')}
-                  options={[
-                    { value: 'realtime', label: 'Ngay bây giờ' },
-                    { value: 'on_time', label: `Đúng giờ (<${maxCheckInTime})` },
-                    { value: 'late', label: `Đi muộn (>${maxCheckInTime})` },
-                    { value: 'early_leave', label: `Về sớm (<${earliestCheckOutTime})` }
-                  ]}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
-              <Button
-                variant="primary"
-                icon="camera"
-                onClick={() => handleSimulateCheckIn()}
-                disabled={isProcessing || meeting.status === 'completed'}
-              >
-                Ghi nhận Check-in
-              </Button>
-              <Button
-                variant="secondary"
-                icon="door-open"
-                onClick={() => handleSimulateCheckOut()}
-                disabled={isProcessing || meeting.status === 'completed'}
-              >
-                Check-out (Ra về)
-              </Button>
-            </div>
-          </div>
-
-          {/* 3. Live Event Ticker (Recent Check-ins) */}
-          <div
-            style={{
-              flex: 1,
-              backgroundColor: 'var(--bg-surface)',
-              borderRadius: 'var(--radius-8)',
-              border: '1px solid var(--border-default)',
-              padding: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '160px',
-              overflow: 'hidden'
-            }}
-          >
-            <div
-              className="caption-bold"
-              style={{
-                color: 'var(--text-subtle)',
-                textTransform: 'uppercase',
-                marginBottom: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
-              <span>Nhật ký đối soát tức thì</span>
-              <span className="caption" style={{ color: 'var(--text-muted)' }}>{eventLogs.length} lượt</span>
-            </div>
-
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {eventLogs.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px 8px', color: 'var(--text-subtle)', fontSize: '12px' }}>
-                  Chưa có lượt quét nào trong phiên làm việc này.
-                </div>
-              ) : (
-                eventLogs.map((log) => (
-                  <div
-                    key={log.id}
-                    style={{
-                      padding: '8px',
-                      borderRadius: 'var(--radius-6)',
-                      backgroundColor: log.type === 'check_in'
-                        ? log.isLate ? '#fffbeb' : '#f0fdf4'
-                        : '#eff6ff',
-                      border: '1px solid var(--border-subtle)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '12px'
-                    }}
-                  >
-                    <Avatar src={log.photoUrl} name={log.employeeName} size="sm" />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span className="body-xs-bold" style={{ color: 'var(--text-heading)' }}>
-                          {log.employeeName}
-                        </span>
-                        <span className="caption" style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                          {log.timestamp}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                        <Tag variant={log.isLate ? 'warning' : 'success'}>
-                          {log.statusText}
-                        </Tag>
-                        <span className="caption" style={{ color: 'var(--text-subtle)' }}>
-                          {log.method === 'face_id' ? 'Face ID' : 'Thẻ'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Confirmation Modal: Close Meeting */}
@@ -1416,6 +1086,7 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
           onClose={() => setShowCloseModal(false)}
           title="Xác nhận kết thúc cuộc họp"
           description="Hệ thống sẽ chốt dữ liệu chuyên cần và chuyển trạng thái cuộc họp sang Đã kết thúc (bất biến)."
+          width={520}
           primaryAction={{
             label: 'Xác nhận kết thúc',
             onClick: handleConfirmClose
@@ -1430,11 +1101,52 @@ export const MeetingLiveScreen: React.FC<MeetingLiveScreenProps> = ({
               tone="warning"
               label="Sau khi kết thúc, dữ liệu danh sách điểm danh và ảnh đối soát sẽ được lưu cố định làm biên bản cuộc họp."
             />
-            <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: 'var(--radius-6)' }}>
+            <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: 'var(--radius-6)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>Tóm tắt chuyên cần hiện tại:</div>
-              <div className="body-sm-bold" style={{ color: 'var(--text-heading)', marginTop: '4px' }}>
-                {joinedCount} / {totalCount} đại biểu tham dự ({attendanceRate}%) - {lateCount} trường hợp đi muộn
+              <div className="body-sm-bold" style={{ color: 'var(--text-heading)' }}>
+                {joinedCount} / {totalCount} đại biểu tham dự ({attendanceRate}%) • {lateCount} đi muộn • {notJoinedCount} vắng mặt
               </div>
+
+              {notJoinedCount > 0 && (
+                <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid var(--border-neutral-subtle)', paddingTop: '8px' }}>
+                  {/* Đại biểu vắng có phép */}
+                  {absentAttendeesAnalysis.excused.length > 0 && (
+                    <div style={{ backgroundColor: '#eff6ff', padding: '8px 10px', borderRadius: 'var(--radius-6)', border: '1px solid #bfdbfe' }}>
+                      <div className="body-xs-bold" style={{ color: '#1d4ed8', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                        <Icon name="calendar-check" size={13} color="#2563eb" />
+                        Vắng có phép ({absentAttendeesAnalysis.excused.length} đại biểu):
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        {absentAttendeesAnalysis.excused.map((item) => (
+                          <div key={item.attendee.employeeId} className="body-xs" style={{ color: '#1e40af' }}>
+                            • <b>{item.attendee.fullName}</b> ({item.attendee.departmentName}): {item.reason}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Đại biểu vắng không phép */}
+                  {absentAttendeesAnalysis.unexcused.length > 0 && (
+                    <div style={{ backgroundColor: '#fef2f2', padding: '8px 10px', borderRadius: 'var(--radius-6)', border: '1px solid #fecaca' }}>
+                      <div className="body-xs-bold" style={{ color: '#b91c1c', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                        <Icon name="triangle-exclamation" size={13} color="#ef4444" />
+                        Vắng không phép ({absentAttendeesAnalysis.unexcused.length} đại biểu):
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        {absentAttendeesAnalysis.unexcused.map((item) => (
+                          <div key={item.attendee.employeeId} className="body-xs" style={{ color: '#991b1b' }}>
+                            • <b>{item.attendee.fullName}</b> ({item.attendee.departmentName}) — {item.hasCheckedIn ? 'Đã vào ca nhưng không tham dự họp' : 'Chưa có thông tin xin phép'}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="caption" style={{ color: '#b91c1c', marginTop: '6px', fontStyle: 'italic', lineHeight: 1.4 }}>
+                        * Nếu đại biểu đã báo trước, Quản trị viên có thể bấm <b>Hủy bỏ</b> để sang màn hình <b>Chấm công</b> xác nhận nghỉ phép cho đại biểu, sau đó quay lại chốt họp để hệ thống tự động ghi nhận <b>Có phép</b>.
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </PopupModal>

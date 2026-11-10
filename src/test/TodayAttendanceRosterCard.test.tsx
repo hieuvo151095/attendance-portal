@@ -40,7 +40,7 @@ const mockRoster: TodayAttendanceRoster = {
       departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
       status: 'leave',
       statusLabel: 'Nghỉ phép',
-      leaveReason: 'Nghỉ phép năm đã phê duyệt'
+      leaveReason: 'Nghỉ phép năm'
     },
     {
       id: 'roster-4',
@@ -50,7 +50,7 @@ const mockRoster: TodayAttendanceRoster = {
       departmentName: 'Công An Phường Bến Nghé',
       status: 'leave',
       statusLabel: 'Nghỉ phép',
-      leaveReason: 'Đi công tác theo kế hoạch (Đã duyệt)'
+      leaveReason: 'Đi công tác đột xuất'
     },
     {
       id: 'roster-5',
@@ -70,9 +70,9 @@ describe('TodayAttendanceRosterCard - Chấm công hôm nay và Nghỉ phép', (
     render(<TodayAttendanceRosterCard roster={mockRoster} />);
 
     expect(screen.getByText('Chấm công hôm nay và Nghỉ phép')).toBeInTheDocument();
-    expect(screen.getByText('Đang có mặt')).toBeInTheDocument();
-    expect(screen.getByText('Nghỉ phép có đơn')).toBeInTheDocument();
-    expect(screen.getByText('Chưa đến / Vắng')).toBeInTheDocument();
+    expect(screen.getAllByText('Đang có mặt').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Nghỉ phép').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Chưa đến / Vắng').length).toBeGreaterThanOrEqual(1);
 
     // Giá trị KPI
     expect(screen.getByText('22')).toBeInTheDocument();
@@ -95,9 +95,11 @@ describe('TodayAttendanceRosterCard - Chấm công hôm nay và Nghỉ phép', (
     const leaveBtn = screen.getByRole('button', { name: /Nghỉ phép \(2\)/i });
     fireEvent.click(leaveBtn);
 
-    // Chỉ hiển thị 2 cán bộ nghỉ phép
+    // Chỉ hiển thị 2 cán bộ nghỉ phép cùng lý do chuẩn hóa khớp với module Chấm công
     expect(screen.getByText('Bà Đặng Kim Ngân')).toBeInTheDocument();
     expect(screen.getByText('Trung úy Tạ Đình Khang')).toBeInTheDocument();
+    expect(screen.getByText('Nghỉ phép năm')).toBeInTheDocument();
+    expect(screen.getByText('Đi công tác đột xuất')).toBeInTheDocument();
     expect(screen.queryByText('Đ/c Nguyễn Văn An')).not.toBeInTheDocument();
     expect(screen.queryByText('Ông Bùi Tiến Dũng')).not.toBeInTheDocument();
 

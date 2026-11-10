@@ -4,6 +4,7 @@ import {
   UpdateEmployeeDTO,
   CameraFaceSyncPayload,
   CameraSyncBatchResult,
+  CameraSyncFailureItem,
   ImportEmployeeRow,
   ImportEmployeeResult,
   ImportErrorRow,
@@ -1155,6 +1156,7 @@ class EmployeeService {
 
     let syncedCount = 0;
     const syncedEmployeeIds: string[] = [];
+    const failedItems: CameraSyncFailureItem[] = [];
 
     for (const id of employeeIds) {
       const idx = all.findIndex((e) => e.id === id && e.tenantId === tenantId);
@@ -1177,15 +1179,25 @@ class EmployeeService {
         all[idx] = emp;
         syncedCount++;
         syncedEmployeeIds.push(id);
+      } else {
+        failedItems.push({
+          employeeId: id,
+          employeeCode: 'N/A',
+          fullName: 'Không xác định',
+          reason: 'Không tìm thấy hồ sơ cán bộ trong cơ sở dữ liệu cơ quan.'
+        });
       }
     }
 
     this.saveEmployees(all);
 
     return {
+      totalRequested: employeeIds.length,
       syncedCount,
+      failedCount: failedItems.length,
       deviceCount: targetDeviceNames?.length || 5,
       syncedEmployeeIds,
+      failedItems,
       syncedAt: now
     };
   }

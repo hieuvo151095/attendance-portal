@@ -24,10 +24,27 @@ import { DeviceModal } from './DeviceModal';
 
 export interface SettingsManagementProps {
   tenantId: string;
+  initialTab?: 'attendance' | 'rooms' | 'devices';
+  onTabChange?: (tab: 'attendance' | 'rooms' | 'devices') => void;
 }
 
-export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId }) => {
-  const [activeTab, setActiveTab] = useState<'attendance' | 'rooms' | 'devices'>('attendance');
+export const SettingsManagement: React.FC<SettingsManagementProps> = ({
+  tenantId,
+  initialTab = 'attendance',
+  onTabChange
+}) => {
+  const [activeTab, setActiveTab] = useState<'attendance' | 'rooms' | 'devices'>(initialTab);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  const handleTabChange = (tab: 'attendance' | 'rooms' | 'devices') => {
+    setActiveTab(tab);
+    onTabChange?.(tab);
+  };
 
   // --- 1. Attendance Settings State ---
   const [loadingSettings, setLoadingSettings] = useState(false);
@@ -70,6 +87,8 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
   const [deviceToDelete, setDeviceToDelete] = useState<CameraDevice | null>(null);
   const [isDeletingDevice, setIsDeletingDevice] = useState(false);
   const [deleteDeviceConfirmed, setDeleteDeviceConfirmed] = useState(false);
+  const [deviceToToggleStatus, setDeviceToToggleStatus] = useState<CameraDevice | null>(null);
+  const [isTogglingDeviceStatus, setIsTogglingDeviceStatus] = useState(false);
 
   // Load Settings
   const loadSettings = useCallback(async () => {
@@ -332,17 +351,26 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
   ];
 
   // --- Device Handlers & Columns ---
-  const handleToggleDeviceStatus = async (device: CameraDevice) => {
+  const handleToggleDeviceStatus = (device: CameraDevice) => {
+    setDeviceToToggleStatus(device);
+  };
+
+  const handleConfirmToggleDeviceStatus = async () => {
+    if (!deviceToToggleStatus) return;
+    setIsTogglingDeviceStatus(true);
     try {
-      const updated = await cameraDeviceService.toggleDeviceStatus(tenantId, device.id);
+      const updated = await cameraDeviceService.toggleDeviceStatus(tenantId, deviceToToggleStatus.id);
       loadDevices();
       toast.success(
-        `Đã ${updated.status === 'active' ? 'mở khoá' : 'tạm khoá'} thiết bị "${device.name}" thành công.`
+        `Đã ${updated.status === 'active' ? 'mở khoá' : 'tạm khoá'} thiết bị "${deviceToToggleStatus.name}" thành công.`
       );
+      setDeviceToToggleStatus(null);
     } catch (err: unknown) {
       toast.danger(
         err instanceof Error ? err.message : 'Có lỗi khi cập nhật trạng thái thiết bị'
       );
+    } finally {
+      setIsTogglingDeviceStatus(false);
     }
   };
 
@@ -641,7 +669,7 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
             aria-selected={activeTab === 'attendance'}
             data-testid="settings-tab-attendance"
             className={`tab-btn ${activeTab === 'attendance' ? 'active' : ''}`}
-            onClick={() => setActiveTab('attendance')}
+            onClick={() => handleTabChange('attendance')}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -667,7 +695,7 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
             aria-selected={activeTab === 'rooms'}
             data-testid="settings-tab-rooms"
             className={`tab-btn ${activeTab === 'rooms' ? 'active' : ''}`}
-            onClick={() => setActiveTab('rooms')}
+            onClick={() => handleTabChange('rooms')}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -693,7 +721,7 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
             aria-selected={activeTab === 'devices'}
             data-testid="settings-tab-devices"
             className={`tab-btn ${activeTab === 'devices' ? 'active' : ''}`}
-            onClick={() => setActiveTab('devices')}
+            onClick={() => handleTabChange('devices')}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -1259,6 +1287,77 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({ tenantId
           );
         }}
       />
+
+      {/* Modal Xác nhận Khoá / Mở khoá thiết bị Camera (PopupModal) */}
+      {deviceToToggleStatus && (
+        <PopupModal
+          open={!!deviceToToggleStatus}
+          icon={deviceToToggleStatus.status === 'active' ? 'lock' : 'rotate-right'}
+          title={deviceToToggleStatus.status === 'active' ? 'Xác Nhận Khoá Thiết Bị' : 'Xác Nhận Mở Khoá Thiết Bị'}
+          description={
+            deviceToToggleStatus.status === 'active'
+              ? `Bạn có chắc chắn muốn tạm khoá thiết bị "${deviceToToggleStatus.name}" (${deviceToToggleStatus.code}) không?`
+              : `Bạn có chắc chắn muốn mở khoá thiết bị "${deviceToToggleStatus.name}" (${deviceToToggleStatus.code}) không?`
+          }
+          width={480}
+          onClose={() => {
+            if (!isTogglingDeviceStatus) {
+              setDeviceToToggleStatus(null);
+            }
+          }}
+          primaryAction={{
+            label: isTogglingDeviceStatus
+              ? (deviceToToggleStatus.status === 'active' ? 'Đang khoá...' : 'Đang mở khoá...')
+              : (deviceToToggleStatus.status === 'active' ? 'Khoá thiết bị' : 'Mở khoá thiết bị'),
+            icon: deviceToToggleStatus.status === 'active' ? 'lock' : 'rotate-right',
+            onClick: handleConfirmToggleDeviceStatus,
+            disabled: isTogglingDeviceStatus
+          }}
+          secondaryAction={{
+            label: 'Hủy bỏ',
+            onClick: () => setDeviceToToggleStatus(null),
+            disabled: isTogglingDeviceStatus
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div
+              style={{
+                padding: '12px 14px',
+                backgroundColor: 'var(--bg-subtle)',
+                borderRadius: 'var(--radius-8)',
+                border: '1px solid var(--border-default)',
+                fontSize: '13px',
+                lineHeight: '20px',
+                color: 'var(--text-body)'
+              }}
+            >
+              <div><strong>Mã thiết bị:</strong> <Tag variant="code">{deviceToToggleStatus.code}</Tag></div>
+              <div style={{ marginTop: '4px' }}><strong>Tên thiết bị:</strong> {deviceToToggleStatus.name}</div>
+              <div style={{ marginTop: '2px' }}>
+                <strong>Vị trí lắp đặt:</strong> {deviceToToggleStatus.location || 'Chưa thiết lập'}
+              </div>
+              <div style={{ marginTop: '2px' }}>
+                <strong>Trạng thái sau thao tác:</strong>{' '}
+                {deviceToToggleStatus.status === 'active' ? (
+                  <span style={{ color: 'var(--semantic-warning-dark, #b45309)', fontWeight: 600 }}>
+                    Tạm khoá (Dừng hoạt động)
+                  </span>
+                ) : (
+                  <span style={{ color: 'var(--semantic-success)', fontWeight: 600 }}>
+                    Hoạt động trở lại
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <InlineNotice tone={deviceToToggleStatus.status === 'active' ? 'warning' : 'info'}>
+              {deviceToToggleStatus.status === 'active'
+                ? 'Khi tạm khoá, thiết bị camera sẽ tạm dừng nhận diện và ghi nhận chấm công / điểm danh cuộc họp cho đến khi được mở khoá lại.'
+                : 'Khi mở khoá, thiết bị sẽ hoạt động bình thường trở lại và tiếp tục đồng bộ dữ liệu nhận diện khuôn mặt vào hệ thống.'}
+            </InlineNotice>
+          </div>
+        </PopupModal>
+      )}
 
       {/* Modal Xác nhận Xóa thiết bị Camera (PopupModal) */}
       {deviceToDelete && (

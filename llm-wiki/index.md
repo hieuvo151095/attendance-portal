@@ -11,6 +11,7 @@
 ## Overview
 
 - [Tổng quan Attendance Portal](pages/overview/project-overview.md) — bức tranh tổng quan hệ thống
+- [Quy chuẩn thiết kế phản hồi](pages/overview/user-feedback-guidelines.md) — các quy chuẩn nghiệp vụ bảo toàn phản hồi người dùng
 - [Xác thực và tài khoản](pages/overview/module-authentication.md) — phân hệ xác thực và tài khoản đơn vị
 - [Tổ chức và nhân sự](pages/overview/module-organization.md) — phân hệ cơ cấu phòng ban và hồ sơ nhân sự
 - [Điểm danh cuộc họp](pages/overview/module-meeting.md) — phân hệ điểm danh cuộc họp

@@ -1,7 +1,7 @@
 import { authService } from './auth';
 import { employeeService } from './employee';
 import { departmentService } from './department';
-import { dailyAttendanceService } from './attendance';
+import { dailyAttendanceService, normalizeLeaveReason } from './attendance';
 import { meetingService } from './meeting';
 import { cardService } from './card';
 import { roomService } from './room';
@@ -239,6 +239,52 @@ export interface LiveOrUpcomingMeetingData {
   attendanceRate: number;
 }
 
+export interface MeetingDisciplineDepartmentAlert {
+  departmentId: string;
+  departmentName: string;
+  lateCount: number;
+  absentCount: number;
+  status: 'warning' | 'danger';
+  note: string;
+}
+
+export interface MeetingDisciplineViolation {
+  id: string;
+  employeeName: string;
+  employeeCode: string;
+  position: string;
+  departmentName: string;
+  meetingTitle: string;
+  meetingTime: string;
+  type: 'late' | 'excused_absent' | 'unexcused_absent';
+  reason?: string;
+  lateMinutes?: number;
+  avatarUrl?: string;
+}
+
+export interface MonthDisciplineOption {
+  value: string; // '2026-11'
+  label: string; // 'Tháng 11/2026'
+  year: number;
+  month: number;
+  isCurrent: boolean;
+  disabled?: boolean;
+}
+
+export interface MeetingDisciplineWatch {
+  complianceRate: number; // e.g. 94%
+  excusedAbsentCount: number; // Vắng có phép (2 lượt)
+  unexcusedAbsentCount: number; // Vắng không phép (1 lượt)
+  lateCount: number; // Đi muộn (3 lượt)
+  departmentsNeedingAttention: MeetingDisciplineDepartmentAlert[];
+  recentViolations: MeetingDisciplineViolation[];
+  selectedMonth: string; // '2026-11'
+  monthLabel: string;    // 'Tháng 11/2026'
+  isCurrentMonth: boolean;
+  note?: string;
+  availableMonths: MonthDisciplineOption[];
+}
+
 export interface MeetingDashboardData {
   period?: DashboardPeriod;
   meetingCount: number;
@@ -253,6 +299,7 @@ export interface MeetingDashboardData {
   recentMeetings: Meeting[];
   recentActivities: MeetingActivityItem[];
   currentOrUpcomingMeeting?: LiveOrUpcomingMeetingData;
+  disciplineWatch?: MeetingDisciplineWatch;
 }
 
 function generateDayTrendPoints(
@@ -735,7 +782,7 @@ class DashboardService {
         checkInTime: r.checkInTime,
         checkOutTime: r.checkOutTime,
         lateMinutes: r.lateMinutes || 0,
-        leaveReason: r.status === 'leave' ? (r.note || 'Nghỉ phép có đơn') : undefined,
+        leaveReason: r.status === 'leave' ? normalizeLeaveReason(r.note) : undefined,
         note: r.note
       };
     });
@@ -1255,6 +1302,35 @@ class DashboardService {
       }
     }
 
+    // 11. Cố định hiển thị 4 cuộc họp gần đây theo thứ tự ưu tiên:
+    // - Sắp diễn ra (scheduled - gần nhất trước)
+    // - Đang diễn ra (in_progress - mới nhất trước)
+    // - Đã kết thúc (completed - kết thúc gần nhất trước)
+    // Nếu loại cuộc họp nào không có thì không hiển thị.
+    const upcomingForRecent = filteredMeetings
+      .filter((m) => m.status === 'scheduled')
+      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+
+    const ongoingForRecent = filteredMeetings
+      .filter((m) => m.status === 'in_progress')
+      .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+
+    const completedForRecent = filteredMeetings
+      .filter((m) => m.status === 'completed')
+      .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+
+    const recentMeetings = [
+      ...upcomingForRecent,
+      ...ongoingForRecent,
+      ...completedForRecent
+    ].slice(0, 4);
+
+    // 12. Dữ liệu Giám Sát Kỷ Luật & Cảnh Báo Chuyên Cần Khối Phòng Ban (Discipline & Compliance Watch) theo tháng
+    const disciplineWatch = this.getMeetingDisciplineWatch(
+      tenantId,
+      _options?.startDate ? _options.startDate.substring(0, 7) : '2026-11'
+    );
+
     return {
       period: typeof periodOrCount === 'string' ? periodOrCount : undefined,
       meetingCount: selectedMeetings.length,
@@ -1266,9 +1342,420 @@ class DashboardService {
       completedMeetingsInCurrentMonth,
       methodDistribution,
       roleDistribution,
-      recentMeetings: selectedMeetings.slice(0, 4),
+      recentMeetings,
       recentActivities,
-      currentOrUpcomingMeeting
+      currentOrUpcomingMeeting,
+      disciplineWatch
+    };
+  }
+
+  /**
+   * Lấy dữ liệu Giám sát kỷ luật & Cảnh báo chuyên cần theo tháng trong năm (mặc định: tháng hiện tại 11/2026)
+   */
+  public getMeetingDisciplineWatch(
+    _tenantId: string,
+    monthKey: string = '2026-11'
+  ): MeetingDisciplineWatch {
+    const availableMonths: MonthDisciplineOption[] = [
+      { value: '2026-11', label: 'Tháng 11/2026', year: 2026, month: 11, isCurrent: true, disabled: false },
+      { value: '2026-10', label: 'Tháng 10/2026', year: 2026, month: 10, isCurrent: false, disabled: false },
+      { value: '2026-09', label: 'Tháng 09/2026', year: 2026, month: 9, isCurrent: false, disabled: false },
+      { value: '2026-08', label: 'Tháng 08/2026', year: 2026, month: 8, isCurrent: false, disabled: false },
+      { value: '2026-07', label: 'Tháng 07/2026', year: 2026, month: 7, isCurrent: false, disabled: false },
+      { value: '2026-06', label: 'Tháng 06/2026', year: 2026, month: 6, isCurrent: false, disabled: false },
+      { value: '2026-05', label: 'Tháng 05/2026', year: 2026, month: 5, isCurrent: false, disabled: false },
+      { value: '2026-04', label: 'Tháng 04/2026', year: 2026, month: 4, isCurrent: false, disabled: false },
+      { value: '2026-03', label: 'Tháng 03/2026', year: 2026, month: 3, isCurrent: false, disabled: false },
+      { value: '2026-02', label: 'Tháng 02/2026', year: 2026, month: 2, isCurrent: false, disabled: false },
+      { value: '2026-01', label: 'Tháng 01/2026', year: 2026, month: 1, isCurrent: false, disabled: false },
+      { value: '2026-12', label: 'Tháng 12/2026', year: 2026, month: 12, isCurrent: false, disabled: true }
+    ];
+
+    const currentKey = '2026-11';
+    const targetKey = monthKey || currentKey;
+    const isCurrent = targetKey === currentKey;
+    const [yStr, mStr] = targetKey.split('-');
+    const mNum = parseInt(mStr, 10) || 11;
+    const yNum = parseInt(yStr, 10) || 2026;
+    const monthLabel = `Tháng ${String(mNum).padStart(2, '0')}/${yNum}`;
+
+    if (targetKey === '2026-11') {
+      return {
+        complianceRate: 94,
+        lateCount: 3,
+        excusedAbsentCount: 2,
+        unexcusedAbsentCount: 1,
+        departmentsNeedingAttention: [
+          {
+            departmentId: 'dept-ubnd-02',
+            departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+            lateCount: 3,
+            absentCount: 0,
+            status: 'warning',
+            note: '3 lượt trễ >15p'
+          },
+          {
+            departmentId: 'dept-ubnd-04',
+            departmentName: 'Ban Chỉ huy Quân sự Phường',
+            lateCount: 1,
+            absentCount: 1,
+            status: 'danger',
+            note: '1 lượt vắng'
+          }
+        ],
+        recentViolations: [
+          {
+            id: 'viol-nov-1',
+            employeeName: 'Bà Phạm Thị Cúc',
+            employeeCode: 'UBND-002',
+            position: 'Trưởng bộ phận Địa chính - Xây dựng',
+            departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+            meetingTitle: 'Họp Khẩn Phương Án Đảm Bảo An Ninh Trật Tự & PCCC Kỳ Nghỉ',
+            meetingTime: '08:02 (06/11/2026)',
+            type: 'late',
+            lateMinutes: 12,
+            avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150'
+          },
+          {
+            id: 'viol-nov-2',
+            employeeName: 'Ông Hoàng Văn Đức',
+            employeeCode: 'UBND-003',
+            position: 'Cán bộ Tư pháp - Hộ tịch',
+            departmentName: 'Bộ phận Tư pháp - Hộ tịch',
+            meetingTitle: 'Họp Khẩn Phương Án Đảm Bảo An Ninh Trật Tự & PCCC Kỳ Nghỉ',
+            meetingTime: '08:00 (06/11/2026)',
+            type: 'excused_absent',
+            reason: 'Đi công tác cơ sở (Có giấy triệu tập)'
+          },
+          {
+            id: 'viol-nov-3',
+            employeeName: 'Đ/c Lê Văn Hùng',
+            employeeCode: 'UBND-014',
+            position: 'Phó Chỉ huy trưởng Quân sự',
+            departmentName: 'Ban Chỉ huy Quân sự Phường',
+            meetingTitle: 'Họp Đánh Giá Tiến Độ Cải Cách Thủ Tục Hành Chính & Đề Án 06',
+            meetingTime: '08:30 (04/11/2026)',
+            type: 'unexcused_absent',
+            reason: 'Vắng không báo cáo / Chưa giải trình'
+          },
+          {
+            id: 'viol-nov-4',
+            employeeName: 'Ông Đỗ Quang Huy',
+            employeeCode: 'UBND-008',
+            position: 'Cán bộ Địa chính',
+            departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+            meetingTitle: 'Hội Nghị Giao Ban Chuyển Đổi Số & Cải Cách TTHC Đầu Tháng 11',
+            meetingTime: '08:15 (02/11/2026)',
+            type: 'late',
+            lateMinutes: 15,
+            avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150'
+          }
+        ],
+        selectedMonth: targetKey,
+        monthLabel,
+        isCurrentMonth: true,
+        note: 'Dữ liệu kỳ họp thu thập trong Tháng 11/2026 (tháng hiện tại).',
+        availableMonths
+      };
+    }
+
+    if (targetKey === '2026-10') {
+      return {
+        complianceRate: 90,
+        lateCount: 2,
+        excusedAbsentCount: 1,
+        unexcusedAbsentCount: 1,
+        departmentsNeedingAttention: [
+          {
+            departmentId: 'dept-ubnd-04',
+            departmentName: 'Ban Chỉ huy Quân sự Phường',
+            lateCount: 0,
+            absentCount: 1,
+            status: 'danger',
+            note: '1 lượt vắng'
+          },
+          {
+            departmentId: 'dept-ubnd-02',
+            departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+            lateCount: 2,
+            absentCount: 0,
+            status: 'warning',
+            note: '2 lượt trễ >15p'
+          }
+        ],
+        recentViolations: [
+          {
+            id: 'viol-oct-1',
+            employeeName: 'Đ/c Lê Văn Hùng',
+            employeeCode: 'UBND-014',
+            position: 'Phó Chỉ huy trưởng Quân sự',
+            departmentName: 'Ban Chỉ huy Quân sự Phường',
+            meetingTitle: 'Họp Giao Ban Khối Kinh Tế - Đô Thị Tháng 10/2026',
+            meetingTime: '08:00 (28/10/2026)',
+            type: 'unexcused_absent',
+            reason: 'Vắng không báo cáo / Chưa giải trình'
+          },
+          {
+            id: 'viol-oct-2',
+            employeeName: 'Ông Đỗ Quang Huy',
+            employeeCode: 'UBND-008',
+            position: 'Cán bộ Địa chính',
+            departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+            meetingTitle: 'Hội Nghị Chuyên Đề Cải Cách Thủ Tục Hành Chính Số',
+            meetingTime: '08:15 (15/10/2026)',
+            type: 'late',
+            lateMinutes: 15,
+            avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150'
+          },
+          {
+            id: 'viol-oct-3',
+            employeeName: 'Bà Phạm Thị Cúc',
+            employeeCode: 'UBND-002',
+            position: 'Trưởng bộ phận Địa chính - Xây dựng',
+            departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+            meetingTitle: 'Hội Nghị Chuyên Đề Cải Cách Thủ Tục Hành Chính Số',
+            meetingTime: '08:18 (15/10/2026)',
+            type: 'late',
+            lateMinutes: 18,
+            avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150'
+          },
+          {
+            id: 'viol-oct-4',
+            employeeName: 'Ông Hoàng Văn Đức',
+            employeeCode: 'UBND-003',
+            position: 'Cán bộ Tư pháp - Hộ tịch',
+            departmentName: 'Bộ phận Tư pháp - Hộ tịch',
+            meetingTitle: 'Hội Nghị Chuyên Đề Cải Cách Thủ Tục Hành Chính Số',
+            meetingTime: '08:00 (15/10/2026)',
+            type: 'excused_absent',
+            reason: 'Tập huấn nghiệp vụ hộ tịch Sở Tư pháp'
+          }
+        ],
+        selectedMonth: targetKey,
+        monthLabel,
+        isCurrentMonth: false,
+        note: 'Dữ liệu kỳ họp thu thập trong Tháng 10/2026.',
+        availableMonths
+      };
+    }
+
+    if (targetKey === '2026-09') {
+      return {
+        complianceRate: 92,
+        lateCount: 2,
+        excusedAbsentCount: 1,
+        unexcusedAbsentCount: 1,
+        departmentsNeedingAttention: [
+          {
+            departmentId: 'dept-ubnd-02',
+            departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+            lateCount: 2,
+            absentCount: 0,
+            status: 'warning',
+            note: '2 lượt trễ >15p'
+          },
+          {
+            departmentId: 'dept-ubnd-03',
+            departmentName: 'Bộ phận Tư pháp - Hộ tịch',
+            lateCount: 0,
+            absentCount: 1,
+            status: 'danger',
+            note: '1 lượt vắng'
+          }
+        ],
+        recentViolations: [
+          {
+            id: 'viol-sep-1',
+            employeeName: 'Ông Đỗ Quang Huy',
+            employeeCode: 'UBND-008',
+            position: 'Cán bộ Địa chính',
+            departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+            meetingTitle: 'Hội Nghị Đánh Giá Công Tác Cải Cách Hành Chính Tháng 9',
+            meetingTime: '08:14 (18/09/2026)',
+            type: 'late',
+            lateMinutes: 14,
+            avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150'
+          },
+          {
+            id: 'viol-sep-2',
+            employeeName: 'Bà Phạm Thị Cúc',
+            employeeCode: 'UBND-002',
+            position: 'Trưởng bộ phận Địa chính - Xây dựng',
+            departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+            meetingTitle: 'Họp Giao Ban Đầu Năm Học Mới & Đảm Bảo Trật Tự Cổng Trường',
+            meetingTime: '08:12 (05/09/2026)',
+            type: 'late',
+            lateMinutes: 12,
+            avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150'
+          },
+          {
+            id: 'viol-sep-3',
+            employeeName: 'Ông Hoàng Văn Đức',
+            employeeCode: 'UBND-003',
+            position: 'Cán bộ Tư pháp - Hộ tịch',
+            departmentName: 'Bộ phận Tư pháp - Hộ tịch',
+            meetingTitle: 'Họp Giao Ban Đầu Năm Học Mới & Đảm Bảo Trật Tự Cổng Trường',
+            meetingTime: '08:00 (05/09/2026)',
+            type: 'excused_absent',
+            reason: 'Học chính trị hè theo triệu tập'
+          },
+          {
+            id: 'viol-sep-4',
+            employeeName: 'Đ/c Lê Văn Hùng',
+            employeeCode: 'UBND-014',
+            position: 'Phó Chỉ huy trưởng Quân sự',
+            departmentName: 'Ban Chỉ huy Quân sự Phường',
+            meetingTitle: 'Họp Giao Ban Đầu Năm Học Mới & Đảm Bảo Trật Tự Cổng Trường',
+            meetingTime: '08:00 (05/09/2026)',
+            type: 'unexcused_absent',
+            reason: 'Vắng không lý do'
+          }
+        ],
+        selectedMonth: targetKey,
+        monthLabel,
+        isCurrentMonth: false,
+        note: 'Dữ liệu kỳ họp thu thập trong Tháng 09/2026.',
+        availableMonths
+      };
+    }
+
+    if (targetKey === '2026-08') {
+      return {
+        complianceRate: 93,
+        lateCount: 1,
+        excusedAbsentCount: 1,
+        unexcusedAbsentCount: 1,
+        departmentsNeedingAttention: [
+          {
+            departmentId: 'dept-ubnd-04',
+            departmentName: 'Ban Chỉ huy Quân sự Phường',
+            lateCount: 0,
+            absentCount: 1,
+            status: 'danger',
+            note: '1 lượt vắng'
+          }
+        ],
+        recentViolations: [
+          {
+            id: 'viol-aug-1',
+            employeeName: 'Đ/c Lê Văn Hùng',
+            employeeCode: 'UBND-014',
+            position: 'Phó Chỉ huy trưởng Quân sự',
+            departmentName: 'Ban Chỉ huy Quân sự Phường',
+            meetingTitle: 'Họp Ban Chỉ Đạo Phòng Chống Dịch Bệnh & Vệ Sinh Môi Trường Đô Thị',
+            meetingTime: '14:00 (22/08/2026)',
+            type: 'unexcused_absent',
+            reason: 'Vắng không báo cáo'
+          },
+          {
+            id: 'viol-aug-2',
+            employeeName: 'Bà Phạm Thị Cúc',
+            employeeCode: 'UBND-002',
+            position: 'Trưởng bộ phận Địa chính - Xây dựng',
+            departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+            meetingTitle: 'Hội Nghị Chuyên Đề Quản Lý Trật Tự Xây Dựng & Đô Thị Quý 2',
+            meetingTime: '08:46 (12/08/2026)',
+            type: 'late',
+            lateMinutes: 16,
+            avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150'
+          }
+        ],
+        selectedMonth: targetKey,
+        monthLabel,
+        isCurrentMonth: false,
+        note: 'Dữ liệu kỳ họp thu thập trong Tháng 08/2026.',
+        availableMonths
+      };
+    }
+
+    if (targetKey === '2026-07') {
+      return {
+        complianceRate: 94,
+        lateCount: 1,
+        excusedAbsentCount: 1,
+        unexcusedAbsentCount: 0,
+        departmentsNeedingAttention: [
+          {
+            departmentId: 'dept-ubnd-02',
+            departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+            lateCount: 1,
+            absentCount: 0,
+            status: 'warning',
+            note: '1 lượt trễ >15p'
+          }
+        ],
+        recentViolations: [
+          {
+            id: 'viol-jul-1',
+            employeeName: 'Ông Đỗ Quang Huy',
+            employeeCode: 'UBND-008',
+            position: 'Cán bộ Địa chính',
+            departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+            meetingTitle: 'Hội Nghị Sơ Kết 6 Tháng Đầu Năm 2026 & Nhiệm Vụ 6 Tháng Cuối Năm',
+            meetingTime: '08:12 (10/07/2026)',
+            type: 'late',
+            lateMinutes: 12,
+            avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150'
+          },
+          {
+            id: 'viol-jul-2',
+            employeeName: 'Ông Hoàng Văn Đức',
+            employeeCode: 'UBND-003',
+            position: 'Cán bộ Tư pháp - Hộ tịch',
+            departmentName: 'Bộ phận Tư pháp - Hộ tịch',
+            meetingTitle: 'Họp Giao Ban Công Tác Đền Ơn Đáp Nghĩa & Kỷ Niệm 27/7',
+            meetingTime: '08:00 (25/07/2026)',
+            type: 'excused_absent',
+            reason: 'Phối hợp công tác đền ơn đáp nghĩa cơ sở'
+          }
+        ],
+        selectedMonth: targetKey,
+        monthLabel,
+        isCurrentMonth: false,
+        note: 'Dữ liệu kỳ họp thu thập trong Tháng 07/2026.',
+        availableMonths
+      };
+    }
+
+    const isPerfect = targetKey === '2026-02' || targetKey === '2026-01';
+    return {
+      complianceRate: isPerfect ? 100 : 96,
+      lateCount: isPerfect ? 0 : 1,
+      excusedAbsentCount: isPerfect ? 0 : 1,
+      unexcusedAbsentCount: 0,
+      departmentsNeedingAttention: isPerfect
+        ? []
+        : [
+            {
+              departmentId: 'dept-ubnd-02',
+              departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+              lateCount: 1,
+              absentCount: 0,
+              status: 'warning',
+              note: '1 lượt trễ'
+            }
+          ],
+      recentViolations: isPerfect
+        ? []
+        : [
+            {
+              id: `viol-${targetKey}-1`,
+              employeeName: 'Bà Phạm Thị Cúc',
+              employeeCode: 'UBND-002',
+              position: 'Trưởng bộ phận Địa chính - Xây dựng',
+              departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+              meetingTitle: `Hội Nghị Chuyên Đề ${monthLabel}`,
+              meetingTime: `08:10 (15/${mStr}/${yStr})`,
+              type: 'late',
+              lateMinutes: 10,
+              avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150'
+            }
+          ],
+      selectedMonth: targetKey,
+      monthLabel,
+      isCurrentMonth: isCurrent,
+      note: `Dữ liệu kỳ họp thu thập trong ${monthLabel}.`,
+      availableMonths
     };
   }
 

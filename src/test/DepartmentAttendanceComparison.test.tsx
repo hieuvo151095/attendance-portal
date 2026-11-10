@@ -85,7 +85,7 @@ describe('Thành Phần So Sánh Chuyên Cần Giữa Các Phòng Ban (Biểu Đ
     // Chú thích biểu đồ
     expect(screen.getAllByText(/Tỷ lệ hiện diện/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Tỷ lệ đúng giờ/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/Mục tiêu chuẩn cơ quan:/)).toBeInTheDocument();
+    expect(screen.getByText(/Mục tiêu tỷ lệ đúng giờ:/)).toBeInTheDocument();
     expect(screen.getByText('90%')).toBeInTheDocument();
 
     // Huy hiệu dẫn đầu
@@ -152,5 +152,49 @@ describe('Thành Phần So Sánh Chuyên Cần Giữa Các Phòng Ban (Biểu Đ
 
     expect(screen.getByText('95%')).toBeInTheDocument();
     expect(screen.getByText(/95% 🎯/)).toBeInTheDocument();
+  });
+
+  it('Chấm công: Thanh biểu đồ luôn giữ màu Xanh lá & Xanh dương; Tỷ lệ đúng giờ chưa đạt mục tiêu hiển thị "Cần lưu ý" màu đỏ', () => {
+    // mockMetrics có:
+    // dept-02 (Địa chính): onTimeRate 50% (< 90%) -> Cần lưu ý
+    // dept-04 (Quân sự): onTimeRate 75% (< 90%) -> Cần lưu ý
+    // dept-01, 03, 05: onTimeRate 100% (>= 90%) -> Tốt
+    const { container } = render(<DepartmentAttendanceComparison metrics={mockMetrics} targetOnTimeRate={90} />);
+
+    // Kiểm tra text "Cần lưu ý" xuất hiện (cho phòng ban chưa đạt mục tiêu đúng giờ)
+    const warningLabels = screen.getAllByText('Cần lưu ý');
+    expect(warningLabels.length).toBe(2);
+
+    // Kiểm tra text "Tốt" xuất hiện (cho phòng ban đạt mục tiêu)
+    const goodLabels = screen.getAllByText('Tốt');
+    expect(goodLabels.length).toBe(3);
+
+    // Kiểm tra màu thanh biểu đồ: Không có thanh màu cam (#F59E0B), chỉ có xanh lá (#10B981) và xanh dương (#0070CE)
+    const bars = container.querySelectorAll('div[style*="background-color"]');
+    const bgColors = Array.from(bars).map((el) => (el as HTMLElement).style.backgroundColor);
+    expect(bgColors).not.toContain('rgb(245, 158, 11)'); // #F59E0B
+  });
+
+  it('Cuộc họp: Nếu một trong hai (Tỷ lệ tham dự hoặc Tỷ lệ đúng giờ) chưa đạt mục tiêu thì hiển thị "Cần lưu ý"', () => {
+    // Giả lập cuộc họp với 2 mục tiêu: Tham dự 90% và Đúng giờ 80%
+    // dept-04 (Quân sự): attendance 100% (>=90%), nhưng onTimeRate 75% (< 80%) -> Cần lưu ý
+    // dept-05 (Công an): onTimeRate 100% (>=80%), nhưng attendanceRate 83% (< 90%) -> Cần lưu ý
+    // dept-02 (Địa chính): attendance 80% (<90%) và onTime 50% (<80%) -> Cần lưu ý
+    // dept-01 (Văn phòng), dept-03 (Tư pháp): cả 2 đều 100% -> Tốt
+    render(
+      <DepartmentAttendanceComparison
+        metrics={mockMetrics}
+        targetAttendanceRate={90}
+        targetOnTimeRate={80}
+        attendanceLabel="Tỷ lệ tham dự"
+        hideTargetIfEmpty={true}
+      />
+    );
+
+    const warningLabels = screen.getAllByText('Cần lưu ý');
+    expect(warningLabels.length).toBe(3); // dept-02, dept-04, dept-05
+
+    const goodLabels = screen.getAllByText('Tốt');
+    expect(goodLabels.length).toBe(2); // dept-01, dept-03
   });
 });

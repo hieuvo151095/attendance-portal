@@ -313,7 +313,7 @@ export const DepartmentAttendanceComparison: React.FC<DepartmentAttendanceCompar
                         display: 'inline-block'
                       }}
                     />
-                    <span>Mục tiêu chuẩn cơ quan: <strong style={{ color: '#EF4444' }}>{effectiveOnTimeTarget}%</strong></span>
+                    <span>Mục tiêu tỷ lệ đúng giờ: <strong style={{ color: '#EF4444' }}>{effectiveOnTimeTarget}%</strong></span>
                   </span>
                 ) : null
               )}
@@ -441,9 +441,25 @@ export const DepartmentAttendanceComparison: React.FC<DepartmentAttendanceCompar
             {/* Department Rows */}
             {sortedMetrics.map((dept, idx) => {
               const isHovered = hoveredDeptId === dept.id;
-              const benchmarkVal = activeBenchmarkRate ?? 85;
-              const isExemplary = dept.onTimeRate >= benchmarkVal;
-              const needsAttention = dept.onTimeRate < Math.max(50, benchmarkVal - 15);
+
+              // Đánh giá đạt chuẩn / cần lưu ý theo quy tắc nghiệp vụ:
+              // - Chấm công: Tỷ lệ đúng giờ không đạt mục tiêu -> "Cần lưu ý"
+              // - Cuộc họp: Một trong hai (Tỷ lệ tham dự hoặc Tỷ lệ đúng giờ) không đạt mục tiêu -> "Cần lưu ý"
+              const isNeedsAttention = (() => {
+                if (hasBothTargets) {
+                  return (
+                    (hasAttendanceTarget && dept.attendanceRate < (targetAttendanceRate ?? 0)) ||
+                    (hasOnTimeTarget && dept.onTimeRate < (targetOnTimeRate ?? 0))
+                  );
+                }
+                if (hasAttendanceTarget && !hasOnTimeTarget) {
+                  return dept.attendanceRate < (targetAttendanceRate ?? 0);
+                }
+                if (effectiveOnTimeTarget !== undefined) {
+                  return dept.onTimeRate < effectiveOnTimeTarget;
+                }
+                return false;
+              })();
 
               return (
                 <div
@@ -528,12 +544,10 @@ export const DepartmentAttendanceComparison: React.FC<DepartmentAttendanceCompar
                         <span>•</span>
                         <span>{dept.totalStaff} {totalLabel}</span>
                         <span>•</span>
-                        {isExemplary ? (
-                          <span style={{ color: 'var(--semantic-success)', fontWeight: 600 }}>Tốt</span>
-                        ) : needsAttention ? (
+                        {isNeedsAttention ? (
                           <span style={{ color: '#EF4444', fontWeight: 600 }}>Cần lưu ý</span>
                         ) : (
-                          <span style={{ color: 'var(--eco-blue-strong)' }}>Đạt chuẩn</span>
+                          <span style={{ color: 'var(--semantic-success)', fontWeight: 600 }}>Tốt</span>
                         )}
                       </div>
                     </div>
@@ -613,7 +627,7 @@ export const DepartmentAttendanceComparison: React.FC<DepartmentAttendanceCompar
                           style={{
                             width: `${Math.min(100, Math.max(0, dept.attendanceRate))}%`,
                             height: '100%',
-                            backgroundColor: dept.attendanceRate >= 90 ? '#10B981' : '#F59E0B',
+                            backgroundColor: '#10B981',
                             borderRadius: 'var(--radius-4)',
                             transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                             display: 'flex',
@@ -661,7 +675,7 @@ export const DepartmentAttendanceComparison: React.FC<DepartmentAttendanceCompar
                           style={{
                             width: `${Math.min(100, Math.max(0, dept.onTimeRate))}%`,
                             height: '100%',
-                            backgroundColor: dept.onTimeRate >= benchmarkVal ? '#0070CE' : '#F59E0B',
+                            backgroundColor: '#0070CE',
                             borderRadius: 'var(--radius-4)',
                             transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                             display: 'flex',
@@ -709,13 +723,23 @@ export const DepartmentAttendanceComparison: React.FC<DepartmentAttendanceCompar
           data-testid="dept-cards-grid"
         >
           {sortedMetrics.map((dept) => {
-            const cardBenchmark = activeBenchmarkRate ?? 85;
-            const tone =
-              dept.onTimeRate >= cardBenchmark
-                ? 'success'
-                : dept.onTimeRate >= Math.max(50, cardBenchmark - 15)
-                ? 'warning'
-                : 'danger';
+            const isNeedsAttention = (() => {
+              if (hasBothTargets) {
+                return (
+                  (hasAttendanceTarget && dept.attendanceRate < (targetAttendanceRate ?? 0)) ||
+                  (hasOnTimeTarget && dept.onTimeRate < (targetOnTimeRate ?? 0))
+                );
+              }
+              if (hasAttendanceTarget && !hasOnTimeTarget) {
+                return dept.attendanceRate < (targetAttendanceRate ?? 0);
+              }
+              if (effectiveOnTimeTarget !== undefined) {
+                return dept.onTimeRate < effectiveOnTimeTarget;
+              }
+              return false;
+            })();
+
+            const tone = isNeedsAttention ? 'danger' : 'success';
 
             return (
               <div

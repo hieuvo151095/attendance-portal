@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   StatCard,
   SelectField,
@@ -25,8 +25,8 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
   tenantId,
   onNavigateTab
 }) => {
-  // Bộ lọc số lượng cuộc họp gần nhất (từ 5 đến 15, mặc định 10)
-  const [meetingCount, setMeetingCount] = useState<number>(10);
+  // Bộ lọc số lượng cuộc họp gần nhất (chỉ gồm 4 tùy chọn: 6, 9, 12, 15 cuộc họp, mặc định 6)
+  const [meetingCount, setMeetingCount] = useState<number>(6);
   const [selectedDeptId, setSelectedDeptId] = useState<string>('');
   const [departments, setDepartments] = useState<Department[]>([]);
   const [data, setData] = useState<MeetingDashboardData | null>(null);
@@ -38,6 +38,32 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [hoveredTrendIdx, setHoveredTrendIdx] = useState<number | null>(null);
   const [exporting, setExporting] = useState<boolean>(false);
+
+  // Giám sát kỷ luật & cảnh báo chuyên cần: Quản lý theo tháng (mặc định: Tháng 11/2026)
+  const [selectedDisciplineMonth, setSelectedDisciplineMonth] = useState<string>('2026-11');
+  const [disciplineCalendarOpen, setDisciplineCalendarOpen] = useState<boolean>(false);
+  const [calendarYear, setCalendarYear] = useState<number>(2026);
+  const disciplinePickerRef = useRef<HTMLDivElement>(null);
+
+  // Đóng popover lịch khi bấm ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (disciplinePickerRef.current && !disciplinePickerRef.current.contains(e.target as Node)) {
+        setDisciplineCalendarOpen(false);
+      }
+    };
+    if (disciplineCalendarOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [disciplineCalendarOpen]);
+
+  // Dữ liệu kỷ luật cuộc họp theo tháng đã chọn (mặc định: tháng hiện tại)
+  const currentDisciplineWatch = useMemo(() => {
+    return dashboardService.getMeetingDisciplineWatch(tenantId, selectedDisciplineMonth);
+  }, [tenantId, selectedDisciplineMonth]);
 
   // Nạp danh sách phòng ban
   useEffect(() => {
@@ -115,16 +141,9 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
   ];
 
   const meetingCountOptions = [
-    { value: '5', label: '5 cuộc họp gần nhất' },
     { value: '6', label: '6 cuộc họp gần nhất' },
-    { value: '7', label: '7 cuộc họp gần nhất' },
-    { value: '8', label: '8 cuộc họp gần nhất' },
     { value: '9', label: '9 cuộc họp gần nhất' },
-    { value: '10', label: '10 cuộc họp gần nhất' },
-    { value: '11', label: '11 cuộc họp gần nhất' },
     { value: '12', label: '12 cuộc họp gần nhất' },
-    { value: '13', label: '13 cuộc họp gần nhất' },
-    { value: '14', label: '14 cuộc họp gần nhất' },
     { value: '15', label: '15 cuộc họp gần nhất' }
   ];
 
@@ -205,11 +224,11 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
 
           {/* Filter Controls & Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, flexWrap: 'wrap' }}>
-            {/* Lọc theo số lượng cuộc họp (5 - 15 cuộc họp gần nhất) */}
+            {/* Lọc theo số lượng cuộc họp (6, 9, 12, 15 cuộc họp gần nhất) */}
             <SelectField
               id="meeting-dashboard-count-filter"
               value={String(meetingCount)}
-              onChange={(val) => setMeetingCount(parseInt(val, 10) || 10)}
+              onChange={(val) => setMeetingCount(parseInt(val, 10) || 6)}
               options={meetingCountOptions}
               width={195}
             />
@@ -1418,7 +1437,7 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
                   }}
                 >
                   <Icon name="calendar-check" size={16} color="var(--eco-blue-strong)" />
-                  Cuộc Họp Đã Tổ Chức Gần Nhất
+                  Cuộc Họp Gần Đây
                 </h3>
                 <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>
                   Tổng hợp kết quả chuyên cần các cuộc họp gần đây
@@ -1491,14 +1510,19 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
                         justifyContent: 'space-between',
                         paddingTop: '6px',
                         borderTop: '1px dashed var(--border-default)',
-                        fontSize: '12px'
+                        fontSize: '12px',
+                        minHeight: '32px'
                       }}
                     >
                       <span style={{ color: 'var(--text-subtle)' }}>
-                        Tham gia: <strong style={{ color: 'var(--eco-blue-strong)' }}>{joinedAtt}/{totalAtt}</strong> đại biểu ({rate}%)
+                        {m.status === 'scheduled' ? (
+                          <>Triệu tập: <strong style={{ color: 'var(--eco-blue-strong)' }}>{totalAtt}</strong> đại biểu</>
+                        ) : (
+                          <>Tham gia: <strong style={{ color: 'var(--eco-blue-strong)' }}>{joinedAtt}/{totalAtt}</strong> đại biểu ({rate}%)</>
+                        )}
                       </span>
 
-                      {onNavigateTab && (
+                      {onNavigateTab && m.status === 'completed' && (
                         <Button
                           variant="ghost"
                           onClick={() => onNavigateTab('reports')}
@@ -1513,10 +1537,10 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
             </div>
           </div>
 
-          {/* Active Meeting or Next Upcoming Meeting Card (Cuộc họp đang diễn ra / Sắp diễn ra) */}
+          {/* Group 3 Right Card: Giám Sát Kỷ Luật & Cảnh Báo Chuyên Cần Khối Phòng Ban Theo Tháng */}
           <div
             className="dashboard-card"
-            data-testid="meeting-active-card"
+            data-testid="meeting-compliance-card"
             style={{
               backgroundColor: 'var(--bg-surface)',
               border: '1px solid var(--border-default)',
@@ -1528,7 +1552,7 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
               gap: '16px'
             }}
           >
-            {/* Card Header */}
+            {/* 1. Card Header kèm Bộ chọn Lịch Tháng trong năm */}
             <div
               style={{
                 display: 'flex',
@@ -1546,265 +1570,435 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
                     color: 'var(--text-heading)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px'
+                    gap: '8px',
+                    fontWeight: 600,
+                    fontSize: '16px'
                   }}
                 >
-                  <Icon
-                    name={data.currentOrUpcomingMeeting?.isLive ? "circle-play" : "calendar-days"}
-                    size={16}
-                    color={data.currentOrUpcomingMeeting?.isLive ? "#F59E0B" : "var(--eco-blue-strong)"}
-                  />
-                  {data.currentOrUpcomingMeeting?.isLive ? 'Cuộc Họp Đang Diễn Ra' : 'Cuộc Họp Sắp Diễn Ra'}
+                  <Icon name="shield-halved" size={16} color="var(--semantic-warning-dark, #b45309)" />
+                  Giám Sát Kỷ Luật & Cảnh Báo Chuyên Cần
                 </h3>
-                <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>
-                  {data.currentOrUpcomingMeeting?.isLive
-                    ? 'Thông tin cuộc họp và danh sách đại biểu đã điểm danh có mặt'
-                    : 'Thông tin sự kiện tiếp theo và danh sách đại biểu triệu tập'}
+                <span className="body-xs" style={{ color: 'var(--text-subtle)', marginTop: '2px', display: 'inline-block' }}>
+                  Theo dõi chấp hành triệu tập, danh sách vắng/muộn và đơn vị cần chấn chỉnh
                 </span>
               </div>
 
-              {data.currentOrUpcomingMeeting?.isLive ? (
-                <StatusTag tone="warning" label="Đang diễn ra" />
-              ) : (
-                <StatusTag tone="neutral" label="Sắp diễn ra" />
-              )}
-            </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* Bộ chọn tháng theo lịch năm (Year Calendar Month Picker) */}
+                <div ref={disciplinePickerRef} style={{ position: 'relative' }}>
+                  {/* Select ẩn hỗ trợ truy cập accessibility & automation testing */}
+                  <select
+                    aria-label="Chọn tháng kỷ luật cuộc họp"
+                    value={selectedDisciplineMonth}
+                    onChange={(e) => setSelectedDisciplineMonth(e.target.value)}
+                    style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
+                  >
+                    {(currentDisciplineWatch.availableMonths || []).map((m) => (
+                      <option key={m.value} value={m.value} disabled={m.disabled}>
+                        {m.label} {m.isCurrent ? '(Hiện tại)' : ''}
+                      </option>
+                    ))}
+                  </select>
 
-            {/* Event Info Card Box */}
-            {data.currentOrUpcomingMeeting?.meeting ? (
-              <div
-                style={{
-                  padding: '16px',
-                  borderRadius: 'var(--radius-8)',
-                  backgroundColor: data.currentOrUpcomingMeeting.isLive
-                    ? 'rgba(254, 243, 199, 0.35)'
-                    : 'var(--bg-canvas)',
-                  border: data.currentOrUpcomingMeeting.isLive
-                    ? '1px solid rgba(245, 158, 11, 0.4)'
-                    : '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px'
-                }}
-              >
-                <div>
-                  <div
-                    className="title-sm"
+                  {/* Nút bấm hiển thị lịch tháng */}
+                  <button
+                    type="button"
+                    data-testid="discipline-month-trigger"
+                    aria-haspopup="dialog"
+                    aria-expanded={disciplineCalendarOpen}
+                    onClick={() => setDisciplineCalendarOpen(!disciplineCalendarOpen)}
                     style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '5px 10px',
+                      borderRadius: 'var(--radius-6)',
+                      border: disciplineCalendarOpen ? '1px solid var(--primary-600, #2563eb)' : '1px solid var(--border-default)',
+                      backgroundColor: disciplineCalendarOpen ? 'var(--primary-50, #eff6ff)' : 'var(--bg-canvas)',
                       color: 'var(--text-heading)',
-                      fontWeight: 700,
-                      fontSize: '14px',
-                      lineHeight: 1.3
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      boxShadow: 'var(--shadow-xs)'
                     }}
                   >
-                    {data.currentOrUpcomingMeeting.meeting.title}
-                  </div>
-                  <div
-                    className="body-xs"
-                    style={{
-                      color: 'var(--text-subtle)',
-                      marginTop: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      flexWrap: 'wrap'
-                    }}
-                  >
-                    <span>🏛️ {data.currentOrUpcomingMeeting.meeting.roomName}</span>
-                    <span>•</span>
-                    <span>👤 {data.currentOrUpcomingMeeting.meeting.hostName || 'Chủ tịch UBND'}</span>
-                  </div>
-                  <div
-                    className="body-xs-medium"
-                    style={{
-                      color: 'var(--eco-blue-strong)',
-                      marginTop: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
-                  >
-                    <Icon name="clock" size={12} />
+                    <Icon name="calendar-days" size={13} color="var(--primary-600, #2563eb)" />
                     <span>
-                      {new Date(data.currentOrUpcomingMeeting.meeting.startTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - {new Date(data.currentOrUpcomingMeeting.meeting.endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                      {` (Ngày ${new Date(data.currentOrUpcomingMeeting.meeting.startTime).toLocaleDateString('vi-VN')})`}
+                      {currentDisciplineWatch.monthLabel}
+                      {currentDisciplineWatch.isCurrentMonth ? ' (Hiện tại)' : ''}
                     </span>
-                  </div>
-                </div>
+                    <Icon name="chevron-down" size={11} color="var(--text-subtle)" />
+                  </button>
 
-                {/* Live attendance progress */}
-                {data.currentOrUpcomingMeeting.isLive && (
-                  <div style={{ paddingTop: '8px', borderTop: '1px dashed rgba(245, 158, 11, 0.3)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', fontSize: '12px' }}>
-                      <span style={{ color: 'var(--text-body)', fontWeight: 500 }}>
-                        Đã điểm danh vào: <strong>{data.currentOrUpcomingMeeting.checkedInAttendees.length}</strong> / {data.currentOrUpcomingMeeting.totalAttendees} đại biểu
-                      </span>
-                      <strong style={{ color: '#059669' }}>
-                        {data.currentOrUpcomingMeeting.attendanceRate}%
-                      </strong>
+                  {/* Popover lịch chọn tháng trong năm */}
+                  {disciplineCalendarOpen && (
+                    <div
+                      role="dialog"
+                      aria-label="Lịch chọn tháng kỷ luật"
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 6px)',
+                        right: 0,
+                        width: '280px',
+                        backgroundColor: 'var(--bg-surface, #ffffff)',
+                        borderRadius: 'var(--radius-8)',
+                        border: '1px solid var(--border-default, #e2e8f0)',
+                        boxShadow: 'var(--shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.1))',
+                        zIndex: 1000,
+                        padding: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px'
+                      }}
+                    >
+                      {/* Điều hướng năm */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
+                        <button
+                          type="button"
+                          disabled={calendarYear <= 2025}
+                          onClick={() => setCalendarYear((y) => y - 1)}
+                          title="Năm trước"
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            border: 'none',
+                            borderRadius: 'var(--radius-4)',
+                            backgroundColor: 'transparent',
+                            cursor: calendarYear <= 2025 ? 'not-allowed' : 'pointer',
+                            opacity: calendarYear <= 2025 ? 0.3 : 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--text-body)'
+                          }}
+                        >
+                          <Icon name="chevron-down" size={12} style={{ transform: 'rotate(90deg)' }} />
+                        </button>
+                        <strong className="body-xs-semibold" style={{ color: 'var(--text-heading)', fontSize: '13px' }}>
+                          Năm {calendarYear}
+                        </strong>
+                        <button
+                          type="button"
+                          disabled={calendarYear >= 2026}
+                          onClick={() => setCalendarYear((y) => y + 1)}
+                          title="Năm sau"
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            border: 'none',
+                            borderRadius: 'var(--radius-4)',
+                            backgroundColor: 'transparent',
+                            cursor: calendarYear >= 2026 ? 'not-allowed' : 'pointer',
+                            opacity: calendarYear >= 2026 ? 0.3 : 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--text-body)'
+                          }}
+                        >
+                          <Icon name="chevron-down" size={12} style={{ transform: 'rotate(-90deg)' }} />
+                        </button>
+                      </div>
+
+                      {/* Lưới 12 tháng trong năm */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => {
+                          const mKey = `${calendarYear}-${String(m).padStart(2, '0')}`;
+                          const isFuture = calendarYear === 2026 && m > 11;
+                          const isSelected = selectedDisciplineMonth === mKey;
+                          const isCurrent = mKey === '2026-11';
+
+                          return (
+                            <button
+                              key={m}
+                              type="button"
+                              disabled={isFuture}
+                              title={isFuture ? 'Tháng chưa diễn ra' : `Chọn Tháng ${m}/${calendarYear}`}
+                              onClick={() => {
+                                setSelectedDisciplineMonth(mKey);
+                                setDisciplineCalendarOpen(false);
+                              }}
+                              style={{
+                                padding: '8px 4px',
+                                borderRadius: 'var(--radius-6)',
+                                border: isSelected
+                                  ? '1px solid var(--primary-600, #2563eb)'
+                                  : isCurrent
+                                  ? '1px solid var(--primary-400, #60a5fa)'
+                                  : '1px solid var(--border-neutral-subtle, #f1f5f9)',
+                                backgroundColor: isSelected
+                                  ? 'var(--primary-600, #2563eb)'
+                                  : isCurrent
+                                  ? 'var(--primary-50, #eff6ff)'
+                                  : 'var(--bg-canvas, #ffffff)',
+                                color: isSelected
+                                  ? '#ffffff'
+                                  : isFuture
+                                  ? 'var(--text-muted, #94a3b8)'
+                                  : 'var(--text-heading, #1e293b)',
+                                cursor: isFuture ? 'not-allowed' : 'pointer',
+                                opacity: isFuture ? 0.35 : 1,
+                                fontSize: '11.5px',
+                                fontWeight: isSelected || isCurrent ? 600 : 400,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '2px',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <span>Thg {m}</span>
+                              {isCurrent && !isSelected && (
+                                <span style={{ fontSize: '9px', color: 'var(--primary-700, #1d4ed8)', lineHeight: 1 }}>
+                                  Hiện tại
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Chân popover: Lối tắt quay lại tháng hiện tại */}
+                      <div style={{ borderTop: '1px solid var(--border-subtle, #f1f5f9)', paddingTop: '8px', display: 'flex', justifyContent: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedDisciplineMonth('2026-11');
+                            setCalendarYear(2026);
+                            setDisciplineCalendarOpen(false);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--primary-600, #2563eb)',
+                            fontSize: '11.5px',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Icon name="clock-rotate-left" size={11} /> Về tháng hiện tại (Tháng 11/2026)
+                        </button>
+                      </div>
                     </div>
-                    <Meter
-                      value={data.currentOrUpcomingMeeting.attendanceRate}
-                      tone="success"
-                      label="Tiến độ điểm danh"
-                      showLabel={false}
-                    />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-subtle)' }}>
-                Không có cuộc họp nào đang hoặc sắp diễn ra
-              </div>
-            )}
-
-            {/* List of Members who already checked in (or summoned for upcoming) */}
-            {data.currentOrUpcomingMeeting && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: 600, color: 'var(--text-heading)' }}>
-                  <span>
-                    {data.currentOrUpcomingMeeting.isLive
-                      ? `Đại Biểu Đã Có Mặt (${data.currentOrUpcomingMeeting.checkedInAttendees.length})`
-                      : `Đại Biểu Triệu Tập (${data.currentOrUpcomingMeeting.totalAttendees})`}
-                  </span>
-                  {data.currentOrUpcomingMeeting.isLive && data.currentOrUpcomingMeeting.notCheckedInAttendees.length > 0 && (
-                    <span style={{ fontWeight: 400, color: 'var(--text-subtle)', fontSize: '11.5px' }}>
-                      Còn {data.currentOrUpcomingMeeting.notCheckedInAttendees.length} đại biểu chưa đến
-                    </span>
                   )}
                 </div>
 
-                {data.currentOrUpcomingMeeting.isLive ? (
-                  data.currentOrUpcomingMeeting.checkedInAttendees.length === 0 ? (
-                    <div
+                <StatusTag tone="warning" label="Kỷ luật công vụ" />
+              </div>
+            </div>
+
+            {/* Dòng ghi chú thông tin thu thập dữ liệu theo tháng */}
+            <div
+              data-testid="meeting-discipline-note"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-6)',
+                backgroundColor: currentDisciplineWatch.isCurrentMonth ? 'var(--primary-50, #eff6ff)' : 'var(--bg-subtle)',
+                border: currentDisciplineWatch.isCurrentMonth ? '1px solid var(--primary-200, #bfdbfe)' : '1px solid var(--border-subtle)',
+                color: currentDisciplineWatch.isCurrentMonth ? 'var(--primary-900, #1e3a8a)' : 'var(--text-heading)',
+                fontSize: '12px',
+                lineHeight: 1.4
+              }}
+            >
+              <Icon name="circle-info" size={14} color="var(--primary-600, #2563eb)" />
+              <div style={{ flex: 1 }}>
+                {currentDisciplineWatch.isCurrentMonth ? (
+                  <span>
+                    <strong>Lưu ý:</strong> Dữ liệu kỳ họp được thu thập theo <strong>từng tháng</strong> (mặc định: <strong>{currentDisciplineWatch.monthLabel} — tháng hiện tại</strong>). Quản trị viên có thể bấm chọn tháng trên lịch năm để tra cứu các tháng đã qua.
+                  </span>
+                ) : (
+                  <span>
+                    Đang hiển thị dữ liệu kỳ họp thu thập trong <strong>{currentDisciplineWatch.monthLabel}</strong> (dữ liệu lịch sử). Bấm{' '}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDisciplineMonth('2026-11')}
                       style={{
-                        padding: '24px',
-                        textAlign: 'center',
-                        color: 'var(--text-subtle)',
-                        fontSize: '12.5px',
-                        backgroundColor: 'var(--bg-canvas)',
-                        borderRadius: 'var(--radius-8)'
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        color: 'var(--primary-600, #2563eb)',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textDecoration: 'underline'
                       }}
                     >
-                      Chưa ghi nhận đại biểu nào điểm danh vào phòng họp
-                    </div>
-                  ) : (
-                    data.currentOrUpcomingMeeting.checkedInAttendees.map((att) => {
-                      const checkInFormatted = att.checkInTime
-                        ? new Date(att.checkInTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-                        : '--:--';
-                      const methodLabel =
-                        att.checkInMethod === 'face_id'
-                          ? 'Camera Face ID'
-                          : att.checkInMethod === 'card'
-                          ? 'Thẻ RFID'
-                          : 'Ký tên';
+                      Về tháng hiện tại (Tháng 11/2026)
+                    </button>{' '}
+                    để xem dữ liệu mới nhất.
+                  </span>
+                )}
+              </div>
+            </div>
 
-                      return (
-                        <div
-                          key={att.employeeId}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-8)',
-                            backgroundColor: 'var(--bg-canvas)',
-                            border: '1px solid var(--border-subtle)',
-                            gap: '12px'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                            {att.avatarUrl ? (
-                              <img
-                                src={att.avatarUrl}
-                                alt={att.fullName}
-                                style={{
-                                  width: '34px',
-                                  height: '34px',
-                                  borderRadius: '50%',
-                                  objectFit: 'cover',
-                                  border: '1px solid var(--border-subtle)',
-                                  flexShrink: 0
-                                }}
-                              />
-                            ) : (
-                              <div
-                                style={{
-                                  width: '34px',
-                                  height: '34px',
-                                  borderRadius: '50%',
-                                  backgroundColor: 'var(--eco-blue-subtle)',
-                                  color: 'var(--eco-blue-strong)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: '12px',
-                                  fontWeight: 600,
-                                  flexShrink: 0
-                                }}
-                              >
-                                {att.fullName.charAt(0)}
-                              </div>
-                            )}
+            {/* 2. Chỉ số Kỷ luật Hành chính trong kỳ (Mini KPI Stats Grid) */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: '8px',
+                padding: '12px',
+                borderRadius: 'var(--radius-8)',
+                backgroundColor: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)'
+              }}
+            >
+              {/* Tỷ lệ chấp hành */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--semantic-success)', display: 'inline-block' }} />
+                  <span className="body-xs" style={{ color: 'var(--text-subtle)', fontSize: '11px' }}>Chấp hành</span>
+                </div>
+                <div className="title-sm" style={{ fontWeight: 700, color: 'var(--semantic-success)', marginTop: '2px' }}>
+                  {currentDisciplineWatch.complianceRate}%
+                </div>
+              </div>
 
-                            <div style={{ minWidth: 0 }}>
-                              <div
-                                className="body-sm-bold"
-                                style={{
-                                  color: 'var(--text-heading)',
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis'
-                                }}
-                              >
-                                {att.fullName}
-                              </div>
-                              <div
-                                className="body-xs"
-                                style={{
-                                  color: 'var(--text-subtle)',
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis'
-                                }}
-                              >
-                                {att.position || att.departmentName}
-                              </div>
-                            </div>
+              {/* Đi muộn */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }} />
+                  <span className="body-xs" style={{ color: 'var(--text-subtle)', fontSize: '11px' }}>Đi muộn</span>
+                </div>
+                <div className="title-sm" style={{ fontWeight: 700, color: '#d97706', marginTop: '2px' }}>
+                  {currentDisciplineWatch.lateCount} <span style={{ fontSize: '11px', fontWeight: 400 }}>lượt</span>
+                </div>
+              </div>
+
+              {/* Vắng có phép */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--eco-blue-strong)', display: 'inline-block' }} />
+                  <span className="body-xs" style={{ color: 'var(--text-subtle)', fontSize: '11px' }}>Có phép</span>
+                </div>
+                <div className="title-sm" style={{ fontWeight: 700, color: 'var(--eco-blue-strong)', marginTop: '2px' }}>
+                  {currentDisciplineWatch.excusedAbsentCount} <span style={{ fontSize: '11px', fontWeight: 400 }}>lượt</span>
+                </div>
+              </div>
+
+              {/* Vắng không phép */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--semantic-danger)', display: 'inline-block' }} />
+                  <span className="body-xs" style={{ color: 'var(--text-subtle)', fontSize: '11px' }}>Không phép</span>
+                </div>
+                <div className="title-sm" style={{ fontWeight: 700, color: 'var(--semantic-danger)', marginTop: '2px' }}>
+                  {currentDisciplineWatch.unexcusedAbsentCount} <span style={{ fontSize: '11px', fontWeight: 400 }}>lượt</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Top đơn vị cần chấn chỉnh kỷ luật */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '4px' }}>
+                <span className="body-xs-bold" style={{ color: 'var(--text-heading)', fontSize: '12px' }}>
+                  Đơn vị cần chấn chỉnh kỷ luật ({currentDisciplineWatch.departmentsNeedingAttention.length})
+                </span>
+                <span className="body-xs" style={{ color: 'var(--text-subtle)', fontSize: '11px' }}>
+                  Dựa trên các kỳ họp trong {currentDisciplineWatch.monthLabel} {currentDisciplineWatch.isCurrentMonth ? '(Tháng hiện tại)' : ''}
+                </span>
+              </div>
+
+              {currentDisciplineWatch.departmentsNeedingAttention.length === 0 ? (
+                <div
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: 'var(--radius-6)',
+                    backgroundColor: 'var(--semantic-success-light, #f0fdf4)',
+                    border: '1px solid #bbf7d0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: 'var(--semantic-success-dark, #166534)',
+                    fontSize: '12px'
+                  }}
+                >
+                  <Icon name="circle-check" size={14} color="var(--semantic-success)" />
+                  <span>Trong {currentDisciplineWatch.monthLabel} không có đơn vị nào cần chấn chỉnh kỷ luật. Toàn bộ cán bộ chấp hành nghiêm túc.</span>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {currentDisciplineWatch.departmentsNeedingAttention.map((dept) => (
+                    <div
+                      key={dept.departmentId}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 12px',
+                        borderRadius: 'var(--radius-6)',
+                        backgroundColor: dept.status === 'danger' ? 'rgba(239, 68, 68, 0.06)' : 'rgba(245, 158, 11, 0.06)',
+                        border: dept.status === 'danger' ? '1px solid rgba(239, 68, 68, 0.25)' : '1px solid rgba(245, 158, 11, 0.25)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                        <Icon
+                          name={dept.status === 'danger' ? 'circle-exclamation' : 'triangle-exclamation'}
+                          size={14}
+                          color={dept.status === 'danger' ? 'var(--semantic-danger)' : 'var(--semantic-warning)'}
+                        />
+                        <div style={{ minWidth: 0 }}>
+                          <div className="body-xs-bold" style={{ color: 'var(--text-heading)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {dept.departmentName}
                           </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                            <span
-                              style={{
-                                fontSize: '11px',
-                                padding: '2px 7px',
-                                borderRadius: 'var(--radius-4)',
-                                backgroundColor: 'var(--bg-muted)',
-                                color: 'var(--text-body)',
-                                fontWeight: 500
-                              }}
-                            >
-                              {methodLabel}
-                            </span>
-                            <span className="body-xs-bold" style={{ color: 'var(--text-heading)' }}>
-                              {checkInFormatted}
-                            </span>
-                            {att.isLate ? (
-                              <StatusTag tone="warning" label="Vào trễ" />
-                            ) : (
-                              <StatusTag tone="success" label="Đúng giờ" />
-                            )}
+                          <div className="body-xs" style={{ color: 'var(--text-subtle)', fontSize: '11px' }}>
+                            {dept.note.replace(' • Cần lưu ý', '').replace(' • Cần chấn chỉnh', '')}
                           </div>
                         </div>
-                      );
-                    })
-                  )
-                ) : (
-                  // Upcoming meeting delegate roster
-                  data.currentOrUpcomingMeeting.notCheckedInAttendees.map((att) => (
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 4. Danh sách đại biểu vắng/muộn gần nhất (Fixed scrollable container with stable gutter) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="body-xs-bold" style={{ color: 'var(--text-heading)', fontSize: '12px' }}>
+                  Danh sách đại biểu vắng / muộn gần nhất
+                </span>
+                <span className="body-xs" style={{ color: 'var(--text-subtle)', fontSize: '11px' }}>
+                  {currentDisciplineWatch.monthLabel}
+                </span>
+              </div>
+
+              {currentDisciplineWatch.recentViolations.length === 0 ? (
+                <div
+                  style={{
+                    padding: '16px',
+                    borderRadius: 'var(--radius-8)',
+                    backgroundColor: 'var(--bg-canvas)',
+                    border: '1px solid var(--border-subtle)',
+                    textAlign: 'center',
+                    color: 'var(--text-subtle)',
+                    fontSize: '12px'
+                  }}
+                >
+                  <Icon name="circle-check" size={16} color="var(--semantic-success)" style={{ marginBottom: '4px' }} />
+                  <div>Toàn bộ đại biểu tham dự đầy đủ và đúng giờ trong {currentDisciplineWatch.monthLabel}.</div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    maxHeight: '260px',
+                    overflowY: 'auto',
+                    paddingRight: '4px',
+                    scrollbarGutter: 'stable'
+                  }}
+                >
+                  {currentDisciplineWatch.recentViolations.map((v) => (
                     <div
-                      key={att.employeeId}
+                      key={v.id}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -1817,13 +2011,13 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                        {att.avatarUrl ? (
+                        {v.avatarUrl ? (
                           <img
-                            src={att.avatarUrl}
-                            alt={att.fullName}
+                            src={v.avatarUrl}
+                            alt={v.employeeName}
                             style={{
-                              width: '34px',
-                              height: '34px',
+                              width: '32px',
+                              height: '32px',
                               borderRadius: '50%',
                               objectFit: 'cover',
                               border: '1px solid var(--border-subtle)',
@@ -1833,69 +2027,54 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
                         ) : (
                           <div
                             style={{
-                              width: '34px',
-                              height: '34px',
+                              width: '32px',
+                              height: '32px',
                               borderRadius: '50%',
-                              backgroundColor: 'var(--bg-muted)',
-                              color: 'var(--text-subtle)',
+                              backgroundColor: v.type === 'unexcused_absent' ? '#fee2e2' : 'var(--bg-muted)',
+                              color: v.type === 'unexcused_absent' ? '#b91c1c' : 'var(--text-subtle)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              fontSize: '12px',
+                              fontSize: '11.5px',
                               fontWeight: 600,
                               flexShrink: 0
                             }}
                           >
-                            {att.fullName.charAt(0)}
+                            {v.employeeName.charAt(0)}
                           </div>
                         )}
 
                         <div style={{ minWidth: 0 }}>
-                          <div
-                            className="body-sm-bold"
-                            style={{
-                              color: 'var(--text-heading)',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis'
-                            }}
-                          >
-                            {att.fullName}
+                          <div className="body-sm-bold" style={{ color: 'var(--text-heading)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {v.employeeName} <span style={{ fontWeight: 400, color: 'var(--text-subtle)', fontSize: '11px' }}>({v.employeeCode})</span>
                           </div>
-                          <div
-                            className="body-xs"
-                            style={{
-                              color: 'var(--text-subtle)',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis'
-                            }}
-                          >
-                            {att.position || att.departmentName}
+                          <div className="body-xs" style={{ color: 'var(--text-subtle)', fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {v.position} • {v.departmentName}
+                          </div>
+                          <div className="body-xs" style={{ color: 'var(--text-muted)', fontSize: '10.5px', marginTop: '1px' }}>
+                            {v.type === 'late'
+                              ? `Trễ ${v.lateMinutes}p tại ${v.meetingTitle}`
+                              : v.type === 'excused_absent'
+                              ? `Nghỉ có phép: ${v.reason}`
+                              : `Vắng không phép: ${v.meetingTitle}`}
                           </div>
                         </div>
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            padding: '2px 6px',
-                            borderRadius: 'var(--radius-4)',
-                            backgroundColor: att.role === 'required' ? 'var(--eco-blue-subtle)' : 'var(--bg-muted)',
-                            color: att.role === 'required' ? 'var(--eco-blue-strong)' : 'var(--text-subtle)',
-                            fontWeight: 500
-                          }}
-                        >
-                          {att.role === 'required' ? 'Bắt buộc' : 'Tùy chọn'}
-                        </span>
-                        <StatusTag tone="neutral" label="Chờ điểm danh" />
+                        {v.type === 'late' ? (
+                          <StatusTag tone="warning" label={`Trễ ${v.lateMinutes}p`} />
+                        ) : v.type === 'excused_absent' ? (
+                          <StatusTag tone="neutral" label="Có phép" />
+                        ) : (
+                          <StatusTag tone="danger" label="Không phép" />
+                        )}
                       </div>
                     </div>
-                  ))
-                )}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

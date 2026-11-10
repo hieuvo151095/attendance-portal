@@ -376,7 +376,7 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
     });
   });
 
-  it('Quy trình 2 bước Đồng bộ dữ liệu đến Camera AI: kiểm tra danh sách chưa đồng bộ, bỏ chọn, xem lại và xác nhận đồng bộ thành công', async () => {
+  it('Quy trình 3 bước Đồng bộ dữ liệu đến Camera AI: kiểm tra danh sách chưa đồng bộ, bỏ chọn, xem lại, thực hiện đồng bộ và xem màn hình Kết quả', async () => {
     render(<EmployeeManagement tenantId={ubndTenant} />);
 
     await waitFor(() => {
@@ -452,7 +452,18 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
     // Bấm "Đồng bộ ngay"
     fireEvent.click(screen.getByText(/Đồng bộ ngay/i));
 
-    // Chờ modal đóng và đồng bộ hoàn tất
+    // BƯỚC 3: Màn hình Kết quả đồng bộ (Result step)
+    await waitFor(() => {
+      expect(screen.getByText('Bước 3: Kết quả đồng bộ')).toBeInTheDocument();
+      expect(screen.getByText(/Đồng bộ dữ liệu đến Camera AI thành công!/i)).toBeInTheDocument();
+      expect(screen.getByText(/Danh sách cán bộ đã đồng bộ thành công/i)).toBeInTheDocument();
+      expect(screen.getByText('Hoàn tất')).toBeInTheDocument();
+    });
+
+    // Bấm nút "Hoàn tất" để kết thúc và đóng right-sheet
+    fireEvent.click(screen.getByRole('button', { name: /^Hoàn tất$/i }));
+
+    // Chờ SideSheet đóng và đồng bộ hoàn tất
     await waitFor(() => {
       expect(screen.queryByText('Đồng Bộ Dữ Liệu Đến Camera AI')).not.toBeInTheDocument();
     });

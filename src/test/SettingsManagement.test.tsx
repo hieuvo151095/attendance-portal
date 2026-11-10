@@ -312,7 +312,7 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
       expect(screen.getByText('Camera Cổng Thư Viện')).toBeInTheDocument();
     });
 
-    // Thao tác chỉnh trạng thái Tạm khoá / Mở khoá qua menu Thao tác
+    // Thao tác chỉnh trạng thái Tạm khoá / Mở khoá qua menu Thao tác kèm pop-up xác nhận
     const actionButtons = screen.getAllByRole('button', { name: 'Thao tác' });
     fireEvent.click(actionButtons[0]);
 
@@ -320,10 +320,44 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
       expect(screen.getByText('Tạm khoá thiết bị')).toBeInTheDocument();
     });
 
+    // Bấm Tạm khoá thiết bị -> xuất hiện Pop-up modal xác nhận
     fireEvent.click(screen.getByText('Tạm khoá thiết bị'));
 
     await waitFor(() => {
+      expect(screen.getByText('Xác Nhận Khoá Thiết Bị')).toBeInTheDocument();
+      expect(screen.getByText(/Bạn có chắc chắn muốn tạm khoá thiết bị/i)).toBeInTheDocument();
+    });
+
+    // Bấm nút "Khoá thiết bị" trên pop-up để xác nhận
+    const confirmLockBtn = screen.getByRole('button', { name: /^Khoá thiết bị$/i });
+    fireEvent.click(confirmLockBtn);
+
+    await waitFor(() => {
       expect(screen.getByText(/Đã tạm khoá thiết bị/)).toBeInTheDocument();
+    });
+
+    // Mở menu Thao tác lại và kiểm tra luồng Mở khoá thiết bị kèm pop-up
+    const actionButtons2 = screen.getAllByRole('button', { name: 'Thao tác' });
+    fireEvent.click(actionButtons2[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Mở khoá thiết bị')).toBeInTheDocument();
+    });
+
+    // Bấm Mở khoá thiết bị -> xuất hiện Pop-up modal xác nhận
+    fireEvent.click(screen.getByText('Mở khoá thiết bị'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Xác Nhận Mở Khoá Thiết Bị')).toBeInTheDocument();
+      expect(screen.getByText(/Bạn có chắc chắn muốn mở khoá thiết bị/i)).toBeInTheDocument();
+    });
+
+    // Bấm nút "Mở khoá thiết bị" trên pop-up để xác nhận
+    const confirmUnlockBtn = screen.getByRole('button', { name: /^Mở khoá thiết bị$/i });
+    fireEvent.click(confirmUnlockBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Đã mở khoá thiết bị/)).toBeInTheDocument();
     });
   });
 
@@ -418,5 +452,16 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
       expect(screen.getByText('CAM-MULTI-99')).toBeInTheDocument();
       expect(screen.getByText('Camera Đa Năng Sảnh & Phòng Họp')).toBeInTheDocument();
     });
+  });
+
+  it('Hỗ trợ prop initialTab="devices" để mở trực tiếp tab Quản trị thiết bị', async () => {
+    render(<SettingsManagement tenantId={ubndTenant} initialTab="devices" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Thêm thiết bị mới')).toBeInTheDocument();
+    });
+
+    const devicesTab = screen.getByTestId('settings-tab-devices');
+    expect(devicesTab).toHaveAttribute('aria-selected', 'true');
   });
 });

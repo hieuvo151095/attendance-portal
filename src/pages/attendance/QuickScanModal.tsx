@@ -23,7 +23,7 @@ export const QuickScanModal: React.FC<QuickScanModalProps> = ({
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [scanType, setScanType] = useState<'check_in' | 'check_out'>('check_in');
-  const [scanMethod, setScanMethod] = useState<AttendanceMethodType>('faceId');
+  const [scanMethod, setScanMethod] = useState<AttendanceMethodType>('manual');
   const [scanTime, setScanTime] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,9 +90,6 @@ export const QuickScanModal: React.FC<QuickScanModalProps> = ({
   ];
 
   const methodOptions = [
-    { value: 'faceId', label: 'Camera AI Hikvision (Face ID)' },
-    { value: 'fingerprint', label: 'Máy quét vân tay chuyên dụng' },
-    { value: 'card', label: 'Quẹt thẻ nhân viên RFID/NFC' },
     { value: 'manual', label: 'Ghi nhận thủ công từ Quản trị viên' }
   ];
 
@@ -100,7 +97,7 @@ export const QuickScanModal: React.FC<QuickScanModalProps> = ({
     <SideSheet
       open={open}
       title="Quét Điểm Danh Nhanh"
-      description="Mô phỏng lượt quét vào/ra từ thiết bị Camera AI Hikvision, máy vân tay hoặc quẹt thẻ tại cổng cơ quan."
+      description="Ghi nhận lượt vào/ra thủ công từ Quản trị viên cho cán bộ tại cơ quan."
       icon="camera"
       width={500}
       onClose={onClose}

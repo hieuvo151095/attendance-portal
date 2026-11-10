@@ -24,7 +24,7 @@ import { ActionCenterCard } from './ActionCenterCard';
 export interface AttendanceDashboardProps {
   tenantId: string;
   initialTab?: 'attendance' | 'meetings';
-  onNavigateTab?: (tab: 'attendance' | 'meetings' | 'reports' | 'employees' | 'departments' | 'settings') => void;
+  onNavigateTab?: (tab: 'attendance' | 'meetings' | 'reports' | 'employees' | 'departments' | 'settings', subTab?: string) => void;
 }
 
 export const AttendanceDashboard: React.FC<AttendanceDashboardProps> = ({

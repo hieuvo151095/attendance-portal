@@ -603,7 +603,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
             <div
               style={{
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 justifyContent: 'space-between',
                 padding: 'var(--space-10) var(--space-12)',
                 backgroundColor: hasFaceId
@@ -619,7 +619,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                 transition: 'all 0.2s ease'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-10)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-10)', flex: 1, minWidth: 0 }}>
                 <div
                   style={{
                     width: 32,
@@ -629,40 +629,50 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                     color: hasFaceId && allowedMethods.faceId ? 'var(--primary-700)' : 'var(--text-subtle)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    marginTop: 2
                   }}
                 >
                   <Icon name="camera" size={16} />
                 </div>
-                <div>
-                  <div className="body-sm-medium" style={{ color: hasFaceId ? 'var(--text-heading)' : 'var(--text-subtle)' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="body-sm-medium" style={{ color: hasFaceId ? 'var(--text-heading)' : 'var(--text-subtle)', lineHeight: '20px' }}>
                     Nhận diện khuôn mặt (Face ID)
                   </div>
                   {hasFaceId ? (
-                    <div className="body-xs" style={{ color: '#047857', fontWeight: 500 }}>
-                      ✅ Đã có ảnh khuôn mặt — Sẵn sàng đồng bộ đến Camera AI
-                      {!allowedMethods.faceId && <span style={{ color: 'var(--text-disabled)', marginLeft: 6 }}>• Đang tạm tắt</span>}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
+                      <div className="body-xs" style={{ color: '#047857', fontWeight: 500, lineHeight: 1.4 }}>
+                        ✅ Đã có ảnh khuôn mặt — Sẵn sàng đồng bộ đến Camera AI
+                      </div>
+                      {!allowedMethods.faceId && (
+                        <div className="body-xs" style={{ color: 'var(--text-disabled)', fontWeight: 400, lineHeight: 1.4 }}>
+                          Đang tạm tắt
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <div className="body-xs" style={{ color: '#b45309', fontWeight: 500, marginTop: 2 }}>
+                    <div className="body-xs" style={{ color: '#b45309', fontWeight: 500, marginTop: 2, lineHeight: 1.4 }}>
                       ⚠️ Chưa có ảnh khuôn mặt — Hãy tải ảnh chân dung ở trên để kích hoạt Face ID (Không cần camera Hikvision).
                     </div>
                   )}
                 </div>
               </div>
-              <Checkbox
-                checked={hasFaceId && allowedMethods.faceId}
-                onChange={(checked) => setAllowedMethods((prev) => ({ ...prev, faceId: checked }))}
-                disabled={isSubmitting || !hasFaceId}
-                aria-label={hasFaceId ? 'Cho phép điểm danh bằng Face ID' : 'Chưa có dữ liệu Face ID (bị khóa)'}
-              />
+              <div style={{ marginTop: 6, flexShrink: 0, marginLeft: 'var(--space-12)' }}>
+                <Checkbox
+                  checked={hasFaceId && allowedMethods.faceId}
+                  onChange={(checked) => setAllowedMethods((prev) => ({ ...prev, faceId: checked }))}
+                  disabled={isSubmitting || !hasFaceId}
+                  aria-label={hasFaceId ? 'Cho phép điểm danh bằng Face ID' : 'Chưa có dữ liệu Face ID (bị khóa)'}
+                />
+              </div>
             </div>
 
             {/* Phương thức 2: Vân tay */}
             <div
               style={{
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 justifyContent: 'space-between',
                 padding: 'var(--space-10) var(--space-12)',
                 backgroundColor: hasFingerprint
@@ -678,7 +688,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                 transition: 'all 0.2s ease'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-10)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-10)', flex: 1, minWidth: 0 }}>
                 <div
                   style={{
                     width: 32,
@@ -688,44 +698,54 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                     color: hasFingerprint && allowedMethods.fingerprint ? 'var(--primary-700)' : 'var(--text-subtle)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    marginTop: 2
                   }}
                 >
                   <Icon name="fingerprint" size={16} />
                 </div>
-                <div>
-                  <div className="body-sm-medium" style={{ color: hasFingerprint ? 'var(--text-heading)' : 'var(--text-subtle)' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="body-sm-medium" style={{ color: hasFingerprint ? 'var(--text-heading)' : 'var(--text-subtle)', lineHeight: '20px' }}>
                     Sinh trắc học vân tay (Fingerprint)
                   </div>
                   {hasFingerprint ? (
-                    <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>
-                      Quét dấu vân tay trên thiết bị chấm công chuyên dụng
-                      {!allowedMethods.fingerprint && <span style={{ color: 'var(--text-disabled)', marginLeft: 6 }}>• Đang tạm tắt</span>}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
+                      <div className="body-xs" style={{ color: 'var(--text-subtle)', lineHeight: 1.4 }}>
+                        Quét dấu vân tay trên thiết bị chấm công chuyên dụng
+                      </div>
+                      {!allowedMethods.fingerprint && (
+                        <div className="body-xs" style={{ color: 'var(--text-disabled)', fontWeight: 400, lineHeight: 1.4 }}>
+                          Đang tạm tắt
+                        </div>
+                      )}
                     </div>
                   ) : !isSyncedToCamera ? (
-                    <div className="body-xs" style={{ color: '#b45309', fontWeight: 500, marginTop: 2 }}>
+                    <div className="body-xs" style={{ color: '#b45309', fontWeight: 500, marginTop: 2, lineHeight: 1.4 }}>
                       ⚠️ Chưa đồng bộ đến Camera — Cần đồng bộ hồ sơ nhân sự (kèm ảnh hoặc thẻ) xuống Camera AI trước khi lấy mẫu vân tay trên thiết bị.
                     </div>
                   ) : (
-                    <div className="body-xs" style={{ color: '#b45309', fontWeight: 500, marginTop: 2 }}>
+                    <div className="body-xs" style={{ color: '#b45309', fontWeight: 500, marginTop: 2, lineHeight: 1.4 }}>
                       ⚠️ Chưa có dữ liệu vân tay — Cần lấy mẫu vân tay trực tiếp trên thiết bị Camera AI trước khi bật.
                     </div>
                   )}
                 </div>
               </div>
-              <Checkbox
-                checked={hasFingerprint && allowedMethods.fingerprint}
-                onChange={(checked) => setAllowedMethods((prev) => ({ ...prev, fingerprint: checked }))}
-                disabled={isSubmitting || !hasFingerprint}
-                aria-label={hasFingerprint ? 'Cho phép điểm danh bằng Vân tay' : 'Chưa có dữ liệu vân tay (bị khóa)'}
-              />
+              <div style={{ marginTop: 6, flexShrink: 0, marginLeft: 'var(--space-12)' }}>
+                <Checkbox
+                  checked={hasFingerprint && allowedMethods.fingerprint}
+                  onChange={(checked) => setAllowedMethods((prev) => ({ ...prev, fingerprint: checked }))}
+                  disabled={isSubmitting || !hasFingerprint}
+                  aria-label={hasFingerprint ? 'Cho phép điểm danh bằng Vân tay' : 'Chưa có dữ liệu vân tay (bị khóa)'}
+                />
+              </div>
             </div>
 
             {/* Phương thức 3: Thẻ nhân viên */}
             <div
               style={{
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 justifyContent: 'space-between',
                 padding: 'var(--space-10) var(--space-12)',
                 backgroundColor: hasCard
@@ -741,7 +761,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                 transition: 'all 0.2s ease'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-10)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-10)', flex: 1, minWidth: 0 }}>
                 <div
                   style={{
                     width: 32,
@@ -751,33 +771,43 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
                     color: hasCard && allowedMethods.card ? 'var(--primary-700)' : 'var(--text-subtle)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    marginTop: 2
                   }}
                 >
                   <Icon name="id-badge" size={16} />
                 </div>
-                <div>
-                  <div className="body-sm-medium" style={{ color: hasCard ? 'var(--text-heading)' : 'var(--text-subtle)' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="body-sm-medium" style={{ color: hasCard ? 'var(--text-heading)' : 'var(--text-subtle)', lineHeight: '20px' }}>
                     Thẻ nhân sự (RFID / NFC)
                   </div>
                   {hasCard ? (
-                    <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>
-                      Quẹt thẻ vật lý hoặc CCCD gắn chip tại đầu đọc thẻ
-                      {!allowedMethods.card && <span style={{ color: 'var(--text-disabled)', marginLeft: 6 }}>• Đang tạm tắt</span>}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
+                      <div className="body-xs" style={{ color: 'var(--text-subtle)', lineHeight: 1.4 }}>
+                        Quẹt thẻ vật lý hoặc CCCD gắn chip tại đầu đọc thẻ
+                      </div>
+                      {!allowedMethods.card && (
+                        <div className="body-xs" style={{ color: 'var(--text-disabled)', fontWeight: 400, lineHeight: 1.4 }}>
+                          Đang tạm tắt
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <div className="body-xs" style={{ color: '#b45309', fontWeight: 500, marginTop: 2 }}>
+                    <div className="body-xs" style={{ color: '#b45309', fontWeight: 500, marginTop: 2, lineHeight: 1.4 }}>
                       ⚠️ Chưa cấp thẻ nhân sự — Cần cấp thẻ tại mục Quản lý thẻ trước khi bật.
                     </div>
                   )}
                 </div>
               </div>
-              <Checkbox
-                checked={hasCard && allowedMethods.card}
-                onChange={(checked) => setAllowedMethods((prev) => ({ ...prev, card: checked }))}
-                disabled={isSubmitting || !hasCard}
-                aria-label={hasCard ? 'Cho phép điểm danh bằng Thẻ nhân sự' : 'Chưa cấp thẻ nhân sự (bị khóa)'}
-              />
+              <div style={{ marginTop: 6, flexShrink: 0, marginLeft: 'var(--space-12)' }}>
+                <Checkbox
+                  checked={hasCard && allowedMethods.card}
+                  onChange={(checked) => setAllowedMethods((prev) => ({ ...prev, card: checked }))}
+                  disabled={isSubmitting || !hasCard}
+                  aria-label={hasCard ? 'Cho phép điểm danh bằng Thẻ nhân sự' : 'Chưa cấp thẻ nhân sự (bị khóa)'}
+                />
+              </div>
             </div>
           </div>
         </div>

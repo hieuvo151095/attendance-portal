@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Icon,
   Button,
@@ -8,14 +8,16 @@ import {
 } from '../../design-system';
 import { DailyAttendanceRecord } from '../../types/attendance';
 import { dailyAttendanceService } from '../../services/attendance';
+import { CameraDevice } from '../../types/device';
+import { cameraDeviceService, DEFAULT_CAMERA_DEVICES } from '../../services/device';
 import { AdminCheckOutModal } from '../attendance/AdminCheckOutModal';
 
 export interface ActionCenterCardProps {
   tenantId: string;
-  onNavigateTab?: (tab: 'attendance' | 'meetings' | 'reports' | 'employees' | 'departments' | 'settings') => void;
+  onNavigateTab?: (tab: 'attendance' | 'meetings' | 'reports' | 'employees' | 'departments' | 'settings', subTab?: string) => void;
 }
 
-export type ActionFilter = 'all' | 'checkout' | 'anomaly' | 'leave_pending' | 'device';
+export type ActionFilter = 'all' | 'checkout' | 'anomaly' | 'device';
 
 export interface AnomalyItem {
   id: string;
@@ -26,29 +28,6 @@ export interface AnomalyItem {
   type: 'severe_late' | 'consecutive_late';
   detail: string;
   tag: string;
-}
-
-export interface PendingLeaveItem {
-  id: string;
-  employeeId: string;
-  employeeName: string;
-  employeeCode: string;
-  avatarUrl?: string;
-  departmentName: string;
-  leaveType: string;
-  timeRange: string;
-  reason: string;
-  status: 'pending' | 'approved';
-}
-
-export interface DeviceAlertItem {
-  id: string;
-  deviceName: string;
-  deviceCode: string;
-  location: string;
-  status: 'offline' | 'maintenance';
-  alertTime: string;
-  detail: string;
 }
 
 const STATIC_ANOMALIES: AnomalyItem[] = [
@@ -74,38 +53,43 @@ const STATIC_ANOMALIES: AnomalyItem[] = [
   }
 ];
 
-const INITIAL_PENDING_LEAVE: PendingLeaveItem = {
-  id: 'leave-pend-1',
-  employeeId: 'emp-ubnd-22',
-  employeeName: 'Trung úy Tạ Đình Khang',
-  employeeCode: 'UBND-022',
-  avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150',
-  departmentName: 'Công An Phường Bến Nghé',
-  leaveType: 'Đi công tác cơ sở',
-  timeRange: 'Cả ngày 06/11/2026',
-  reason: 'Hỗ trợ công tác kiểm tra an ninh trật tự địa bàn theo kế hoạch chỉ đạo',
-  status: 'pending'
-};
-
-const DEVICE_ALERT: DeviceAlertItem = {
-  id: 'dev-alert-1',
-  deviceName: 'Camera AI Cổng 3 - Kho lưu trữ',
-  deviceCode: 'CAM-UBND-CC-03',
-  location: 'Tầng trệt Trụ sở UBND',
-  status: 'maintenance',
-  alertTime: '06:30 hôm nay',
-  detail: 'Thiết bị đang tạm khóa bảo trì định kỳ cáp quang, 4 camera khác hoạt động bình thường.'
-};
-
 export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
   tenantId,
   onNavigateTab
 }) => {
   const [filter, setFilter] = useState<ActionFilter>('all');
   const [uncheckedOutRecords, setUncheckedOutRecords] = useState<DailyAttendanceRecord[]>([]);
-  const [pendingLeave, setPendingLeave] = useState<PendingLeaveItem>(INITIAL_PENDING_LEAVE);
   const [selectedCheckOutRecord, setSelectedCheckOutRecord] = useState<DailyAttendanceRecord | null>(null);
   const [checkOutModalOpen, setCheckOutModalOpen] = useState(false);
+
+  // Danh sách thiết bị camera đồng bộ trực tiếp từ cameraDeviceService
+  const [devices, setDevices] = useState<CameraDevice[]>(() =>
+    DEFAULT_CAMERA_DEVICES.filter((d) => d.tenantId === (tenantId || 'tenant-ubnd-001'))
+  );
+
+  const loadDevices = useCallback(async () => {
+    try {
+      const list = await cameraDeviceService.getDevicesByTenant(tenantId || 'tenant-ubnd-001');
+      if (list && list.length > 0) {
+        setDevices(list);
+      }
+    } catch (err) {
+      console.error('Failed to load devices in ActionCenterCard:', err);
+    }
+  }, [tenantId]);
+
+  useEffect(() => {
+    loadDevices();
+    const handleDeviceChange = () => {
+      loadDevices();
+    };
+    window.addEventListener('finviet_devices_changed', handleDeviceChange);
+    window.addEventListener('storage', handleDeviceChange);
+    return () => {
+      window.removeEventListener('finviet_devices_changed', handleDeviceChange);
+      window.removeEventListener('storage', handleDeviceChange);
+    };
+  }, [loadDevices]);
 
   // Load danh sách quên check-out ngày hôm trước (05/11/2026)
   const loadUncheckedOut = async () => {
@@ -137,32 +121,14 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
     setCheckOutModalOpen(true);
   };
 
-  // Duyệt nhanh đơn công tác / nghỉ phép
-  const handleApproveLeave = async () => {
-    try {
-      await dailyAttendanceService.toggleEmployeeLeave(
-        tenantId,
-        pendingLeave.employeeId,
-        '2026-11-06',
-        true,
-        pendingLeave.leaveType + ': ' + pendingLeave.reason
-      );
-      setPendingLeave((prev) => ({ ...prev, status: 'approved' }));
-      toast.success(
-        `Đã phê duyệt đơn ${pendingLeave.leaveType.toLowerCase()} của ${pendingLeave.employeeName} thành công!`
-      );
-    } catch (err) {
-      console.error('Failed to approve leave:', err);
-      toast.danger('Lỗi khi phê duyệt đơn công tác.');
-    }
-  };
-
-  // Đếm tổng số việc cần xử lý
+  // Đếm tổng số việc cần xử lý đồng bộ từ Quản trị thiết bị
   const checkoutCount = uncheckedOutRecords.length;
   const anomalyCount = STATIC_ANOMALIES.length;
-  const leavePendingCount = pendingLeave.status === 'pending' ? 1 : 0;
-  const deviceCount = 1;
-  const totalTasks = checkoutCount + anomalyCount + leavePendingCount + deviceCount;
+  const activeDevices = devices.filter((d) => d.status === 'active');
+  const alertDevices = devices.filter((d) => d.status !== 'active');
+  const totalDeviceCount = devices.length;
+  const deviceCount = alertDevices.length;
+  const totalTasks = checkoutCount + anomalyCount + deviceCount;
 
   return (
     <div
@@ -176,7 +142,8 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
         boxShadow: 'var(--shadow-xs)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px'
+        gap: '16px',
+        minHeight: '610px'
       }}
     >
       {/* 1. Header */}
@@ -222,7 +189,7 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
             </Tag>
           </h2>
           <span className="body-xs" style={{ color: 'var(--text-subtle)', marginTop: 4, display: 'block' }}>
-            Trung tâm giải quyết các vấn đề chuyên cần, đơn chờ duyệt & cảnh báo thiết bị
+            Trung tâm giải quyết các vấn đề chuyên cần & cảnh báo thiết bị
           </span>
         </div>
 
@@ -254,9 +221,9 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
           style={{
             padding: '4px 10px',
             borderRadius: 'var(--radius-full)',
-            border: filter === 'all' ? '1px solid var(--primary-600)' : '1px solid var(--border-default)',
-            backgroundColor: filter === 'all' ? 'var(--primary-50)' : 'transparent',
-            color: filter === 'all' ? 'var(--primary-700)' : 'var(--text-body)',
+            border: filter === 'all' ? '1px solid #2563eb' : '1px solid var(--border-default)',
+            backgroundColor: filter === 'all' ? '#eff6ff' : 'transparent',
+            color: filter === 'all' ? '#1d4ed8' : 'var(--text-body)',
             fontWeight: filter === 'all' ? 600 : 400,
             fontSize: '12px',
             cursor: 'pointer'
@@ -301,23 +268,6 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
 
         <button
           type="button"
-          onClick={() => setFilter('leave_pending')}
-          style={{
-            padding: '4px 10px',
-            borderRadius: 'var(--radius-full)',
-            border: filter === 'leave_pending' ? '1px solid var(--primary-500)' : '1px solid var(--border-default)',
-            backgroundColor: filter === 'leave_pending' ? 'var(--primary-50)' : 'transparent',
-            color: filter === 'leave_pending' ? 'var(--primary-700)' : 'var(--text-body)',
-            fontWeight: filter === 'leave_pending' ? 600 : 400,
-            fontSize: '12px',
-            cursor: 'pointer'
-          }}
-        >
-          Đơn chờ duyệt ({leavePendingCount})
-        </button>
-
-        <button
-          type="button"
           onClick={() => setFilter('device')}
           style={{
             padding: '4px 10px',
@@ -334,15 +284,18 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
         </button>
       </div>
 
-      {/* 3. Task List Container */}
+      {/* 3. Task List Container (Fixed height to prevent screen jumping/moving) */}
       <div
         style={{
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
-          maxHeight: '380px',
+          height: '468px',
+          minHeight: '468px',
+          maxHeight: '468px',
           overflowY: 'auto',
-          paddingRight: '2px'
+          paddingRight: '2px',
+          scrollbarGutter: 'stable'
         }}
       >
         {/* GROUP 1: Cán bộ quên check-out ngày hôm trước */}
@@ -496,8 +449,8 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
                         height: 32,
                         borderRadius: '50%',
                         overflow: 'hidden',
-                        backgroundColor: 'var(--primary-100)',
-                        color: 'var(--primary-700)',
+                        backgroundColor: '#dbeafe',
+                        color: '#1d4ed8',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -537,97 +490,7 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
           </div>
         )}
 
-        {/* GROUP 3: Đơn nghỉ phép / công tác chờ duyệt */}
-        {(filter === 'all' || filter === 'leave_pending') && (
-          <div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '8px'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Icon name="calendar-check" size={13} color="var(--primary-600)" />
-                <span className="body-xs-bold" style={{ color: 'var(--primary-700)' }}>
-                  Đơn nghỉ phép / công tác chờ duyệt trong ngày
-                </span>
-              </div>
-              <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>
-                {pendingLeave.status === 'pending' ? '1 đơn chờ' : 'Đã duyệt xong'}
-              </span>
-            </div>
-
-            <div
-              style={{
-                padding: '10px 12px',
-                borderRadius: 'var(--radius-8)',
-                backgroundColor: pendingLeave.status === 'approved' ? 'var(--semantic-success-light, #ecfdf5)' : 'var(--bg-subtle)',
-                border: pendingLeave.status === 'approved' ? '1px solid #a7f3d0' : '1px solid var(--primary-200)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '12px'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    overflow: 'hidden',
-                    backgroundColor: 'var(--primary-100)',
-                    color: 'var(--primary-700)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    flexShrink: 0
-                  }}
-                >
-                  {pendingLeave.avatarUrl ? (
-                    <img src={pendingLeave.avatarUrl} alt={pendingLeave.employeeName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    pendingLeave.employeeName.charAt(0)
-                  )}
-                </div>
-                <div>
-                  <div className="body-sm-medium" style={{ color: 'var(--text-heading)' }}>
-                    {pendingLeave.employeeName}{' '}
-                    <code style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>
-                      ({pendingLeave.employeeCode})
-                    </code>
-                    {' '}<Tag variant="default">{pendingLeave.leaveType}</Tag>
-                  </div>
-                  <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>
-                    {pendingLeave.departmentName} • {pendingLeave.timeRange}
-                  </div>
-                  <div className="body-xs" style={{ color: 'var(--text-body)', marginTop: 2, fontStyle: 'italic' }}>
-                    "{pendingLeave.reason}"
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ flexShrink: 0 }}>
-                {pendingLeave.status === 'approved' ? (
-                  <StatusTag tone="success" label="Đã phê duyệt" icon="circle-check" />
-                ) : (
-                  <Button
-                    variant="primary"
-                    onClick={handleApproveLeave}
-                  >
-                    Duyệt nhanh
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* GROUP 4: Trạng thái thiết bị */}
+        {/* GROUP 3: Trạng thái thiết bị */}
         {(filter === 'all' || filter === 'device') && (
           <div>
             <div
@@ -644,72 +507,103 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
                   Giám sát thiết bị Camera AI & Đầu đọc thẻ
                 </span>
               </div>
-              <span className="body-xs" style={{ color: 'var(--semantic-success)' }}>
-                4/5 đang hoạt động
+              <span
+                className="body-xs"
+                style={{
+                  color: activeDevices.length === totalDeviceCount ? 'var(--semantic-success)' : 'var(--semantic-warning-dark, #b45309)',
+                  fontWeight: 500
+                }}
+              >
+                {activeDevices.length}/{totalDeviceCount} đang hoạt động
               </span>
             </div>
 
-            <div
-              style={{
-                padding: '10px 12px',
-                borderRadius: 'var(--radius-8)',
-                backgroundColor: 'var(--bg-subtle)',
-                border: '1px solid var(--border-default)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '12px'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {alertDevices.length === 0 ? (
                 <div
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 'var(--radius-6)',
-                    backgroundColor: '#f1f5f9',
-                    color: '#64748b',
+                    padding: '12px 14px',
+                    borderRadius: 'var(--radius-8)',
+                    backgroundColor: 'var(--bg-subtle)',
+                    border: '1px solid var(--border-default)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
+                    gap: '8px',
+                    color: 'var(--semantic-success)'
                   }}
                 >
-                  <Icon name="video" size={16} />
+                  <Icon name="circle-check" size={14} />
+                  <span className="body-xs-medium">
+                    Toàn bộ {totalDeviceCount} thiết bị camera đang hoạt động ổn định, không có cảnh báo.
+                  </span>
                 </div>
-                <div>
-                  <div className="body-sm-medium" style={{ color: 'var(--text-heading)' }}>
-                    {DEVICE_ALERT.deviceName}{' '}
-                    <code style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>
-                      ({DEVICE_ALERT.deviceCode})
-                    </code>
-                  </div>
-                  <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>
-                    {DEVICE_ALERT.location} • {DEVICE_ALERT.detail}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                <StatusTag tone="warning" label="Tạm khoá bảo trì" />
-                {onNavigateTab && (
-                  <button
-                    type="button"
-                    onClick={() => onNavigateTab('settings')}
+              ) : (
+                alertDevices.map((dev) => (
+                  <div
+                    key={dev.id}
                     style={{
-                      padding: '4px 8px',
-                      borderRadius: 'var(--radius-4)',
+                      padding: '10px 12px',
+                      borderRadius: 'var(--radius-8)',
+                      backgroundColor: 'var(--bg-subtle)',
                       border: '1px solid var(--border-default)',
-                      backgroundColor: 'var(--bg-canvas)',
-                      color: 'var(--text-body)',
-                      fontSize: '12px',
-                      cursor: 'pointer'
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px'
                     }}
                   >
-                    Kiểm tra
-                  </button>
-                )}
-              </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 'var(--radius-6)',
+                          backgroundColor: '#f1f5f9',
+                          color: '#64748b',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}
+                      >
+                        <Icon name="video" size={16} />
+                      </div>
+                      <div>
+                        <div className="body-sm-medium" style={{ color: 'var(--text-heading)' }}>
+                          {dev.name}{' '}
+                          <code style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>
+                            ({dev.code})
+                          </code>
+                        </div>
+                        <div className="body-xs" style={{ color: 'var(--text-subtle)' }}>
+                          {dev.location || 'Trụ sở cơ quan'} • Thiết bị đang tạm khóa bảo trì{dev.attendanceType === 'meeting' ? ' phòng họp' : ''}.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                      <StatusTag tone="warning" label="Tạm khoá bảo trì" />
+                      {onNavigateTab && (
+                        <button
+                          type="button"
+                          onClick={() => onNavigateTab('settings', 'devices')}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: 'var(--radius-4)',
+                            border: '1px solid var(--border-default)',
+                            backgroundColor: 'var(--bg-canvas)',
+                            color: 'var(--text-body)',
+                            fontSize: '12px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Kiểm tra
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}

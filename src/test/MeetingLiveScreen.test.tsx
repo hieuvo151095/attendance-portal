@@ -79,6 +79,7 @@ describe('Màn Hình Điểm Danh Trực Tiếp Cuộc Họp (MTG-02: Meeting Li
     // Chờ tải xong tiêu đề cuộc họp
     expect(await screen.findByText('Họp Giao Ban Thường Kỳ Tháng 11/2026')).toBeInTheDocument();
     expect(screen.getByText(/Hội trường số 1 - Tầng 2 Trụ sở UBND/i)).toBeInTheDocument();
+    expect(screen.getByText('Đánh giá tình hình phát triển kinh tế xã hội và kế hoạch cải cách hành chính.')).toBeInTheDocument();
 
     // Kiểm tra thông báo mốc giờ vào trễ động
     expect(screen.getByText(/Mốc vào trễ: Điểm danh trước/i)).toBeInTheDocument();
@@ -94,12 +95,18 @@ describe('Màn Hình Điểm Danh Trực Tiếp Cuộc Họp (MTG-02: Meeting Li
     expect(screen.getByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
     expect(screen.getByText('Bà Phạm Thị Cúc')).toBeInTheDocument();
 
-    // Trạm camera Hikvision simulator
-    expect(screen.getByText(/HIKVISION MinMoe AI/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Ghi nhận Check-in/i })).toBeInTheDocument();
+    // Thẻ thống kê & Tab Chưa đến/ Không tham dự
+    expect(screen.getAllByText(/Chưa đến\/ Không tham dự/i).length).toBeGreaterThanOrEqual(1);
+
+    // Không còn phần camera bên phải
+    expect(screen.queryByText(/HIKVISION MinMoe AI/i)).not.toBeInTheDocument();
+
+    // Cuộc họp sắp diễn ra: Ẩn cả 2 nút Biên bản & Báo cáo và Kết thúc cuộc họp
+    expect(screen.queryByRole('button', { name: /Biên bản & Báo cáo/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Kết thúc cuộc họp/i })).not.toBeInTheDocument();
   });
 
-  it('Giao diện MeetingLiveScreen: Bấm nút Check-in cập nhật tức thì trạng thái trên màn hình Live', async () => {
+  it('Giao diện MeetingLiveScreen: Bấm nút Check-in trên thẻ đại biểu cập nhật tức thì trạng thái', async () => {
     render(
       <MeetingLiveScreen
         meetingId={meetingId}
@@ -110,14 +117,14 @@ describe('Màn Hình Điểm Danh Trực Tiếp Cuộc Họp (MTG-02: Meeting Li
 
     expect(await screen.findByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
 
-    // Bấm nút "Ghi nhận Check-in" ở panel Hikvision simulator
-    const checkInBtn = screen.getByRole('button', { name: /Ghi nhận Check-in/i });
-    fireEvent.click(checkInBtn);
+    // Bấm nút "Check-in" trên thẻ đại biểu
+    const checkInBtns = screen.getAllByRole('button', { name: /Check-in/i });
+    expect(checkInBtns.length).toBeGreaterThan(0);
+    fireEvent.click(checkInBtns[0]);
 
-    // Kiểm tra nhật ký và nhãn có mặt xuất hiện
+    // Kiểm tra trạng thái có mặt xuất hiện
     await waitFor(() => {
       expect(screen.getAllByText(/Nguyễn Văn An/i).length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText(/Nhật ký đối soát tức thì/i)).toBeInTheDocument();
     });
   });
 
@@ -147,13 +154,16 @@ describe('Màn Hình Điểm Danh Trực Tiếp Cuộc Họp (MTG-02: Meeting Li
   it('Giao diện MeetingLiveScreen: Bấm Kết thúc cuộc họp hiển thị modal xác nhận và chốt biên bản thành công', async () => {
     render(
       <MeetingLiveScreen
-        meetingId={meetingId}
+        meetingId="mtg-ubnd-live"
         tenantId={ubndTenant}
         onBack={() => {}}
       />
     );
 
-    expect(await screen.findByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
+    expect(await screen.findByText('Họp Khẩn Phương Án Đảm Bảo An Ninh Trật Tự & PCCC Kỳ Nghỉ')).toBeInTheDocument();
+
+    // Cuộc họp đang diễn ra: chỉ có nút Kết thúc cuộc họp, KHÔNG có nút Biên bản & Báo cáo trên header
+    expect(screen.queryByRole('button', { name: /Biên bản & Báo cáo/i })).not.toBeInTheDocument();
 
     // Bấm nút Kết thúc cuộc họp trên header
     const closeBtn = screen.getByRole('button', { name: /Kết thúc cuộc họp/i });
@@ -166,10 +176,11 @@ describe('Màn Hình Điểm Danh Trực Tiếp Cuộc Họp (MTG-02: Meeting Li
     const confirmBtn = screen.getByRole('button', { name: /Xác nhận kết thúc/i });
     fireEvent.click(confirmBtn);
 
-    // Kiểm tra banner chốt dữ liệu bất biến xuất hiện
+    // Kiểm tra banner chốt biên bản xuất hiện và cuộc họp đã kết thúc có cả 2 nút
     await waitFor(() => {
-      expect(screen.getByText(/Biên bản cuộc họp đã được chốt và đóng băng dữ liệu bất biến/i)).toBeInTheDocument();
-      expect(screen.getByText(/Đã chốt biên bản/i)).toBeInTheDocument();
+      expect(screen.getByText('Biên bản cuộc họp đã được chốt')).toBeInTheDocument();
+      expect(screen.getAllByRole('button', { name: /Biên bản & Báo cáo/i }).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText(/Người chốt:/i)).toBeInTheDocument();
     });
   });
 });

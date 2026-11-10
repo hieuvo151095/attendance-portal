@@ -46,7 +46,7 @@ export const DEFAULT_CAMERA_DEVICES: CameraDevice[] = [
     code: 'CAM-UBND-MTG-02',
     attendanceType: 'meeting',
     attendanceTypes: ['meeting'],
-    status: 'active',
+    status: 'locked',
     location: 'Phòng họp HĐND - Tầng 2',
     createdAt: '2026-10-01T08:00:00Z',
     updatedAt: '2026-10-01T08:00:00Z'
@@ -85,6 +85,20 @@ class CameraDeviceService {
       const stored = localStorage.getItem(STORAGE_DEVICES_KEY);
       if (!stored) {
         localStorage.setItem(STORAGE_DEVICES_KEY, JSON.stringify(DEFAULT_CAMERA_DEVICES));
+      } else {
+        try {
+          const list = JSON.parse(stored);
+          if (Array.isArray(list)) {
+            // Đảm bảo thiết bị cam-04 (CAM-UBND-MTG-02) và cam-05 (CAM-UBND-CC-03) khớp chuẩn 3 hoạt động / 2 tạm khóa
+            const cam04 = list.find((d: CameraDevice) => d.id === 'cam-04' || d.code === 'CAM-UBND-MTG-02');
+            if (cam04 && cam04.status === 'active') {
+              cam04.status = 'locked';
+              localStorage.setItem(STORAGE_DEVICES_KEY, JSON.stringify(list));
+            }
+          }
+        } catch {
+          localStorage.setItem(STORAGE_DEVICES_KEY, JSON.stringify(DEFAULT_CAMERA_DEVICES));
+        }
       }
     } else {
       this.memoryDevices = DEFAULT_CAMERA_DEVICES.map((d) => ({ ...d }));
@@ -109,6 +123,9 @@ class CameraDeviceService {
   private saveAllDevices(devices: CameraDevice[]): void {
     if (this.hasLocalStorage()) {
       localStorage.setItem(STORAGE_DEVICES_KEY, JSON.stringify(devices));
+      try {
+        window.dispatchEvent(new CustomEvent('finviet_devices_changed', { detail: devices }));
+      } catch {}
     } else {
       this.memoryDevices = [...devices];
     }
@@ -117,6 +134,9 @@ class CameraDeviceService {
   public resetMockData(): void {
     if (this.hasLocalStorage()) {
       localStorage.setItem(STORAGE_DEVICES_KEY, JSON.stringify(DEFAULT_CAMERA_DEVICES));
+      try {
+        window.dispatchEvent(new CustomEvent('finviet_devices_changed', { detail: DEFAULT_CAMERA_DEVICES }));
+      } catch {}
     }
     this.memoryDevices = DEFAULT_CAMERA_DEVICES.map((d) => ({ ...d }));
   }

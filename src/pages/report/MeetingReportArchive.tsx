@@ -294,11 +294,6 @@ export const MeetingReportArchive: React.FC<MeetingReportArchiveProps> = ({
               icon: 'file-lines',
               label: 'Xem biên bản họp',
               onClick: () => setSelectedMeetingForReport(m)
-            },
-            {
-              icon: 'file-excel',
-              label: 'Tải nhanh file Excel (.csv)',
-              onClick: () => meetingReportService.exportMeetingToExcel(m, orgName)
             }
           ]}
         />

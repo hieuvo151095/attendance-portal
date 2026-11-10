@@ -182,75 +182,85 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
       title: 'Giờ đến (Check-in)',
       width: '240px',
       render: (r: DailyAttendanceRecord) => {
-        if (r.status === 'leave') {
-          if (!r.checkInTime || r.leavePeriod !== 'afternoon') {
-            const leaveText =
-              r.leavePeriod === 'morning'
-                ? 'Nghỉ buổi sáng'
-                : r.leavePeriod === 'afternoon'
-                ? 'Nghỉ buổi chiều'
-                : r.leavePeriod === 'full_day'
-                ? 'Nghỉ cả ngày'
-                : 'Nghỉ phép';
-            return (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--primary-700)' }}>
-                <Icon name="calendar-check" size={13} style={{ color: 'var(--primary-600)' }} />
-                <span className="body-xs-medium">{leaveText}</span>
-              </div>
-            );
-          }
-          // Cán bộ vào ca buổi sáng nhưng xin nghỉ đột xuất buổi chiều: hiển thị giờ check-in đã ghi nhận
-        }
+        const isLeave = r.status === 'leave';
+        const leaveText =
+          r.leavePeriod === 'morning'
+            ? 'Nghỉ buổi sáng'
+            : r.leavePeriod === 'afternoon'
+            ? 'Nghỉ buổi chiều'
+            : r.leavePeriod === 'full_day'
+            ? 'Nghỉ cả ngày'
+            : 'Nghỉ phép';
 
-        if (!r.checkInTime) {
+        // 1. Cán bộ có quẹt check-in
+        if (r.checkInTime) {
+          const isLate = r.lateMinutes > 0;
           return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--semantic-danger)' }}>
-              <Icon name="circle-xmark" size={13} style={{ color: 'var(--semantic-danger)' }} />
-              <span className="body-xs-medium">Chưa đến / Vắng</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              {/* Dòng 1: Giờ đến và thiết bị */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
+                <span className="body-sm-bold" style={{ color: 'var(--text-heading)' }}>
+                  {r.checkInTime}
+                </span>
+                <div
+                  title={`${r.checkInMethod === 'faceId' ? 'Face ID' : r.checkInMethod === 'fingerprint' ? 'Vân tay' : 'Thẻ'} • ${r.checkInDevice || ''}`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 22,
+                    height: 22,
+                    borderRadius: 'var(--radius-4)',
+                    backgroundColor: 'var(--primary-50)'
+                  }}
+                >
+                  {getMethodIcon(r.checkInMethod)}
+                </div>
+              </div>
+
+              {/* Dòng 2: Nếu đã check-in nhưng sau đó xin nghỉ cả ngày -> hiển thị rõ Nghỉ cả ngày (đã vào ca) */}
+              {isLeave && r.leavePeriod === 'full_day' ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--primary-700)' }}>
+                  <Icon name="calendar-check" size={13} style={{ color: 'var(--primary-600)' }} />
+                  <span className="body-xs-medium">Nghỉ cả ngày (đã vào ca)</span>
+                </div>
+              ) : isLate ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--semantic-warning)' }}>
+                  <Icon name="clock" size={13} style={{ color: 'var(--semantic-warning)' }} />
+                  <span className="body-xs-medium" style={{ color: 'var(--semantic-warning)' }}>
+                    Đi muộn {r.lateMinutes > 0 ? `(${r.lateMinutes}p)` : ''}
+                  </span>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--semantic-success)' }}>
+                  <Icon name="circle-check" size={13} style={{ color: 'var(--semantic-success)' }} />
+                  <span className="body-xs-medium" style={{ color: 'var(--semantic-success)' }}>
+                    Đúng giờ
+                  </span>
+                </div>
+              )}
             </div>
           );
         }
 
-        const isLate = r.lateMinutes > 0;
-
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
-              <span className="body-sm-bold" style={{ color: 'var(--text-heading)' }}>
-                {r.checkInTime}
-              </span>
-              <div
-                title={`${r.checkInMethod === 'faceId' ? 'Face ID' : r.checkInMethod === 'fingerprint' ? 'Vân tay' : 'Thẻ'} • ${r.checkInDevice || ''}`}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 22,
-                  height: 22,
-                  borderRadius: 'var(--radius-4)',
-                  backgroundColor: 'var(--primary-50)'
-                }}
-              >
-                {getMethodIcon(r.checkInMethod)}
+        // 2. Không có check-in và nghỉ phép
+        if (isLeave) {
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              <span style={{ color: 'var(--text-disabled)' }}>—</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--primary-700)' }}>
+                <Icon name="calendar-check" size={13} style={{ color: 'var(--primary-600)' }} />
+                <span className="body-xs-medium">{leaveText}</span>
               </div>
             </div>
+          );
+        }
 
-            {/* Trạng thái Check-in */}
-            {isLate ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--semantic-warning)' }}>
-                <Icon name="clock" size={13} style={{ color: 'var(--semantic-warning)' }} />
-                <span className="body-xs-medium" style={{ color: 'var(--semantic-warning)' }}>
-                  Đi muộn {r.lateMinutes > 0 ? `(${r.lateMinutes}p)` : ''}
-                </span>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--semantic-success)' }}>
-                <Icon name="circle-check" size={13} style={{ color: 'var(--semantic-success)' }} />
-                <span className="body-xs-medium" style={{ color: 'var(--semantic-success)' }}>
-                  Đúng giờ
-                </span>
-              </div>
-            )}
+        // 3. Không có check-in và không nghỉ phép (vắng mặt)
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--semantic-danger)' }}>
+            <Icon name="circle-xmark" size={13} style={{ color: 'var(--semantic-danger)' }} />
+            <span className="body-xs-medium">Chưa đến / Vắng</span>
           </div>
         );
       }
@@ -260,24 +270,58 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
       title: 'Giờ về (Check-out)',
       width: '240px',
       render: (r: DailyAttendanceRecord) => {
-        if (r.status === 'leave') {
-          if (!r.checkInTime || r.leavePeriod !== 'afternoon') {
-            const leaveText =
-              r.leavePeriod === 'morning'
-                ? 'Nghỉ buổi sáng'
-                : r.leavePeriod === 'afternoon'
-                ? 'Nghỉ buổi chiều'
-                : r.leavePeriod === 'full_day'
-                ? 'Nghỉ cả ngày'
-                : 'Nghỉ phép';
-            return (
+        const isLeave = r.status === 'leave';
+        const leaveText =
+          r.leavePeriod === 'morning'
+            ? 'Nghỉ buổi sáng'
+            : r.leavePeriod === 'afternoon'
+            ? 'Nghỉ buổi chiều'
+            : r.leavePeriod === 'full_day'
+            ? 'Nghỉ cả ngày'
+            : 'Nghỉ phép';
+
+        // 1. Cán bộ nghỉ phép: Giờ về ở Dòng 1, nhãn nghỉ phép ở Dòng 2 kèm icon calendar-check
+        if (isLeave) {
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              {/* Dòng 1: Giờ về nếu có, hoặc dấu gạch ngang — */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)' }}>
+                {r.checkOutTime ? (
+                  <>
+                    <span className="body-sm-bold" style={{ color: 'var(--text-heading)' }}>
+                      {r.checkOutTime}
+                    </span>
+                    <div
+                      title={
+                        r.checkOutAdminName
+                          ? `Thông tin check-out được bổ sung bởi "${r.checkOutAdminName}"`
+                          : `${r.checkOutMethod === 'faceId' ? 'Face ID' : r.checkOutMethod === 'fingerprint' ? 'Vân tay' : 'Thẻ'} • ${r.checkOutDevice || ''}`
+                      }
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 22,
+                        height: 22,
+                        borderRadius: 'var(--radius-4)',
+                        backgroundColor: 'var(--primary-50)'
+                      }}
+                    >
+                      {getMethodIcon(r.checkOutMethod)}
+                    </div>
+                  </>
+                ) : (
+                  <span style={{ color: 'var(--text-disabled)' }}>—</span>
+                )}
+              </div>
+
+              {/* Dòng 2: Nhãn nghỉ phép kèm icon calendar-check */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', color: 'var(--primary-700)' }}>
                 <Icon name="calendar-check" size={13} style={{ color: 'var(--primary-600)' }} />
                 <span className="body-xs-medium">{leaveText}</span>
               </div>
-            );
-          }
-          // Cán bộ vào ca buổi sáng nhưng xin nghỉ đột xuất buổi chiều: hiển thị giờ check-in đã ghi nhận
+            </div>
+          );
         }
 
         if (!r.checkOutTime) {
@@ -396,14 +440,6 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
             onClick: () => handleOpenLogModal(r)
           }
         ];
-
-        if (r.checkInTime && !r.checkOutTime && r.status !== 'leave') {
-          actionItems.unshift({
-            icon: 'pencil',
-            label: 'Bổ sung giờ về (Check-out bù)',
-            onClick: () => handleOpenAdminCheckOut(r)
-          });
-        }
 
         return (
           <DataTable.RowAction
@@ -674,7 +710,6 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
         tenantId={tenantId}
         onRecordUpdated={() => {
           loadData();
-          toast.success('Đã cập nhật nhật ký điểm danh thành công!');
         }}
       />
 

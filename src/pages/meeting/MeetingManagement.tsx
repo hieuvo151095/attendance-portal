@@ -259,16 +259,11 @@ export const MeetingManagement: React.FC<MeetingManagementProps> = ({
           items={[
             {
               icon: 'chalkboard-user',
-              label: 'Màn hình điểm danh',
+              label: 'Thống kê điểm danh',
               onClick: () => {
                 setActiveLiveMeeting(m);
                 if (onOpenLiveScreen) onOpenLiveScreen(m);
               }
-            },
-            {
-              icon: 'file-lines',
-              label: 'Biên bản & Báo cáo chuyên cần',
-              onClick: () => setReportingMeeting(m)
             },
             {
               icon: 'pen',
