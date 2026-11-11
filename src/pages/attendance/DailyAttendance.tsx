@@ -137,7 +137,6 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
       toast.danger('Lỗi xuất dữ liệu chấm công: ' + (err instanceof Error ? err.message : ''));
     }
   };
-  const handleExportCsv = handleExportExcel;
 
   const departmentFilterOptions = [
     { value: '', label: 'Tất cả phòng ban' },

@@ -3,8 +3,7 @@ import {
   Icon,
   Button,
   StatusTag,
-  Tag,
-  toast
+  Tag
 } from '../../design-system';
 import { DailyAttendanceRecord } from '../../types/attendance';
 import { dailyAttendanceService } from '../../services/attendance';

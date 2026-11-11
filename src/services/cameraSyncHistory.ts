@@ -1,6 +1,3 @@
-import { Employee } from '../types/employee';
-import { CameraDevice } from '../types/device';
-import { EmployeeCard } from '../types/card';
 import { deviceService } from './device';
 import { cardService } from './card';
 import { employeeService } from './employee';

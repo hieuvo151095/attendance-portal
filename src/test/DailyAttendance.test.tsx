@@ -39,7 +39,7 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
 
     // Kiểm tra tên cán bộ nhân sự xuất hiện trên bảng ở Trang 1
     await waitFor(() => {
-      expect(screen.getByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
+      expect(screen.getByText('Thượng sĩ Ngô Văn Kiên')).toBeInTheDocument();
     });
 
     // Cột "Độ lệch giờ", "Trạng thái" không xuất hiện; Cột "Thao tác" xuất hiện
@@ -48,7 +48,7 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
     expect(screen.getByRole('columnheader', { name: 'Thao tác' })).toBeInTheDocument();
 
     // Giờ đến hiển thị giờ và trạng thái "Đúng giờ" trong cột Check-in
-    expect(screen.getAllByText('07:15').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('06:55').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Đúng giờ').length).toBeGreaterThanOrEqual(1);
 
     // Chuyển sang Trang 3 để xem Bà Phạm Thị Cúc (đi muộn 45 phút)
@@ -69,7 +69,7 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
     render(<DailyAttendance tenantId={ubndTenant} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
+      expect(screen.getByText('Thượng sĩ Ngô Văn Kiên')).toBeInTheDocument();
     });
 
     const searchInput = screen.getByPlaceholderText(/Tìm theo tên cán bộ, mã NV/i);
@@ -77,7 +77,7 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
 
     await waitFor(() => {
       expect(screen.getByText('Bà Phạm Thị Cúc')).toBeInTheDocument();
-      expect(screen.queryByText('Đ/c Nguyễn Văn An')).not.toBeInTheDocument();
+      expect(screen.queryByText('Thượng sĩ Ngô Văn Kiên')).not.toBeInTheDocument();
     });
   });
 
@@ -85,7 +85,7 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
     render(<DailyAttendance tenantId={ubndTenant} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
+      expect(screen.getByText('Thượng sĩ Ngô Văn Kiên')).toBeInTheDocument();
     });
 
     // Chọn bộ lọc trạng thái (Select thứ 2 là status filter)
@@ -95,7 +95,7 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
 
     await waitFor(() => {
       expect(screen.getByText('Bà Phạm Thị Cúc')).toBeInTheDocument();
-      expect(screen.queryByText('Đ/c Nguyễn Văn An')).not.toBeInTheDocument();
+      expect(screen.queryByText('Thượng sĩ Ngô Văn Kiên')).not.toBeInTheDocument();
     });
   });
 
@@ -103,11 +103,11 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
     render(<DailyAttendance tenantId={ubndTenant} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
+      expect(screen.getByText('Thượng sĩ Ngô Văn Kiên')).toBeInTheDocument();
     });
 
     // 1. Bấm vào cột cán bộ nhân sự không mở modal
-    fireEvent.click(screen.getByText('Đ/c Nguyễn Văn An'));
+    fireEvent.click(screen.getByText('Thượng sĩ Ngô Văn Kiên'));
     expect(screen.queryByText('Chi tiết chấm công')).not.toBeInTheDocument();
 
     // 2. Mở qua nút Thao tác (3 chấm) -> "Chi tiết chấm công"
@@ -232,7 +232,7 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
     render(<DailyAttendance tenantId={ubndTenant} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
+      expect(screen.getByText('Thượng sĩ Ngô Văn Kiên')).toBeInTheDocument();
     });
 
     const searchInput = screen.getByPlaceholderText(/Tìm theo tên cán bộ, mã NV/i);
@@ -264,7 +264,7 @@ describe('Giao diện Bảng Theo Dõi Chấm Công Ngày (ATT-03: Daily Attenda
 
     await waitFor(() => {
       expect(screen.getByRole('columnheader', { name: 'Thao tác' })).toBeInTheDocument();
-      expect(screen.getByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
+      expect(screen.getByText('Thượng sĩ Ngô Văn Kiên')).toBeInTheDocument();
     });
 
     // Tìm các nút Thao tác (3 chấm)

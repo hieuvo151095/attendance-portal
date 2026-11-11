@@ -1040,19 +1040,23 @@ class DashboardService {
             { value: 'Tỷ lệ đúng giờ', style: 'header' }
           ]
         },
-        ...data.trends.map((t, idx) => ({
-          height: 21,
-          cells: [
-            { value: idx + 1, style: 'borderCenter' as const },
-            { value: t.label, style: 'boldBorderCenter' as const, colSpan: 2 },
-            { value: t.total, style: 'borderRight' as const },
-            { value: t.present, style: 'borderRight' as const },
-            { value: t.late, style: 'borderRight' as const },
-            { value: t.absent, style: 'borderRight' as const },
-            { value: `${t.rate}%`, style: t.rate >= 90 ? ('badgeSuccess' as const) : ('badgeWarning' as const) },
-            { value: `${t.onTimeRate}%`, style: t.onTimeRate >= 90 ? ('badgeSuccess' as const) : ('badgeWarning' as const) }
-          ]
-        }))
+        ...data.trends.map((t, idx) => {
+          const totalStaff = t.presentCount + t.absentCount;
+          const onTimeRate = t.presentCount > 0 ? Math.round((t.onTimeCount / t.presentCount) * 100) : 0;
+          return {
+            height: 21,
+            cells: [
+              { value: idx + 1, style: 'borderCenter' as const },
+              { value: t.label, style: 'boldBorderCenter' as const, colSpan: 2 },
+              { value: totalStaff, style: 'borderRight' as const },
+              { value: t.presentCount, style: 'borderRight' as const },
+              { value: t.lateCount, style: 'borderRight' as const },
+              { value: t.absentCount, style: 'borderRight' as const },
+              { value: `${t.attendanceRate}%`, style: t.attendanceRate >= 90 ? ('badgeSuccess' as const) : ('badgeWarning' as const) },
+              { value: `${onTimeRate}%`, style: onTimeRate >= 90 ? ('badgeSuccess' as const) : ('badgeWarning' as const) }
+            ]
+          };
+        })
       ]
     };
 
@@ -2089,7 +2093,7 @@ class DashboardService {
               { value: idx + 1, style: 'borderCenter' as const },
               { value: item.meetingTitle, style: 'boldBorderLeft' as const },
               { value: item.date, style: 'borderCenter' as const },
-              { value: item.totalCompulsory, style: 'borderRight' as const },
+              { value: item.compulsoryCount, style: 'borderRight' as const },
               { value: item.onTimeCount, style: 'borderRight' as const },
               { value: item.lateCount, style: 'borderRight' as const },
               { value: item.earlyLeaveCount, style: 'borderRight' as const },

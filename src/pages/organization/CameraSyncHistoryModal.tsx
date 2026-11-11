@@ -111,7 +111,6 @@ export const CameraSyncHistoryModal: React.FC<CameraSyncHistoryModalProps> = ({
                 <StatusTag tone="warning" label="Chưa đồng bộ (Chờ tap thẻ lần đầu)" icon="clock" />
                 {row.cardUid && (
                   <Button
-                    size="sm"
                     variant="ghost"
                     onClick={() => handleSimulateFirstTap(row.cardUid!)}
                     style={{ fontSize: '11px', padding: '2px 6px', height: '22px' }}
@@ -261,7 +260,6 @@ export const CameraSyncHistoryModal: React.FC<CameraSyncHistoryModalProps> = ({
         {/* Thông báo nghiệp vụ quy tắc đồng bộ thẻ */}
         <InlineNotice
           tone="info"
-          title="Quy tắc đồng bộ thẻ RFID/NFC lên Camera AI"
         >
           Khi quản trị viên gán hoặc đổi mã thẻ vào hồ sơ, mã thẻ <b>chưa tính là đã đồng bộ</b> lên Camera AI.
           Thẻ chỉ được tính là đã đồng bộ khi cán bộ <b>quẹt (tap) thẻ lần đầu tiên</b> tại đầu đọc của Camera AI.
@@ -282,7 +280,6 @@ export const CameraSyncHistoryModal: React.FC<CameraSyncHistoryModalProps> = ({
             </div>
             <Button
               variant="ghost"
-              size="sm"
               icon="rotate-right"
               onClick={loadHistory}
             >
@@ -299,7 +296,6 @@ export const CameraSyncHistoryModal: React.FC<CameraSyncHistoryModalProps> = ({
             <EmptyState
               icon="camera"
               label="Chưa có dữ liệu đồng bộ lên camera"
-              description="Cán bộ này chưa được đồng bộ mẫu ảnh Face ID và chưa có thẻ được quẹt tại camera."
             />
           ) : (
             <DataTable

@@ -484,7 +484,7 @@ export function generateExcelBuffer(sheet: ExcelSheetDefinition): Uint8Array {
  */
 export function downloadExcelFile(sheet: ExcelSheetDefinition, fileName: string): void {
   const buffer = generateExcelBuffer(sheet);
-  const blob = new Blob([buffer], {
+  const blob = new Blob([buffer as BlobPart], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   });
   const cleanName = fileName.endsWith('.xlsx') ? fileName : `${fileName}.xlsx`;

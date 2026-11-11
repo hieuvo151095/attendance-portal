@@ -507,8 +507,6 @@ export const CameraSyncModal: React.FC<CameraSyncModalProps> = ({
                   .map((emp) => {
                     const eligible = isEmployeeEligible(emp);
                     const isChecked = selectedIds.has(emp.id);
-                    const hasPhoto = Boolean(emp.avatarUrl?.trim());
-                    const hasCard = activeCards.has(emp.id);
 
                     return (
                       <div

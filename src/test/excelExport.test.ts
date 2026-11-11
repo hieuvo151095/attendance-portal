@@ -86,11 +86,22 @@ describe('Excel OpenXML (.xlsx) Generator', () => {
       roomName: 'Hội trường 1 - UBND Phường',
       startTime: '2026-11-06T08:00:00Z',
       endTime: '2026-11-06T09:30:00Z',
-      status: 'concluded',
+      status: 'completed',
       hostName: 'Chủ tịch UBND Phường Bến Nghé',
       description: 'Đánh giá tiến độ công tác chuyên môn',
-      attendeeCount: 5,
-      actualAttendeeCount: 5,
+      attendees: [
+        {
+          employeeId: 'emp-ubnd-01',
+          employeeCode: 'UBND-001',
+          fullName: 'Đ/c Nguyễn Văn An',
+          position: 'Chủ tịch UBND Phường',
+          departmentId: 'dept-ubnd-01',
+          departmentName: 'Văn phòng HĐND & UBND',
+          role: 'required',
+          attendanceStatus: 'joined',
+          checkInTime: '2026-11-06T08:00:00Z'
+        }
+      ],
       createdAt: '2026-11-01T08:00:00Z',
       updatedAt: '2026-11-06T10:00:00Z'
     };
