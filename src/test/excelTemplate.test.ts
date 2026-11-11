@@ -43,13 +43,16 @@ describe('Tiện ích xuất và đọc mẫu bảng tính Excel (.xlsx) chuẩn
     expect(rows[0].fullName).toBe('Trần Văn Bình');
     expect(rows[0].identityNumber).toBe('079095009988');
     expect(rows[0].position).toBe('Chuyên viên Công nghệ thông tin');
-    expect(rows[0].departmentCodeOrName).toBe('Văn phòng');
+    expect(rows[0].departmentCodeOrName).toBe('VP-UBND');
     expect(rows[0].email).toBe('binh.tran@finviet.com');
     expect(rows[0].phoneNumber).toBe('0977 101 202');
 
     expect(rows[1].employeeCode).toBe('NV-IMP-02');
     expect(rows[1].fullName).toBe('Lê Thị Diệu');
+    expect(rows[1].departmentCodeOrName).toBe('DC-XD');
+
     expect(rows[2].employeeCode).toBe('NV-IMP-03');
     expect(rows[2].fullName).toBe('Ngô Thanh Tùng');
+    expect(rows[2].departmentCodeOrName).toBe('TP-HT');
   });
 });

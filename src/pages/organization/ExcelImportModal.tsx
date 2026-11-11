@@ -32,7 +32,7 @@ const DEFAULT_VALID_SAMPLE_ROWS: ImportEmployeeRow[] = [
     fullName: 'Trần Văn Bình',
     identityNumber: '079095009988',
     position: 'Chuyên viên Công nghệ thông tin',
-    departmentCodeOrName: 'Văn phòng',
+    departmentCodeOrName: 'VP-UBND',
     email: 'binh.tran@finviet.com',
     phoneNumber: '0977 101 202'
   },
@@ -41,7 +41,7 @@ const DEFAULT_VALID_SAMPLE_ROWS: ImportEmployeeRow[] = [
     fullName: 'Lê Thị Diệu',
     identityNumber: '079198007766',
     position: 'Kế toán viên',
-    departmentCodeOrName: 'Tài chính - Kế toán',
+    departmentCodeOrName: 'DC-XD',
     email: 'dieu.le@finviet.com',
     phoneNumber: '0908 654 321'
   },
@@ -50,7 +50,7 @@ const DEFAULT_VALID_SAMPLE_ROWS: ImportEmployeeRow[] = [
     fullName: 'Ngô Thanh Tùng',
     identityNumber: '079092005544',
     position: 'Kỹ sư Vận hành',
-    departmentCodeOrName: 'Kỹ thuật',
+    departmentCodeOrName: 'TP-HT',
     email: 'tung.ngo@finviet.com',
     phoneNumber: '0912 345 678'
   }
@@ -64,7 +64,7 @@ const DUPLICATE_TEST_SAMPLE_ROWS: ImportEmployeeRow[] = [
     fullName: 'Trần Minh Đức (Trùng mã NV)',
     identityNumber: '079099887711',
     position: 'Chuyên viên',
-    departmentCodeOrName: 'Văn phòng',
+    departmentCodeOrName: 'VP-UBND',
     email: 'duc.tran@finviet.com',
     phoneNumber: '0901 888 999'
   },
@@ -74,7 +74,7 @@ const DUPLICATE_TEST_SAMPLE_ROWS: ImportEmployeeRow[] = [
     fullName: 'Phan Thị Mai (Trùng CCCD)',
     identityNumber: '079186002345',
     position: 'Cán bộ Địa chính',
-    departmentCodeOrName: 'Địa chính',
+    departmentCodeOrName: 'DC-XD',
     email: 'mai.phan@finviet.com',
     phoneNumber: '0902 777 888'
   },
@@ -84,7 +84,7 @@ const DUPLICATE_TEST_SAMPLE_ROWS: ImportEmployeeRow[] = [
     fullName: 'Lý Quốc Bảo (Trùng SĐT)',
     identityNumber: '079094001122',
     position: 'Chuyên viên Tư pháp',
-    departmentCodeOrName: 'Tư pháp',
+    departmentCodeOrName: 'TP-HT',
     email: 'bao.ly@finviet.com',
     phoneNumber: '0903 111 222'
   },
@@ -94,7 +94,7 @@ const DUPLICATE_TEST_SAMPLE_ROWS: ImportEmployeeRow[] = [
     fullName: 'Vũ Thị Hoa (Trùng Email)',
     identityNumber: '079093009988',
     position: 'Thủ quỹ',
-    departmentCodeOrName: 'Kế toán',
+    departmentCodeOrName: 'VP-UBND',
     email: 'cuc.pham@ubnd.gov.vn',
     phoneNumber: '0904 666 555'
   },
@@ -104,7 +104,7 @@ const DUPLICATE_TEST_SAMPLE_ROWS: ImportEmployeeRow[] = [
     fullName: 'Đỗ Kim Phượng',
     identityNumber: '079098776655',
     position: 'Văn thư - Lưu trữ',
-    departmentCodeOrName: 'Văn phòng',
+    departmentCodeOrName: 'VP-UBND',
     email: 'phuong.do@finviet.com',
     phoneNumber: '0905 111 333'
   }
@@ -379,16 +379,14 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
     },
     {
       key: 'position',
-      title: 'Chức danh & Phòng ban',
+      title: 'Chức danh & Mã phòng ban',
       width: '180px',
       render: (r: ImportEmployeeRow) => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
           <span className="body-sm-medium" style={{ color: 'var(--text-heading)' }}>
             {r.position}
           </span>
-          <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>
-            {r.departmentCodeOrName}
-          </span>
+          <Tag variant="code">{r.departmentCodeOrName || '---'}</Tag>
         </div>
       )
     },
@@ -590,7 +588,7 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                   File mẫu danh sách nhân sự Finviet
                 </div>
                 <div className="body-xs" style={{ color: 'var(--text-subtle)', marginTop: '2px' }}>
-                  Các cột chuẩn: <b>Mã NV</b>, <b>Họ tên</b>, <b>Số CCCD</b>, <b>Chức danh</b>, <b>Phòng ban</b>, <b>Email</b>, <b>Số ĐT</b>.
+                  Các cột chuẩn: <b>Mã NV</b>, <b>Họ tên</b>, <b>Số CCCD</b>, <b>Chức danh</b>, <b>Mã phòng ban</b>, <b>Email</b>, <b>Số ĐT</b>.
                 </div>
               </div>
               <Button

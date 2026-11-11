@@ -309,5 +309,18 @@
   5. *Lưu trữ tổng hợp kỳ họp* (`MeetingReportArchive.tsx`): Báo cáo tổng hợp danh mục cuộc họp đã kết thúc trong kỳ 11 cột.
   6. *Quản trị thiết bị* (`SettingsManagement.tsx`): Nút "Xuất dữ liệu" xuất danh sách camera/đầu đọc điểm danh 6 cột đồng bộ với giao diện bảng cấu hình.
 
+---
+
+### 20. Chuẩn Hóa Sử Dụng Mã Phòng Ban Trong Mẫu Nhập Liệu Excel Và Bảng Xem Trước Bước 1
+* **Cột "Phòng ban" trong file Excel mẫu (`Mau_nhap_lieu_nhan_su_Finviet.xlsx`):**
+  * Thay thế tên phòng ban dạng chuỗi dài ("Văn phòng", "Tài chính - Kế toán", "Kỹ thuật") bằng **mã phòng ban** chuẩn (`VP-UBND`, `DC-XD`, `TP-HT`).
+  * Tiêu đề cột chuẩn trong tệp mẫu được định danh rõ ràng: `Mã phòng ban` (hoặc `Phòng ban`).
+  * Tương thích hoàn toàn với logic nạp dữ liệu của hệ thống: tự động đối chiếu chính xác mã định danh phòng ban (`d.code`) trước khi gán quan hệ phòng ban.
+* **Bảng xem trước Bước 1 ("Xem trước danh sách 3 nhân sự chuẩn bị nhập"):**
+  * Cột hiển thị được cập nhật tiêu đề thành **"Chức danh & Mã phòng ban"**.
+  * Dòng thông tin phòng ban được định dạng bằng huy hiệu mã định danh chuẩn (`<Tag variant="code">VP-UBND</Tag>`, `DC-XD`, `TP-HT`), giúp người dùng nhận diện ngay mã định danh cần nhập trong tệp bảng tính.
+  * Hướng dẫn tải tệp mẫu cập nhật danh mục cột chuẩn: `Mã NV, Họ tên, Số CCCD, Chức danh, Mã phòng ban, Email, Số ĐT`.
+
+
 
 

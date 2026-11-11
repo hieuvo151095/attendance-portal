@@ -129,6 +129,10 @@ Tài liệu quy định các nguyên tắc thiết kế bắt buộc được đ
 - **Bộ sinh OpenXML thuần TypeScript (`src/utils/excelExport.ts`):** Tự sinh tệp nhị phân ZIP OpenXML không cần thêm thư viện npm ngoài, bảo đảm an toàn vận hành 100%.
 - **Thiết kế định dạng đồng bộ giao diện bảng:** Tiêu đề Quốc hiệu, đơn vị, tiêu đề bảng nền xanh Finviet Primary Blue (`#0070CE`) chữ trắng đậm, viền mỏng `#CBD5E1`, phân canh lề và các huy hiệu trạng thái màu mềm (xanh lá, vàng cam, đỏ, xanh dương) đồng bộ 100% với giao diện người dùng.
 
+### 20. Chuẩn Hóa Mã Phòng Ban Trong Mẫu Nhập Liệu Excel Và Giao Diện Xem Trước Bước 1
+- **Cột Phòng ban trong file Excel mẫu (`Mau_nhap_lieu_nhan_su_Finviet.xlsx`):** Chuyển đổi tên phòng ban dạng chuỗi dài thành mã phòng ban chuẩn (`VP-UBND`, `DC-XD`, `TP-HT`). Tiêu đề cột chuẩn là `Mã phòng ban`.
+- **Xem trước danh sách 3 nhân sự chuẩn bị nhập (Bước 1):** Cập nhật tiêu đề cột thành "Chức danh & Mã phòng ban", hiển thị mã phòng ban dưới dạng huy hiệu code tag (`<Tag variant="code">VP-UBND</Tag>`), đồng bộ trải nghiệm người dùng với cấu trúc dữ liệu thực tế.
+
 ## Liên quan
 - [Tài liệu hướng dẫn chi tiết](file:///Users/hieuvo/Desktop/Finviet/Attendance%20Portal/docs/USER_FEEDBACK_GUIDELINES.md)
 - [Tổng quan Attendance Portal](project-overview.md)
