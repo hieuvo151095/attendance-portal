@@ -6,8 +6,7 @@ import {
   Button,
   InlineNotice,
   StatusTag,
-  Tag,
-  Icon
+  Tag
 } from '../../design-system';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { authService, INITIAL_TENANTS } from '../../services/auth';
@@ -17,6 +16,20 @@ export interface LoginProps {
   onLoginSuccess?: (session: AuthSession) => void;
   showDemoAccounts?: boolean;
 }
+
+/**
+ * Logo Finviet theo Logo Guideline v2.4 (≥ 100x60 px trên màn hình), ghép cùng tên sản phẩm.
+ */
+const BrandLockup: React.FC = () => (
+  <div style={styles.brandBadge}>
+    <img
+      src={`${import.meta.env.BASE_URL}brand/finviet-logo.svg`}
+      alt="Finviet"
+      style={styles.brandLogo}
+    />
+    <span style={styles.brandProduct}>Attendance Portal</span>
+  </div>
+);
 
 const ORG_TYPE_LABELS: Record<OrganizationType, { label: string; tone: 'neutral' | 'info' | 'success' | 'warning' }> = {
   government: { label: 'Ủy ban / Khối Nhà Nước', tone: 'info' },
@@ -128,10 +141,7 @@ export const Login: React.FC<LoginProps> = ({
       <div className="login-page-container" style={styles.container}>
         <div style={styles.cardWrapper}>
           <div style={styles.cardHeader}>
-            <div style={styles.brandBadge}>
-              <Icon name="building" size={20} color="var(--eco-blue-strong)" />
-              <span style={styles.brandTitle}>FINVIET ATTENDANCE PORTAL</span>
-            </div>
+            <BrandLockup />
             <h1 className="h3" style={{ margin: '8px 0 4px', color: 'var(--text-heading)' }}>
               Đã Đăng Nhập Thành Công
             </h1>
@@ -256,15 +266,7 @@ export const Login: React.FC<LoginProps> = ({
       <div style={styles.cardWrapper}>
         {/* Header / Brand */}
         <div style={styles.cardHeader}>
-          <div style={styles.brandBadge}>
-            <div style={styles.logoIcon}>
-              <Icon name="fingerprint" size={24} color="#ffffff" />
-            </div>
-            <div>
-              <span style={styles.brandTitle}>FINVIET TECH</span>
-              <span style={styles.portalSubTitle}>ATTENDANCE PORTAL</span>
-            </div>
-          </div>
+          <BrandLockup />
           <h1 className="h3" style={{ margin: '16px 0 6px', color: 'var(--text-heading)' }}>
             Cổng Điểm Danh Đơn Vị
           </h1>
@@ -324,13 +326,6 @@ export const Login: React.FC<LoginProps> = ({
               onChange={(checked) => setRememberMe(checked)}
               disabled={loading}
             />
-            <span
-              className="body-xs"
-              style={{ color: 'var(--text-subtle)', cursor: 'help' }}
-              title="Mật khẩu do chuyên viên Finviet bàn giao khi lắp đặt thiết bị Hikvision"
-            >
-              Hỗ trợ: 1900 2345
-            </span>
           </div>
 
           <Button
@@ -419,36 +414,21 @@ const styles: Record<string, React.CSSProperties> = {
   brandBadge: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '10px',
+    gap: '16px',
     marginBottom: '4px'
   },
-  logoIcon: {
-    width: '40px',
-    height: '40px',
-    borderRadius: 'var(--radius-8)',
-    backgroundColor: 'var(--eco-blue-strong)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 2px 6px rgba(0, 112, 206, 0.3)'
+  brandLogo: {
+    width: '104px',
+    height: 'auto',
+    display: 'block'
   },
-  brandTitle: {
-    display: 'block',
+  brandProduct: {
     fontFamily: 'var(--font-sans)',
-    fontSize: '11px',
-    fontWeight: 700,
-    letterSpacing: '0.08em',
+    fontSize: '20px',
+    fontWeight: 600,
+    letterSpacing: '-0.005em',
     color: 'var(--eco-blue-strong)',
-    textAlign: 'left'
-  },
-  portalSubTitle: {
-    display: 'block',
-    fontFamily: 'var(--font-sans)',
-    fontSize: '13px',
-    fontWeight: 700,
-    letterSpacing: '0.04em',
-    color: 'var(--text-heading)',
-    textAlign: 'left'
+    whiteSpace: 'nowrap'
   },
   form: {
     display: 'flex',

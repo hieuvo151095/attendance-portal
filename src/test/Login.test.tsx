@@ -12,7 +12,9 @@ describe('Giao diện Màn hình Đăng nhập (AUTH-01: Login Screen)', () => {
     render(<Login />);
 
     expect(screen.getByText('Cổng Điểm Danh Đơn Vị')).toBeInTheDocument();
-    expect(screen.getByText('FINVIET TECH')).toBeInTheDocument();
+    expect(screen.getByAltText('Finviet')).toBeInTheDocument();
+    expect(screen.getByText('Attendance Portal')).toBeInTheDocument();
+    expect(screen.queryByText(/Hỗ trợ: 1900 2345/)).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Tên đăng nhập hoặc Mã đơn vị/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Mật khẩu tài khoản/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Đăng nhập vào hệ thống/i })).toBeInTheDocument();
