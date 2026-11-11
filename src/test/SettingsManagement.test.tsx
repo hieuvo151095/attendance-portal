@@ -266,7 +266,8 @@ describe('Mô-đun Thiết Lập Hệ Thống (Settings Management)', () => {
     expect(screen.getByRole('columnheader', { name: 'Tên thiết bị' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Mã thiết bị' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Loại điểm danh' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Trạng thái' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Trạng thái thiết bị' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Trạng thái kết nối' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Thao tác' })).toBeInTheDocument();
 
     // Kiểm tra dữ liệu thiết bị mẫu

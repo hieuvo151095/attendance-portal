@@ -497,6 +497,13 @@ export function downloadExcelFile(sheet: ExcelSheetDefinition, fileName: string)
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Trì hoãn việc thu hồi URL để trình duyệt kịp hoàn tất tiến trình tải file ngầm
+    setTimeout(() => {
+      try {
+        URL.revokeObjectURL(url);
+      } catch {
+        // ignore
+      }
+    }, 1000);
   }
 }

@@ -5,7 +5,8 @@ import {
   Button,
   StatusTag,
   Icon,
-  Meter
+  Meter,
+  toast
 } from '../../design-system';
 import {
   dashboardService,
@@ -113,8 +114,10 @@ export const MeetingDashboard: React.FC<MeetingDashboardProps> = ({
         meetingCount,
         selectedDeptId || undefined
       );
+      toast.success('Đã tải xuống file báo cáo chuyên cần cuộc họp (.xlsx) thành công!');
     } catch (err) {
       console.error('Lỗi xuất báo cáo cuộc họp:', err);
+      toast.error('Có lỗi xảy ra khi tạo báo cáo cuộc họp. Vui lòng thử lại.');
     } finally {
       setExporting(false);
     }

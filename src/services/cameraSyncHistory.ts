@@ -75,7 +75,7 @@ export class CameraSyncHistoryService {
     employeeId: string
   ): Promise<EmployeeCameraSyncLog[]> {
     const [employees, allDevices, allCards] = await Promise.all([
-      employeeService.getEmployees(tenantId),
+      employeeService.getEmployeesByTenant(tenantId),
       deviceService.getDevicesByTenant(tenantId),
       cardService.getCardsByTenant(tenantId)
     ]);

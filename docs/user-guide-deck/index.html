@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Finviet Attendance Portal — Hướng dẫn sử dụng</title>
+<style>
+  @font-face { font-family:'Inter'; font-weight:400; src:url('../../Design System/fonts/Inter-Regular.woff2') format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:500; src:url('../../Design System/fonts/Inter-Medium.woff2') format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:600; src:url('../../Design System/fonts/Inter-SemiBold.woff2') format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:700; src:url('../../Design System/fonts/Inter-Bold.woff2') format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:900; src:url('../../Design System/fonts/Inter-Black.woff2') format('woff2'); }
+
+  /* Màu thương hiệu theo Logo Guideline v2.4 + token Design System */
+  :root{
+    --fv-blue:#0070D2;       /* Logo Guideline: Blue  (Pantone 285 C) */
+    --fv-yellow:#FFCC33;     /* Logo Guideline: Yellow (Pantone 123 C) */
+    --fv-navy:#002C54;       /* Logo Guideline: Dark Blue (Pantone 295 C) */
+    --text-heading:#0f172a; --text-body:#334155; --text-subtle:#64748b; --text-muted:#94a3b8;
+    --border-default:#e2e8f0; --bg-canvas:#f8fafc; --bg-surface:#ffffff;
+    --shadow-lg:0 8px 16px rgba(31,31,31,.12),0 4px 8px rgba(31,31,31,.06);
+    --shadow-xl:0 20px 25px -5px rgba(0,0,0,.14),0 8px 10px -6px rgba(0,0,0,.12);
+  }
+  @page { size:1280px 720px; margin:0; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ background:#e5e7eb; font-family:'Inter',-apple-system,'Segoe UI',Roboto,Arial,sans-serif; color:var(--text-body); -webkit-font-smoothing:antialiased; }
+  .slide{ position:relative; width:1280px; height:720px; overflow:hidden; background:var(--bg-surface); page-break-after:always; break-after:page; margin:0 auto; }
+  .slide:last-child{ page-break-after:auto; break-after:auto; }
+  @media screen{ .slide{ margin:24px auto; box-shadow:0 10px 30px rgba(0,0,0,.18); } }
+
+  /* ---------- Content slide ---------- */
+  .slide.content{ background:var(--bg-canvas); }
+  .slide.content::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:8px; background:linear-gradient(180deg,var(--fv-blue) 0%,var(--fv-blue) 70%,var(--fv-yellow) 70%); }
+  .head{ position:absolute; left:56px; top:40px; right:200px; }
+  .eyebrow{ font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--fv-blue); }
+  .head h1{ margin-top:8px; font-size:34px; line-height:1.18; font-weight:700; letter-spacing:-.01em; color:var(--text-heading); }
+  .head p{ margin-top:8px; font-size:16px; line-height:1.45; color:var(--text-subtle); }
+  .brand{ position:absolute; right:56px; top:28px; width:104px; height:auto; display:block; }
+  .body{ position:absolute; left:56px; right:56px; top:164px; bottom:48px; display:flex; gap:36px; }
+  .txt{ width:var(--txtw,360px); flex:none; display:flex; flex-direction:column; gap:22px; padding-top:6px; }
+  .pt{ display:grid; grid-template-columns:30px 1fr; column-gap:14px; }
+  .pt .n{ width:30px; height:30px; border-radius:50%; background:var(--fv-blue); color:#fff; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .pt h3{ font-size:16.5px; line-height:1.3; font-weight:600; color:var(--text-heading); padding-top:4px; }
+  .pt p{ margin-top:5px; font-size:14px; line-height:1.55; color:var(--text-body); }
+  .foot{ position:absolute; left:56px; right:56px; bottom:18px; display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); }
+
+  .vis{ position:relative; flex:1; }
+  .shot{ position:absolute; background:#fff; border:1px solid var(--border-default); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-lg); }
+  .shot img{ display:block; width:100%; height:100%; }
+  .shot.top{ box-shadow:var(--shadow-xl); border-color:#cbd5e1; }
+  .tag{ position:absolute; z-index:5; background:var(--fv-navy); color:#fff; font-size:11px; font-weight:600; letter-spacing:.02em; padding:5px 11px; border-radius:999px; box-shadow:0 2px 6px rgba(0,0,0,.25); white-space:nowrap; }
+
+  /* ---------- Dark slides (cover / closing) ---------- */
+  .slide.dark{ background:radial-gradient(900px 520px at 88% 8%, rgba(0,112,210,.55), rgba(0,112,210,0) 60%), radial-gradient(700px 420px at 0% 100%, rgba(0,112,210,.28), rgba(0,112,210,0) 60%), var(--fv-navy); color:#fff; }
+  .dark .lockup{ position:absolute; left:56px; top:48px; display:flex; align-items:center; gap:20px; }
+  .dark .lockup img{ width:150px; display:block; }
+  .dark .lockup span{ font-size:28px; font-weight:600; color:#fff; letter-spacing:-.005em; }
+  .dark .eyebrow{ color:var(--fv-yellow); }
+  .dark h1{ color:#fff; }
+
+  .cover-title{ position:absolute; left:56px; top:230px; width:640px; }
+  .cover-title h1{ font-size:56px; line-height:1.1; font-weight:700; letter-spacing:-.02em; margin-top:14px; }
+  .cover-title p{ margin-top:22px; font-size:20px; line-height:1.5; color:#cbd5e1; max-width:560px; }
+  .about{ position:absolute; right:56px; top:196px; width:440px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.07); border-radius:18px; padding:30px 32px; }
+  .about h2{ font-size:13px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--fv-yellow); margin-bottom:6px; }
+  .about .row{ padding:16px 0; border-bottom:1px solid rgba(255,255,255,.14); }
+  .about .row:last-child{ border-bottom:none; padding-bottom:0; }
+  .about .row b{ display:block; font-size:15px; font-weight:600; color:#fff; }
+  .about .row span{ display:block; margin-top:4px; font-size:14px; line-height:1.55; color:#cbd5e1; }
+  .dark .bottom{ position:absolute; left:56px; right:56px; bottom:36px; display:flex; justify-content:space-between; align-items:flex-end; font-size:13px; color:#94a3b8; }
+  .dark .bottom .msg{ font-size:15px; font-weight:600; color:var(--fv-yellow); letter-spacing:.01em; }
+
+  /* ---------- TOC ---------- */
+  .toc{ position:absolute; left:56px; right:56px; top:164px; display:grid; grid-template-columns:1fr 1fr; column-gap:40px; row-gap:0; }
+  .toc .item{ display:grid; grid-template-columns:62px 1fr 34px; align-items:center; padding:34px 0; border-bottom:1px solid var(--border-default); }
+  .toc .item .no{ font-size:32px; font-weight:700; color:var(--fv-blue); letter-spacing:-.02em; }
+  .toc .item h3{ font-size:19px; line-height:1.3; font-weight:600; color:var(--text-heading); }
+  .toc .item p{ margin-top:6px; font-size:14.5px; line-height:1.45; color:var(--text-subtle); }
+  .toc .item .pg{ font-size:12px; color:var(--text-muted); text-align:right; }
+
+  /* ---------- Closing ---------- */
+  .steps{ position:absolute; left:56px; right:56px; top:318px; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  .step{ border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.07); border-radius:18px; padding:28px 28px 30px; min-height:210px; }
+  .step .n{ width:40px; height:40px; border-radius:50%; background:var(--fv-yellow); color:var(--fv-navy); font-size:19px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .step h3{ margin-top:20px; font-size:20px; line-height:1.3; font-weight:600; color:#fff; }
+  .step p{ margin-top:10px; font-size:15px; line-height:1.55; color:#cbd5e1; }
+  .closing-head{ position:absolute; left:56px; top:132px; }
+  .closing-head h1{ font-size:42px; line-height:1.12; font-weight:700; letter-spacing:-.015em; margin-top:12px; }
+  .support{ position:absolute; left:56px; bottom:92px; display:flex; align-items:center; gap:14px; font-size:16px; color:#e2e8f0; }
+  .support b{ color:#fff; font-weight:700; font-size:22px; letter-spacing:.01em; }
+  .support i{ display:inline-block; width:3px; height:26px; background:var(--fv-yellow); border-radius:2px; }
+</style>
+</head>
+<body>
+
+<!-- ============ 1. GIỚI THIỆU TÀI LIỆU ============ -->
+<section class="slide dark" id="s1">
+  <div class="lockup">
+    <img src="assets/finviet-logo-reverse.svg" alt="Finviet">
+    <span>Attendance Portal</span>
+  </div>
+
+  <div class="cover-title">
+    <div class="eyebrow" style="color:var(--fv-yellow)">User Guide Deck</div>
+    <h1>Hướng dẫn sử dụng<br>Cổng Điểm Danh Đơn Vị</h1>
+    <p>Giới thiệu nhanh cách vận hành portal điểm danh &amp; quản lý cuộc họp dành cho khách hàng tiềm năng.</p>
+  </div>
+
+  <div class="about">
+    <h2>Về tài liệu này</h2>
+    <div class="row"><b>Mục đích</b><span>Giúp bạn hình dung toàn bộ quy trình vận hành, từ đăng nhập đến báo cáo kết quả.</span></div>
+    <div class="row"><b>Đối tượng</b><span>Cơ quan nhà nước, doanh nghiệp và bệnh viện đang cân nhắc triển khai điểm danh bằng camera AI.</span></div>
+    <div class="row"><b>Cách đọc</b><span>8 phần chính, mỗi trang một ý cốt lõi kèm màn hình thực tế của hệ thống.</span></div>
+  </div>
+
+  <div class="bottom">
+    <span>Phiên bản 1.0 &nbsp;|&nbsp; Tháng 11/2026 &nbsp;|&nbsp; Dữ liệu trong ảnh chụp là dữ liệu minh họa</span>
+    <span class="msg">Go Further, Go Higher, Win Together</span>
+  </div>
+</section>
+
+<!-- ============ 2. MỤC LỤC ============ -->
+<section class="slide content" id="s2">
+  <div class="head">
+    <div class="eyebrow">Mục lục</div>
+    <h1>Nội dung tài liệu</h1>
+    <p>Tám phần chính, đi theo đúng thứ tự một đơn vị bắt đầu sử dụng.</p>
+  </div>
+  <img class="brand" src="assets/finviet-logo.svg" alt="Finviet">
+
+  <div class="toc">
+    <div class="item"><span class="no">03</span><div><h3>Đăng nhập &amp; làm quen giao diện</h3><p>Đăng nhập an toàn, nắm nhanh 6 phân hệ</p></div><span class="pg">tr. 3</span></div>
+    <div class="item"><span class="no">04</span><div><h3>Tổng quan điểm danh &amp; chuyên cần</h3><p>Số liệu, xu hướng và việc cần xử lý trong ngày</p></div><span class="pg">tr. 4</span></div>
+    <div class="item"><span class="no">05</span><div><h3>Chấm công hằng ngày</h3><p>Theo dõi giờ vào/ra, xử lý quên check-out</p></div><span class="pg">tr. 5</span></div>
+    <div class="item"><span class="no">06</span><div><h3>Lịch họp &amp; biên bản</h3><p>Lên lịch, điểm danh đại biểu, báo cáo kết quả</p></div><span class="pg">tr. 6</span></div>
+    <div class="item"><span class="no">07</span><div><h3>Nhân sự &amp; phòng ban</h3><p>Hồ sơ cán bộ, thẻ RFID/NFC, cơ cấu tổ chức</p></div><span class="pg">tr. 7</span></div>
+    <div class="item"><span class="no">08</span><div><h3>Đồng bộ dữ liệu lên Camera AI</h3><p>3 bước nạp khuôn mặt và theo dõi lịch sử</p></div><span class="pg">tr. 8</span></div>
+    <div class="item"><span class="no">09</span><div><h3>Thiết lập &amp; quản trị thiết bị</h3><p>Khung giờ, quy tắc điểm danh, trạng thái camera</p></div><span class="pg">tr. 9</span></div>
+    <div class="item"><span class="no">10</span><div><h3>Bắt đầu sử dụng</h3><p>3 bước triển khai và kênh hỗ trợ</p></div><span class="pg">tr. 10</span></div>
+  </div>
+  <div class="foot"><span>Finviet Attendance Portal · Hướng dẫn sử dụng</span><span>2</span></div>
+</section>
+
+<!-- ============ 3. ĐĂNG NHẬP & LÀM QUEN ============ -->
+<section class="slide content" id="s3">
+  <div class="head">
+    <div class="eyebrow">03 · Đăng nhập &amp; làm quen</div>
+    <h1>Đăng nhập một lần, làm chủ 6 phân hệ</h1>
+    <p>Mỗi đơn vị có tài khoản riêng, dữ liệu được tách biệt hoàn toàn.</p>
+  </div>
+  <img class="brand" src="assets/finviet-logo.svg" alt="Finviet">
+  <div class="body">
+    <div class="txt">
+      <div class="pt"><span class="n">1</span><div><h3>Đăng nhập bằng tài khoản Finviet cấp</h3><p>Nhập tên đăng nhập và mật khẩu. Cần hỗ trợ, gọi 1900 2345.</p></div></div>
+      <div class="pt"><span class="n">2</span><div><h3>Menu bên trái gom 6 phân hệ</h3><p>Tổng quan, Chấm công, Cuộc họp, Nhân sự, Phòng ban và Thiết lập.</p></div></div>
+      <div class="pt"><span class="n">3</span><div><h3>Hồ sơ đơn vị ở góc phải</h3><p>Xem thông tin Phường, tài khoản, đổi mật khẩu hoặc đăng xuất.</p></div></div>
+    </div>
+    <div class="vis">
+      <div class="shot" style="left:24px; top:56px; height:420px; width:393px;"><img src="assets/crops/login-card.png" alt="Màn hình đăng nhập"></div>
+      <div class="shot top" style="left:441px; top:56px; height:420px; width:292px;"><img src="assets/crops/sidebar-menu.png" alt="Menu điều hướng"></div>
+      <span class="tag" style="left:40px; top:24px;">Màn hình đăng nhập</span>
+      <span class="tag" style="left:457px; top:24px;">Menu 6 phân hệ</span>
+    </div>
+  </div>
+  <div class="foot"><span>Finviet Attendance Portal · Hướng dẫn sử dụng</span><span>3</span></div>
+</section>
+
+<!-- ============ 4. TỔNG QUAN ============ -->
+<section class="slide content" id="s4">
+  <div class="head">
+    <div class="eyebrow">04 · Tổng quan điểm danh &amp; chuyên cần</div>
+    <h1>Nắm tình hình chuyên cần trong một màn hình</h1>
+    <p>Số liệu theo ngày, theo phòng ban và theo phương thức xác thực.</p>
+  </div>
+  <img class="brand" src="assets/finviet-logo.svg" alt="Finviet">
+  <div class="body">
+    <div class="txt">
+      <div class="pt"><span class="n">1</span><div><h3>Chỉ số chính ngay đầu trang</h3><p>Tỷ lệ hiện diện, đúng giờ, đi muộn, về sớm và vắng mặt.</p></div></div>
+      <div class="pt"><span class="n">2</span><div><h3>Xu hướng &amp; cơ cấu xác thực</h3><p>Biểu đồ 14 ngày và tỷ trọng Face ID, thẻ RFID/NFC, vân tay.</p></div></div>
+      <div class="pt"><span class="n">3</span><div><h3>Việc cần xử lý trong ngày</h3><p>Quên check-out, chuyên cần đột biến, camera tạm khóa được gom về một khung để xử lý ngay.</p></div></div>
+    </div>
+    <div class="vis">
+      <div class="shot" style="left:0; top:56px; width:490px; height:308px;"><img src="assets/crops/dash-main.png" alt="Tổng quan chấm công"></div>
+      <div class="shot top" style="left:506px; top:56px; width:266px; height:353px;"><img src="assets/crops/action-center.png" alt="Việc cần xử lý"></div>
+      <span class="tag" style="left:16px; top:24px;">Chỉ số &amp; xu hướng</span>
+      <span class="tag" style="left:522px; top:24px;">Việc cần xử lý trong ngày</span>
+    </div>
+  </div>
+  <div class="foot"><span>Finviet Attendance Portal · Hướng dẫn sử dụng</span><span>4</span></div>
+</section>
+
+<!-- ============ 5. CHẤM CÔNG ============ -->
+<section class="slide content" id="s5">
+  <div class="head">
+    <div class="eyebrow">05 · Chấm công hằng ngày</div>
+    <h1>Theo dõi theo ngày, xử lý quên check-out nhanh</h1>
+    <p>Bảng chấm công từng cán bộ, kèm cảnh báo khi thiếu giờ về.</p>
+  </div>
+  <img class="brand" src="assets/finviet-logo.svg" alt="Finviet">
+  <div class="body">
+    <div class="txt">
+      <div class="pt"><span class="n">1</span><div><h3>Bảng theo dõi theo ngày</h3><p>Giờ vào/ra, trạng thái đúng giờ, đi muộn, nghỉ phép; lọc theo phòng ban và xuất Excel.</p></div></div>
+      <div class="pt"><span class="n">2</span><div><h3>Cảnh báo quên check-out</h3><p>Thanh vàng liệt kê tên cán bộ chưa có giờ về; bấm tên để sao chép và tìm nhanh.</p></div></div>
+      <div class="pt"><span class="n">3</span><div><h3>Check-out bù trong một bước</h3><p>Bấm “Check-out bù” từ Tổng quan để mở đúng ngày hôm trước, chọn giờ về và xác nhận. Hệ thống lưu người bổ sung.</p></div></div>
+    </div>
+    <div class="vis">
+      <div class="shot" style="left:0; top:56px; width:490px; height:308px;"><img src="assets/crops/att-main.png" alt="Bảng chấm công ngày"></div>
+      <div class="shot top" style="left:506px; top:56px; width:266px; height:266px;"><img src="assets/crops/checkout-sheet.png" alt="Chi tiết chấm công"></div>
+      <span class="tag" style="left:16px; top:24px;">Bảng chấm công &amp; cảnh báo</span>
+      <span class="tag" style="left:522px; top:24px;">Check-out bù</span>
+    </div>
+  </div>
+  <div class="foot"><span>Finviet Attendance Portal · Hướng dẫn sử dụng</span><span>5</span></div>
+</section>
+
+<!-- ============ 6. CUỘC HỌP ============ -->
+<section class="slide content" id="s6">
+  <div class="head">
+    <div class="eyebrow">06 · Lịch họp &amp; biên bản</div>
+    <h1>Lên lịch, điểm danh đại biểu, lưu biên bản</h1>
+    <p>Từ triệu tập đến báo cáo kết quả trên cùng một hệ thống.</p>
+  </div>
+  <img class="brand" src="assets/finviet-logo.svg" alt="Finviet">
+  <div class="body">
+    <div class="txt">
+      <div class="pt"><span class="n">1</span><div><h3>Lên lịch và triệu tập</h3><p>Chọn phòng họp, thời gian; đại biểu chia nhóm bắt buộc và tùy chọn.</p></div></div>
+      <div class="pt"><span class="n">2</span><div><h3>Theo dõi trạng thái</h3><p>Sắp diễn ra, đang diễn ra, đã kết thúc hiển thị rõ ngay trên danh sách.</p></div></div>
+      <div class="pt"><span class="n">3</span><div><h3>Báo cáo &amp; lưu trữ biên bản</h3><p>Xem tỷ lệ tham dự, số vắng mặt và xuất Excel tổng hợp theo kỳ.</p></div></div>
+    </div>
+    <div class="vis">
+      <div class="shot" style="left:0; top:52px; width:700px; height:440px;"><img src="assets/crops/m-meetings.png" alt="Danh sách cuộc họp"></div>
+      <div class="shot top" style="right:0; bottom:20px; width:300px; height:188px;"><img src="assets/crops/m-reports.png" alt="Báo cáo biên bản"></div>
+      <span class="tag" style="left:16px; top:22px;">Lịch họp &amp; điểm danh</span>
+      <span class="tag" style="right:16px; bottom:214px;">Báo cáo &amp; lưu trữ biên bản</span>
+    </div>
+  </div>
+  <div class="foot"><span>Finviet Attendance Portal · Hướng dẫn sử dụng</span><span>6</span></div>
+</section>
+
+<!-- ============ 7. NHÂN SỰ & PHÒNG BAN ============ -->
+<section class="slide content" id="s7">
+  <div class="head">
+    <div class="eyebrow">07 · Nhân sự &amp; phòng ban</div>
+    <h1>Một hồ sơ cho mọi hình thức điểm danh</h1>
+    <p>Quản lý cán bộ, thẻ RFID/NFC và cơ cấu tổ chức tập trung.</p>
+  </div>
+  <img class="brand" src="assets/finviet-logo.svg" alt="Finviet">
+  <div class="body">
+    <div class="txt">
+      <div class="pt"><span class="n">1</span><div><h3>Hồ sơ nhân sự đầy đủ</h3><p>Liên lạc, chức danh, phòng ban, mã thẻ; thêm mới từng người hoặc nhập hàng loạt từ Excel.</p></div></div>
+      <div class="pt"><span class="n">2</span><div><h3>Cấp thẻ RFID/NFC</h3><p>Cấp, khóa và theo dõi trạng thái thẻ của từng cán bộ ngay trên hồ sơ.</p></div></div>
+      <div class="pt"><span class="n">3</span><div><h3>Phòng ban cha – con</h3><p>Gán người phụ trách; số nhân sự mỗi phòng tự cập nhật theo hồ sơ.</p></div></div>
+    </div>
+    <div class="vis">
+      <div class="shot" style="left:0; top:52px; width:700px; height:440px;"><img src="assets/crops/m-employees.png" alt="Quản lý hồ sơ nhân sự"></div>
+      <div class="shot top" style="right:0; bottom:20px; width:300px; height:188px;"><img src="assets/crops/m-departments.png" alt="Cơ cấu phòng ban"></div>
+      <span class="tag" style="left:16px; top:22px;">Hồ sơ nhân sự</span>
+      <span class="tag" style="right:16px; bottom:214px;">Phòng ban &amp; người phụ trách</span>
+    </div>
+  </div>
+  <div class="foot"><span>Finviet Attendance Portal · Hướng dẫn sử dụng</span><span>7</span></div>
+</section>
+
+<!-- ============ 8. ĐỒNG BỘ CAMERA AI ============ -->
+<section class="slide content" id="s8" style="--txtw:320px">
+  <div class="head">
+    <div class="eyebrow">08 · Đồng bộ dữ liệu lên Camera AI</div>
+    <h1>3 bước nạp khuôn mặt, có lịch sử rõ ràng</h1>
+    <p>Đưa dữ liệu nhận diện của cán bộ lên camera chỉ với vài thao tác.</p>
+  </div>
+  <img class="brand" src="assets/finviet-logo.svg" alt="Finviet">
+  <div class="body">
+    <div class="txt">
+      <div class="pt"><span class="n">1</span><div><h3>Chọn cán bộ cần đồng bộ</h3><p>Hệ thống gợi ý cán bộ chưa đồng bộ; chỉ cần có ảnh Face ID là đủ điều kiện.</p></div></div>
+      <div class="pt"><span class="n">2</span><div><h3>Xem lại, chọn camera, xác nhận</h3><p>Chọn camera tiếp nhận và nhận báo cáo kết quả ngay sau khi đồng bộ.</p></div></div>
+      <div class="pt"><span class="n">3</span><div><h3>Lịch sử đồng bộ từng cán bộ</h3><p>Xem thiết bị, hình thức, thời gian và người thực hiện. Thẻ chỉ tính đã đồng bộ khi cán bộ chạm thẻ lần đầu.</p></div></div>
+    </div>
+    <div class="vis">
+      <div class="shot" style="left:0; top:58px; height:365px; width:372px;"><img src="assets/crops/sync-sheet.png" alt="Đồng bộ dữ liệu đến Camera AI"></div>
+      <div class="shot top" style="left:388px; top:58px; height:360px; width:424px;"><img src="assets/crops/history-sheet.png" alt="Lịch sử đồng bộ"></div>
+      <span class="tag" style="left:16px; top:26px;">Đồng bộ dữ liệu · 3 bước</span>
+      <span class="tag" style="left:404px; top:26px;">Lịch sử đồng bộ lên camera</span>
+    </div>
+  </div>
+  <div class="foot"><span>Finviet Attendance Portal · Hướng dẫn sử dụng</span><span>8</span></div>
+</section>
+
+<!-- ============ 9. THIẾT LẬP & THIẾT BỊ ============ -->
+<section class="slide content" id="s9">
+  <div class="head">
+    <div class="eyebrow">09 · Thiết lập &amp; quản trị thiết bị</div>
+    <h1>Đặt quy tắc một lần, camera vận hành ổn định</h1>
+    <p>Cấu hình khung giờ, quy tắc cuộc họp và giám sát thiết bị.</p>
+  </div>
+  <img class="brand" src="assets/finviet-logo.svg" alt="Finviet">
+  <div class="body">
+    <div class="txt">
+      <div class="pt"><span class="n">1</span><div><h3>Khung giờ &amp; dung sai</h3><p>Giờ vào/tan ca, số phút cho phép vào trễ, về sớm và mục tiêu chuyên cần.</p></div></div>
+      <div class="pt"><span class="n">2</span><div><h3>Quy tắc điểm danh cuộc họp</h3><p>Đón đại biểu trước giờ họp, mức vào trễ và về sớm mặc định cho mọi cuộc họp.</p></div></div>
+      <div class="pt"><span class="n">3</span><div><h3>Quản trị camera</h3><p>Bật/tắt từng thiết bị; trạng thái kết nối được hệ thống cập nhật tự động.</p></div></div>
+    </div>
+    <div class="vis">
+      <div class="shot" style="left:0; top:52px; width:700px; height:440px;"><img src="assets/crops/m-devices.png" alt="Quản trị thiết bị"></div>
+      <div class="shot top" style="right:0; bottom:20px; width:300px; height:188px;"><img src="assets/crops/m-settings.png" alt="Thiết lập thời gian và điểm danh"></div>
+      <span class="tag" style="left:16px; top:22px;">Quản trị thiết bị camera</span>
+      <span class="tag" style="right:16px; bottom:214px;">Khung giờ &amp; quy tắc điểm danh</span>
+    </div>
+  </div>
+  <div class="foot"><span>Finviet Attendance Portal · Hướng dẫn sử dụng</span><span>9</span></div>
+</section>
+
+<!-- ============ 10. BẮT ĐẦU SỬ DỤNG ============ -->
+<section class="slide dark" id="s10">
+  <div class="lockup">
+    <img src="assets/finviet-logo-reverse.svg" alt="Finviet" style="width:110px">
+  </div>
+  <div class="closing-head">
+    <div class="eyebrow">10 · Bắt đầu sử dụng</div>
+    <h1>Sẵn sàng vận hành<br>trong 3 bước</h1>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><h3>Nhận tài khoản &amp; đăng nhập</h3><p>Finviet cấp tài khoản riêng cho đơn vị của bạn; dữ liệu tách biệt hoàn toàn.</p></div>
+    <div class="step"><div class="n">2</div><h3>Thiết lập nền tảng</h3><p>Khai báo khung giờ làm việc, phòng ban và các thiết bị camera tại đơn vị.</p></div>
+    <div class="step"><div class="n">3</div><h3>Nhập nhân sự &amp; đồng bộ camera</h3><p>Nhập hồ sơ từ Excel, bổ sung ảnh Face ID, đồng bộ lên camera và bắt đầu điểm danh.</p></div>
+  </div>
+  <div class="support"><i></i><span>Cần hỗ trợ triển khai? Gọi</span><b>1900 2345</b></div>
+  <div class="bottom">
+    <span>Finviet Attendance Portal · Hướng dẫn sử dụng · v1.0</span>
+    <span class="msg">Go Further, Go Higher, Win Together</span>
+  </div>
+</section>
+
+</body>
+</html>

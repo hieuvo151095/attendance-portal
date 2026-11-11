@@ -361,7 +361,7 @@ export const Login: React.FC<LoginProps> = ({
 
                 return (
                   <button
-                    key={t.id}
+                    key={t.username}
                     type="button"
                     style={{
                       ...styles.quickSelectCard,

@@ -10,7 +10,6 @@ import { DailyAttendanceRecord } from '../../types/attendance';
 import { dailyAttendanceService } from '../../services/attendance';
 import { CameraDevice } from '../../types/device';
 import { cameraDeviceService, DEFAULT_CAMERA_DEVICES } from '../../services/device';
-import { AdminCheckOutModal } from '../attendance/AdminCheckOutModal';
 
 export interface ActionCenterCardProps {
   tenantId: string;
@@ -59,8 +58,6 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
 }) => {
   const [filter, setFilter] = useState<ActionFilter>('all');
   const [uncheckedOutRecords, setUncheckedOutRecords] = useState<DailyAttendanceRecord[]>([]);
-  const [selectedCheckOutRecord, setSelectedCheckOutRecord] = useState<DailyAttendanceRecord | null>(null);
-  const [checkOutModalOpen, setCheckOutModalOpen] = useState(false);
 
   // Danh sách thiết bị camera đồng bộ trực tiếp từ cameraDeviceService
   const [devices, setDevices] = useState<CameraDevice[]>(() =>
@@ -110,15 +107,16 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
     loadUncheckedOut();
   }, [tenantId]);
 
-  // Hành động nhắc nhở cán bộ quên check-out
-  const handleRemind = (empName: string) => {
-    toast.success(`Đã gửi thông báo nhắc nhở xác nhận giờ về đến cán bộ ${empName}.`);
-  };
-
-  // Mở modal check-out bù cho cán bộ
-  const handleOpenCheckOut = (record: DailyAttendanceRecord) => {
-    setSelectedCheckOutRecord(record);
-    setCheckOutModalOpen(true);
+  // Điều hướng đến Chấm Công ngày 05/11 và mở SideSheet cho cán bộ đó
+  const handleCheckOutBu = (record: DailyAttendanceRecord) => {
+    // Store intent on window so DailyAttendance picks it up on mount
+    (window as any).__finviet_checkout_intent = {
+      date: '2026-11-05',
+      employeeId: record.employeeId,
+      recordId: record.id
+    };
+    // Navigate to attendance tab
+    onNavigateTab?.('attendance');
   };
 
   // Đếm tổng số việc cần xử lý đồng bộ từ Quản trị thiết bị
@@ -386,16 +384,10 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                       <Button
-                        variant="secondary"
-                        onClick={() => handleRemind(r.employeeName)}
-                      >
-                        Nhắc nhở
-                      </Button>
-                      <Button
                         variant="primary"
-                        onClick={() => handleOpenCheckOut(r)}
+                        onClick={() => handleCheckOutBu(r)}
                       >
-                        Xác nhận check-out bù
+                        Check-out bù
                       </Button>
                     </div>
                   </div>
@@ -609,16 +601,6 @@ export const ActionCenterCard: React.FC<ActionCenterCardProps> = ({
         )}
       </div>
 
-      {/* Modal Check-out bù khi bấm trực tiếp trên Action Center */}
-      <AdminCheckOutModal
-        open={checkOutModalOpen}
-        onClose={() => setCheckOutModalOpen(false)}
-        record={selectedCheckOutRecord}
-        tenantId={tenantId}
-        onSuccess={() => {
-          loadUncheckedOut();
-        }}
-      />
     </div>
   );
 };

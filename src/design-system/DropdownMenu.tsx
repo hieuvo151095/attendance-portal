@@ -43,6 +43,8 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   const isControlled = controlledOpen !== undefined;
   const isOpen = isControlled ? controlledOpen : internalOpen;
 
+  const idRef = useRef(`fv-menu-${Math.random().toString(36).slice(2, 9)}`);
+
   const [coords, setCoords] = useState<{
     top?: number;
     bottom?: number;
@@ -63,8 +65,8 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
     }
   }, [isControlled, onOpenChange]);
 
-  const updatePosition = useCallback(() => {
-    if (!triggerRef.current) return;
+  const calculatePosition = useCallback(() => {
+    if (!triggerRef.current) return {};
     const rect = triggerRef.current.getBoundingClientRect();
     const menuWidth = 230; // Tiêu chuẩn độ rộng menu
     const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
@@ -92,15 +94,25 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
       right = Math.max(8, vw - rect.right);
     }
 
-    setCoords({ top, bottom, left, right, openUpwards });
+    return { top, bottom, left, right, openUpwards };
   }, [align]);
 
-  // Khi mở menu, cập nhật vị trí tọa độ ngay lập tức
+  // Lắng nghe sự kiện đóng từ các dropdown khác
   useEffect(() => {
-    if (isOpen) {
-      updatePosition();
-    }
-  }, [isOpen, updatePosition]);
+    if (!isOpen) return;
+
+    const handleCloseOthers = (e: Event) => {
+      const customEvent = e as CustomEvent<{ exceptId?: string }>;
+      if (customEvent.detail?.exceptId !== idRef.current) {
+        setOpen(false);
+      }
+    };
+
+    window.addEventListener('finviet:close-dropdowns', handleCloseOthers);
+    return () => {
+      window.removeEventListener('finviet:close-dropdowns', handleCloseOthers);
+    };
+  }, [isOpen, setOpen]);
 
   // Lắng nghe sự kiện click ra ngoài, phím Escape, cuộn trang và đổi kích thước màn hình
   useEffect(() => {
@@ -124,12 +136,17 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
       }
     };
 
-    const handleScrollOrResize = (e: Event) => {
-      // Nếu sự kiện cuộn xảy ra bên trong chính menu thì bỏ qua
-      if (menuRef.current && menuRef.current.contains(e.target as Node)) {
-        return;
+    let ticking = false;
+    const handleScrollOrResize = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (triggerRef.current) {
+            setCoords(calculatePosition());
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
-      updatePosition();
     };
 
     document.addEventListener('mousedown', onMouseDown);
@@ -143,7 +160,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
       window.removeEventListener('scroll', handleScrollOrResize, true);
       window.removeEventListener('resize', handleScrollOrResize);
     };
-  }, [isOpen, setOpen, updatePosition]);
+  }, [isOpen, setOpen, calculatePosition]);
 
   const renderedItems = items.map((it, idx) => {
     if ('divider' in it && it.divider) {
@@ -227,13 +244,27 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   if (!trigger) return menuPanel;
 
   const clonedTrigger = React.cloneElement(trigger, {
+    onMouseDown: (e: React.MouseEvent) => {
+      // Ngăn chặn mousedown nổi bọt ra document để không làm mất click event khi bấm giữa các dòng
+      e.stopPropagation();
+      if (trigger.props.onMouseDown) trigger.props.onMouseDown(e);
+    },
     onClick: (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       if (trigger.props.onClick) trigger.props.onClick(e);
 
       if (!isOpen) {
-        updatePosition();
+        // Đóng các dropdown khác ngay lập tức
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('finviet:close-dropdowns', {
+              detail: { exceptId: idRef.current }
+            })
+          );
+        }
+        // Tính toán tọa độ ngay lập tức để render đúng vị trí ngay từ frame đầu tiên
+        setCoords(calculatePosition());
         setOpen(true);
       } else {
         setOpen(false);

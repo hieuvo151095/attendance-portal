@@ -16,7 +16,6 @@ import { departmentService } from '../../services/department';
 import { dailyAttendanceService } from '../../services/attendance';
 import { QuickScanModal } from './QuickScanModal';
 import { AttendanceLogModal } from './AttendanceLogModal';
-import { AdminCheckOutModal } from './AdminCheckOutModal';
 import { AttendanceSettingsModal } from '../setting/AttendanceSettingsModal';
 
 export interface DailyAttendanceProps {
@@ -42,13 +41,6 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
   const [logModalOpen, setLogModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<DailyAttendanceRecord | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-  const [adminCheckOutOpen, setAdminCheckOutOpen] = useState(false);
-  const [checkOutRecord, setCheckOutRecord] = useState<DailyAttendanceRecord | null>(null);
-
-  const handleOpenAdminCheckOut = (rec: DailyAttendanceRecord) => {
-    setCheckOutRecord(rec);
-    setAdminCheckOutOpen(true);
-  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -83,6 +75,37 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Check for checkout detail intent from ActionCenterCard (Tổng Quan → Check-out bù)
+  useEffect(() => {
+    const intent = (window as any).__finviet_checkout_intent;
+    if (intent?.date && intent?.employeeId) {
+      // Clear intent immediately so it doesn't fire again
+      delete (window as any).__finviet_checkout_intent;
+
+      const targetDate = intent.date;
+      const targetEmployeeId = intent.employeeId;
+      const targetRecordId = intent.recordId;
+
+      // Set the date, then load that day's records and open SideSheet
+      setSelectedDate(targetDate);
+
+      (async () => {
+        try {
+          const dateRecords = await dailyAttendanceService.getDailyAttendance(tenantId, { date: targetDate });
+          const targetRecord = dateRecords.find(
+            (r: DailyAttendanceRecord) => r.employeeId === targetEmployeeId || r.id === targetRecordId
+          );
+          if (targetRecord) {
+            setSelectedRecord(targetRecord);
+            setLogModalOpen(true);
+          }
+        } catch (err) {
+          console.error('Failed to open checkout detail:', err);
+        }
+      })();
+    }
+  }, [tenantId]);
 
   const handleOpenLogModal = (rec: DailyAttendanceRecord) => {
     setSelectedRecord(rec);
@@ -344,7 +367,7 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
               </span>
               <button
                 type="button"
-                onClick={() => handleOpenAdminCheckOut(r)}
+                onClick={() => handleOpenLogModal(r)}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -635,31 +658,61 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
         </div>
 
         {/* Cảnh báo cán bộ quên check-out trong các ngày đã qua */}
-        {selectedDate < TODAY && records.filter((r) => r.status !== 'leave' && Boolean(r.checkInTime) && !r.checkOutTime).length > 0 && (
-          <div
-            style={{
-              padding: '10px 14px',
-              backgroundColor: 'var(--semantic-warning-light, #fef3c7)',
-              border: '1px solid #fde68a',
-              borderRadius: 'var(--radius-8)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              marginBottom: 'var(--space-12)'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--semantic-warning-dark, #b45309)' }}>
-              <Icon name="triangle-exclamation" size={16} />
-              <span className="body-sm-medium">
-                Phát hiện <b>{records.filter((r) => r.status !== 'leave' && Boolean(r.checkInTime) && !r.checkOutTime).length} cán bộ</b> quên ghi nhận giờ về (chưa check-out) trong ngày {selectedDate}.
-              </span>
+        {selectedDate < TODAY && (() => {
+          const missingCheckout = records.filter((r) => r.status !== 'leave' && Boolean(r.checkInTime) && !r.checkOutTime);
+          if (missingCheckout.length === 0) return null;
+          return (
+            <div
+              style={{
+                padding: '10px 14px',
+                backgroundColor: 'var(--semantic-warning-light, #fef3c7)',
+                border: '1px solid #fde68a',
+                borderRadius: 'var(--radius-8)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                marginBottom: 'var(--space-12)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--semantic-warning-dark, #b45309)' }}>
+                  <Icon name="triangle-exclamation" size={16} />
+                  <span className="body-sm-medium">
+                    Phát hiện <b>{missingCheckout.length} cán bộ</b> quên ghi nhận giờ về (chưa check-out) trong ngày {selectedDate}.
+                  </span>
+                </div>
+                <span className="body-xs" style={{ color: 'var(--text-subtle)', whiteSpace: 'nowrap' }}>
+                  Quản trị viên có thể bấm "Bổ sung giờ về" trên từng dòng để ghi nhận bù và lưu vết kiểm toán.
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', paddingLeft: '24px' }}>
+                <span className="body-xs" style={{ color: 'var(--semantic-warning-dark, #b45309)', fontWeight: 500 }}>
+                  Danh sách:
+                </span>
+                {missingCheckout.map((r, idx) => (
+                  <span
+                    key={r.id}
+                    className="body-xs-medium"
+                    style={{
+                      color: 'var(--semantic-warning-dark, #b45309)',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      textDecorationStyle: 'dotted',
+                      textUnderlineOffset: '2px'
+                    }}
+                    title={`Bấm để sao chép tên: ${r.employeeName}`}
+                    onClick={() => {
+                      navigator.clipboard?.writeText(r.employeeName);
+                      toast.success(`Đã sao chép tên "${r.employeeName}" vào clipboard.`);
+                    }}
+                  >
+                    {r.employeeName} ({r.employeeCode}){idx < missingCheckout.length - 1 ? ',' : ''}
+                  </span>
+                ))}
+              </div>
             </div>
-            <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>
-              Quản trị viên có thể bấm "Bổ sung giờ về" trên từng dòng để ghi nhận bù và lưu vết kiểm toán.
-            </span>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Attendance Data Table */}
         <DataTable
@@ -712,15 +765,6 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({ tenantId }) =>
         onSaved={() => loadData()}
       />
 
-      <AdminCheckOutModal
-        open={adminCheckOutOpen}
-        onClose={() => setAdminCheckOutOpen(false)}
-        record={checkOutRecord}
-        tenantId={tenantId}
-        onSuccess={() => {
-          loadData();
-        }}
-      />
     </div>
   );
 };

@@ -11,6 +11,7 @@ export const DEFAULT_CAMERA_DEVICES: CameraDevice[] = [
     attendanceType: 'attendance',
     attendanceTypes: ['attendance'],
     status: 'active',
+    connectionStatus: 'online',
     location: 'Cổng chính tiếp dân UBND',
     createdAt: '2026-10-01T08:00:00Z',
     updatedAt: '2026-10-01T08:00:00Z'
@@ -23,6 +24,7 @@ export const DEFAULT_CAMERA_DEVICES: CameraDevice[] = [
     attendanceType: 'both',
     attendanceTypes: ['attendance', 'meeting'],
     status: 'active',
+    connectionStatus: 'online',
     location: 'Cổng nội bộ & Lối vào hội trường',
     createdAt: '2026-10-01T08:00:00Z',
     updatedAt: '2026-10-01T08:00:00Z'
@@ -35,6 +37,7 @@ export const DEFAULT_CAMERA_DEVICES: CameraDevice[] = [
     attendanceType: 'meeting',
     attendanceTypes: ['meeting'],
     status: 'active',
+    connectionStatus: 'online',
     location: 'Hội trường số 1 - Tầng 2',
     createdAt: '2026-10-01T08:00:00Z',
     updatedAt: '2026-10-01T08:00:00Z'
@@ -47,6 +50,7 @@ export const DEFAULT_CAMERA_DEVICES: CameraDevice[] = [
     attendanceType: 'meeting',
     attendanceTypes: ['meeting'],
     status: 'locked',
+    connectionStatus: 'offline',
     location: 'Phòng họp HĐND - Tầng 2',
     createdAt: '2026-10-01T08:00:00Z',
     updatedAt: '2026-10-01T08:00:00Z'
@@ -59,6 +63,7 @@ export const DEFAULT_CAMERA_DEVICES: CameraDevice[] = [
     attendanceType: 'attendance',
     attendanceTypes: ['attendance'],
     status: 'locked',
+    connectionStatus: 'offline',
     location: 'Lối vào nhà xe',
     createdAt: '2026-10-05T08:00:00Z',
     updatedAt: '2026-10-05T08:00:00Z'
@@ -89,10 +94,21 @@ class CameraDeviceService {
         try {
           const list = JSON.parse(stored);
           if (Array.isArray(list)) {
+            let needsSave = false;
             // Đảm bảo thiết bị cam-04 (CAM-UBND-MTG-02) và cam-05 (CAM-UBND-CC-03) khớp chuẩn 3 hoạt động / 2 tạm khóa
             const cam04 = list.find((d: CameraDevice) => d.id === 'cam-04' || d.code === 'CAM-UBND-MTG-02');
             if (cam04 && cam04.status === 'active') {
               cam04.status = 'locked';
+              needsSave = true;
+            }
+            // Migrate: đảm bảo mọi thiết bị đều có connectionStatus
+            for (const d of list) {
+              if (!d.connectionStatus) {
+                d.connectionStatus = d.status === 'active' ? 'online' : 'offline';
+                needsSave = true;
+              }
+            }
+            if (needsSave) {
               localStorage.setItem(STORAGE_DEVICES_KEY, JSON.stringify(list));
             }
           }
@@ -177,6 +193,7 @@ class CameraDeviceService {
       attendanceType: dto.attendanceType,
       attendanceTypes: resolvedTypes,
       status: dto.status || 'active',
+      connectionStatus: (dto.status || 'active') === 'active' ? 'online' : 'offline',
       location: dto.location?.trim() || '',
       createdAt: now,
       updatedAt: now

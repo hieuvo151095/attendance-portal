@@ -698,6 +698,117 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     createdAt: '2026-11-01T08:00:00Z',
     updatedAt: '2026-11-01T09:45:00Z'
   },
+  // 5 cán bộ có đủ dữ liệu bắt buộc chờ đồng bộ lên Camera AI (Face ID, Thẻ, Thông tin cá nhân)
+  {
+    id: 'emp-ubnd-26',
+    tenantId: 'tenant-ubnd-001',
+    employeeCode: 'UBND-026',
+    fullName: 'Bà Nguyễn Thùy Linh',
+    identityNumber: '079198002678',
+    position: 'Chuyên viên Hỗ trợ Chuyển đổi số & Cải cách hành chính',
+    departmentId: 'dept-ubnd-01',
+    email: 'linh.nguyen@ubnd.gov.vn',
+    phoneNumber: '0909 123 456',
+    gender: 'female',
+    faceIdStatus: 'pending',
+    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
+    allowedMethods: {
+      faceId: true,
+      fingerprint: false,
+      card: true
+    },
+    status: 'active',
+    createdAt: '2026-11-05T08:00:00Z',
+    updatedAt: '2026-11-05T08:00:00Z'
+  },
+  {
+    id: 'emp-ubnd-27',
+    tenantId: 'tenant-ubnd-001',
+    employeeCode: 'UBND-027',
+    fullName: 'Ông Trần Quốc Tuấn',
+    identityNumber: '079092002789',
+    position: 'Cán bộ Giám sát Xây dựng & Trật tự Đô thị',
+    departmentId: 'dept-ubnd-02',
+    email: 'tuan.tran@ubnd.gov.vn',
+    phoneNumber: '0908 234 567',
+    gender: 'male',
+    faceIdStatus: 'pending',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+    allowedMethods: {
+      faceId: true,
+      fingerprint: false,
+      card: true
+    },
+    status: 'active',
+    createdAt: '2026-11-05T08:00:00Z',
+    updatedAt: '2026-11-05T08:00:00Z'
+  },
+  {
+    id: 'emp-ubnd-28',
+    tenantId: 'tenant-ubnd-001',
+    employeeCode: 'UBND-028',
+    fullName: 'Bà Lê Khánh Vy',
+    identityNumber: '079195002890',
+    position: 'Cán bộ Tư pháp & Hộ tịch Cơ sở',
+    departmentId: 'dept-ubnd-03',
+    email: 'vy.le@ubnd.gov.vn',
+    phoneNumber: '0907 345 678',
+    gender: 'female',
+    faceIdStatus: 'pending',
+    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150',
+    allowedMethods: {
+      faceId: true,
+      fingerprint: false,
+      card: true
+    },
+    status: 'active',
+    createdAt: '2026-11-05T08:00:00Z',
+    updatedAt: '2026-11-05T08:00:00Z'
+  },
+  {
+    id: 'emp-ubnd-29',
+    tenantId: 'tenant-ubnd-001',
+    employeeCode: 'UBND-029',
+    fullName: 'Ông Phan Đình Trọng',
+    identityNumber: '079088002901',
+    position: 'Chuyên viên Công nghệ Thông tin & Cơ sở Dữ liệu',
+    departmentId: 'dept-ubnd-01',
+    email: 'trong.phan@ubnd.gov.vn',
+    phoneNumber: '0906 456 789',
+    gender: 'male',
+    faceIdStatus: 'pending',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    allowedMethods: {
+      faceId: true,
+      fingerprint: false,
+      card: true
+    },
+    status: 'active',
+    createdAt: '2026-11-05T08:00:00Z',
+    updatedAt: '2026-11-05T08:00:00Z'
+  },
+  {
+    id: 'emp-ubnd-30',
+    tenantId: 'tenant-ubnd-001',
+    employeeCode: 'UBND-030',
+    fullName: 'Bà Vũ Mai Phương',
+    identityNumber: '079199003012',
+    position: 'Kế toán viên Hành chính & Tài chính Ngân sách',
+    departmentId: 'dept-ubnd-01',
+    email: 'phuong.vu@ubnd.gov.vn',
+    phoneNumber: '0905 567 890',
+    gender: 'female',
+    faceIdStatus: 'pending',
+    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
+    allowedMethods: {
+      faceId: true,
+      fingerprint: false,
+      card: true
+    },
+    status: 'active',
+    createdAt: '2026-11-05T08:00:00Z',
+    updatedAt: '2026-11-05T08:00:00Z'
+  },
 
   // 2. Nhà Máy Tân Bình (tenant-factory-002)
   {
@@ -884,7 +995,26 @@ class EmployeeService {
       const raw = localStorage.getItem(STORAGE_EMPLOYEES_KEY);
       if (raw) {
         try {
-          return JSON.parse(raw);
+          const list: Employee[] = JSON.parse(raw);
+          if (Array.isArray(list)) {
+            const SEED_V3_KEY = 'finviet_employees_seeded_v3';
+            const isSeeded = localStorage.getItem(SEED_V3_KEY) === 'true';
+            if (!isSeeded) {
+              const newEmployeesToAdd = INITIAL_EMPLOYEES.filter(
+                (e) => ['emp-ubnd-26', 'emp-ubnd-27', 'emp-ubnd-28', 'emp-ubnd-29', 'emp-ubnd-30'].includes(e.id)
+              );
+              const existingIds = new Set(list.map((e) => e.id));
+              const missingNew = newEmployeesToAdd.filter((e) => !existingIds.has(e.id));
+              localStorage.setItem(SEED_V3_KEY, 'true');
+              if (missingNew.length > 0) {
+                const merged = [...list, ...missingNew];
+                localStorage.setItem(STORAGE_EMPLOYEES_KEY, JSON.stringify(merged));
+                return merged;
+              }
+            }
+            return list;
+          }
+          return INITIAL_EMPLOYEES;
         } catch {
           return INITIAL_EMPLOYEES;
         }

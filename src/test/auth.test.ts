@@ -6,6 +6,20 @@ describe('Dịch vụ Xác thực & Đa đơn vị (AUTH-01: Multi-tenancy Auth)
     authService.resetMockData();
   });
 
+  it('Cho phép đăng nhập thành công với tài khoản UBND Phường Tân Sơn Nhất và giữ nguyên toàn bộ dữ liệu mẫu', async () => {
+    const result = await authService.login({
+      username: 'ubnd-tan-son-nhat',
+      password: 'Finviet@2026'
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.session).toBeDefined();
+    expect(result.session?.tenant.orgName).toBe('Ủy Ban Nhân Dân Phường Tân Sơn Nhất');
+    expect(result.session?.tenant.orgType).toBe('government');
+    expect(result.session?.tenant.address).toBe('25 Hoàng Việt, Tân Sơn Nhất, Hồ Chí Minh');
+    expect(result.session?.tenant.id).toBe('tenant-ubnd-001');
+  });
+
   it('Cho phép đăng nhập thành công với tài khoản Finviet cấp cho cơ quan nhà nước (UBND)', async () => {
     const result = await authService.login({
       username: 'ubnd-ben-nghe',

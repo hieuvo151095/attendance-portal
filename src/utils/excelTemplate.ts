@@ -40,7 +40,13 @@ export function downloadEmployeeExcelTemplate(fileName = 'Mau_nhap_lieu_nhan_su_
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      try {
+        URL.revokeObjectURL(url);
+      } catch {
+        // ignore
+      }
+    }, 1000);
   } catch (err) {
     console.error('Lỗi khi tải file mẫu Excel (.xlsx):', err);
     // Fallback: nếu môi trường bị chặn blob, điều hướng sang file public

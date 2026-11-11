@@ -66,16 +66,14 @@ export const CameraSyncHistoryModal: React.FC<CameraSyncHistoryModalProps> = ({
   const columns: DataTableColumn<EmployeeCameraSyncLog>[] = [
     {
       key: 'device',
-      title: 'Mã & Tên thiết bị',
+      title: 'Mã và tên thiết bị',
       width: '260px',
       render: (row) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Tag variant="code">{row.deviceCode}</Tag>
-            <span className="body-sm-bold" style={{ color: 'var(--text-heading)' }}>
-              {row.deviceName}
-            </span>
-          </div>
+          <Tag variant="code">{row.deviceCode}</Tag>
+          <span className="body-sm-bold" style={{ color: 'var(--text-heading)' }}>
+            {row.deviceName}
+          </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-subtle)', fontSize: '11px' }}>
             <Icon name="location-dot" size={10} />
             <span>{row.deviceLocation}</span>

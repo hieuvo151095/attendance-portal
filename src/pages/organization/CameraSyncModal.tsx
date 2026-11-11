@@ -86,7 +86,7 @@ export const CameraSyncModal: React.FC<CameraSyncModalProps> = ({
   }, [open, tenantId]);
 
   const isEmployeeEligible = (emp: Employee) => {
-    return Boolean(emp.avatarUrl?.trim()) || activeCards.has(emp.id);
+    return Boolean(emp.avatarUrl?.trim());
   };
 
   const eligibleEmployees = useMemo(() => {
@@ -424,8 +424,8 @@ export const CameraSyncModal: React.FC<CameraSyncModalProps> = ({
             {ineligibleEmployees.length > 0 ? (
               <InlineNotice tone="info">
                 Hệ thống phát hiện <b>{unsyncedEmployees.length} cán bộ</b> chưa đồng bộ dữ liệu đến Camera AI.
-                Trong đó có <b>{eligibleEmployees.length} cán bộ đủ điều kiện</b> (đã có ảnh Face ID hoặc thẻ RFID) và{' '}
-                <b>{ineligibleEmployees.length} cán bộ chưa đủ điều kiện</b> (cần cập nhật ảnh chân dung hoặc cấp thẻ trước khi đồng bộ).
+                Trong đó có <b>{eligibleEmployees.length} cán bộ đủ điều kiện</b> (đã có ảnh Face ID) và{' '}
+                <b>{ineligibleEmployees.length} cán bộ chưa đủ điều kiện</b> (cần cập nhật ảnh chân dung).
               </InlineNotice>
             ) : (
               <InlineNotice tone="info">
@@ -611,7 +611,7 @@ export const CameraSyncModal: React.FC<CameraSyncModalProps> = ({
                                   fontWeight: 500
                                 }}
                               >
-                                ⚠️ Cần tải ảnh chân dung hoặc cấp thẻ nhân sự trước khi đồng bộ đến Camera.
+                                ⚠️ Chưa có ảnh - Cần tải ảnh chân dung trước khi đồng bộ đến Camera.
                               </div>
                             )}
                           </div>
@@ -633,29 +633,11 @@ export const CameraSyncModal: React.FC<CameraSyncModalProps> = ({
                                 color: '#b91c1c',
                                 border: '1px solid #fecaca'
                               }}
-                              title="Chưa có ảnh chân dung và chưa được cấp thẻ nhân sự"
+                              title="Chưa có ảnh chân dung"
                             >
-                              Chưa đủ điều kiện (Thiếu ảnh & thẻ)
+                              Chưa đủ điều kiện (Thiếu ảnh)
                             </span>
-                          ) : hasPhoto && hasCard ? (
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                fontSize: '11px',
-                                fontWeight: 600,
-                                padding: '3px 8px',
-                                borderRadius: '12px',
-                                backgroundColor: '#ecfdf5',
-                                color: '#065f46',
-                                border: '1px solid #a7f3d0'
-                              }}
-                            >
-                              <Icon name="camera" size={11} />
-                              Đã có ảnh Face ID & Thẻ
-                            </span>
-                          ) : hasPhoto ? (
+                          ) : (
                             <span
                               style={{
                                 display: 'inline-flex',
@@ -672,24 +654,6 @@ export const CameraSyncModal: React.FC<CameraSyncModalProps> = ({
                             >
                               <Icon name="camera" size={11} />
                               Đã có ảnh Face ID
-                            </span>
-                          ) : (
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                fontSize: '11px',
-                                fontWeight: 600,
-                                padding: '3px 8px',
-                                borderRadius: '12px',
-                                backgroundColor: '#eff6ff',
-                                color: '#1d4ed8',
-                                border: '1px solid #bfdbfe'
-                              }}
-                            >
-                              <Icon name="id-badge" size={11} />
-                              Đã cấp thẻ RFID (Quẹt thẻ)
                             </span>
                           )}
                         </div>

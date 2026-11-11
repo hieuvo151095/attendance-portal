@@ -293,6 +293,71 @@ export const INITIAL_CARDS: EmployeeCard[] = [
     updatedAt: '2026-11-01T09:00:00Z'
   },
   {
+    id: 'card-ubnd-26',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04A261F38E',
+    employeeId: 'emp-ubnd-26',
+    employeeCode: 'UBND-026',
+    employeeName: 'Bà Nguyễn Thùy Linh',
+    linkedAt: '2026-11-05T08:00:00Z',
+    status: 'active',
+    note: 'Cấp thẻ định danh RFID Mifare',
+    createdAt: '2026-11-05T08:00:00Z',
+    updatedAt: '2026-11-05T08:00:00Z'
+  },
+  {
+    id: 'card-ubnd-27',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04A271F38E',
+    employeeId: 'emp-ubnd-27',
+    employeeCode: 'UBND-027',
+    employeeName: 'Ông Trần Quốc Tuấn',
+    linkedAt: '2026-11-05T08:00:00Z',
+    status: 'active',
+    note: 'Cấp thẻ định danh RFID Mifare',
+    createdAt: '2026-11-05T08:00:00Z',
+    updatedAt: '2026-11-05T08:00:00Z'
+  },
+  {
+    id: 'card-ubnd-28',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04A281F38E',
+    employeeId: 'emp-ubnd-28',
+    employeeCode: 'UBND-028',
+    employeeName: 'Bà Lê Khánh Vy',
+    linkedAt: '2026-11-05T08:00:00Z',
+    status: 'active',
+    note: 'Cấp thẻ định danh RFID Mifare',
+    createdAt: '2026-11-05T08:00:00Z',
+    updatedAt: '2026-11-05T08:00:00Z'
+  },
+  {
+    id: 'card-ubnd-29',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04A291F38E',
+    employeeId: 'emp-ubnd-29',
+    employeeCode: 'UBND-029',
+    employeeName: 'Ông Phan Đình Trọng',
+    linkedAt: '2026-11-05T08:00:00Z',
+    status: 'active',
+    note: 'Cấp thẻ định danh RFID Mifare',
+    createdAt: '2026-11-05T08:00:00Z',
+    updatedAt: '2026-11-05T08:00:00Z'
+  },
+  {
+    id: 'card-ubnd-30',
+    tenantId: 'tenant-ubnd-001',
+    cardUid: '04A301F38E',
+    employeeId: 'emp-ubnd-30',
+    employeeCode: 'UBND-030',
+    employeeName: 'Bà Vũ Mai Phương',
+    linkedAt: '2026-11-05T08:00:00Z',
+    status: 'active',
+    note: 'Cấp thẻ định danh RFID Mifare',
+    createdAt: '2026-11-05T08:00:00Z',
+    updatedAt: '2026-11-05T08:00:00Z'
+  },
+  {
     id: 'card-ubnd-old-01',
     tenantId: 'tenant-ubnd-001',
     cardUid: '0499887766',
@@ -379,7 +444,26 @@ class CardService {
       const raw = localStorage.getItem(STORAGE_CARDS_KEY);
       if (raw) {
         try {
-          return JSON.parse(raw);
+          const list: EmployeeCard[] = JSON.parse(raw);
+          if (Array.isArray(list)) {
+            const SEED_V3_KEY = 'finviet_cards_seeded_v3';
+            const isSeeded = localStorage.getItem(SEED_V3_KEY) === 'true';
+            if (!isSeeded) {
+              const newCardsToAdd = INITIAL_CARDS.filter(
+                (c) => ['card-ubnd-26', 'card-ubnd-27', 'card-ubnd-28', 'card-ubnd-29', 'card-ubnd-30'].includes(c.id)
+              );
+              const existingIds = new Set(list.map((c) => c.id));
+              const missingNew = newCardsToAdd.filter((c) => !existingIds.has(c.id));
+              localStorage.setItem(SEED_V3_KEY, 'true');
+              if (missingNew.length > 0) {
+                const merged = [...list, ...missingNew];
+                localStorage.setItem(STORAGE_CARDS_KEY, JSON.stringify(merged));
+                return merged;
+              }
+            }
+            return list;
+          }
+          return INITIAL_CARDS;
         } catch {
           return INITIAL_CARDS;
         }

@@ -1021,6 +1021,196 @@ const BASE_RECORDS_20261104: DailyAttendanceRecord[] = [
     createdAt: '2026-11-04T07:21:00Z',
     updatedAt: '2026-11-04T16:40:00Z'
   },
+  {
+    id: 'att-ubnd-20261104-26',
+    tenantId: 'tenant-ubnd-001',
+    employeeId: 'emp-ubnd-26',
+    employeeCode: 'UBND-026',
+    employeeName: 'Bà Nguyễn Thùy Linh',
+    departmentId: 'dept-ubnd-01',
+    departmentName: 'Văn phòng HĐND & UBND',
+    position: 'Chuyên viên Tổng hợp',
+    date: '2026-11-04',
+    shiftName: 'Ca hành chính UBND',
+    checkInTime: '07:15',
+    checkOutTime: '17:00',
+    workDurationHours: 8.5,
+    lateMinutes: 0,
+    earlyLeaveMinutes: 0,
+    status: 'on_time',
+    scanLogs: [
+      {
+        id: 'scan-26-1',
+        timestamp: '2026-11-04T07:15:00Z',
+        type: 'check_in',
+        method: 'faceId',
+        deviceName: 'Camera AI Hikvision Cổng 1 - Trụ sở UBND',
+        faceScore: 98.7
+      },
+      {
+        id: 'scan-26-2',
+        timestamp: '2026-11-04T17:00:00Z',
+        type: 'check_out',
+        method: 'faceId',
+        deviceName: 'Camera AI Hikvision Cổng 1 - Trụ sở UBND',
+        faceScore: 98.5
+      }
+    ],
+    createdAt: '2026-11-04T07:15:00Z',
+    updatedAt: '2026-11-04T17:00:00Z'
+  },
+  {
+    id: 'att-ubnd-20261104-27',
+    tenantId: 'tenant-ubnd-001',
+    employeeId: 'emp-ubnd-27',
+    employeeCode: 'UBND-027',
+    employeeName: 'Ông Trần Quốc Tuấn',
+    departmentId: 'dept-ubnd-02',
+    departmentName: 'Bộ phận Địa chính - Xây dựng - Đô thị',
+    position: 'Cán bộ Quản lý trật tự đô thị',
+    date: '2026-11-04',
+    shiftName: 'Ca hành chính UBND',
+    checkInTime: '07:12',
+    checkOutTime: '16:45',
+    workDurationHours: 8.5,
+    lateMinutes: 0,
+    earlyLeaveMinutes: 0,
+    status: 'on_time',
+    scanLogs: [
+      {
+        id: 'scan-27-1',
+        timestamp: '2026-11-04T07:12:00Z',
+        type: 'check_in',
+        method: 'faceId',
+        deviceName: 'Camera AI Hikvision Cổng 1 - Trụ sở UBND',
+        faceScore: 99.1
+      },
+      {
+        id: 'scan-27-2',
+        timestamp: '2026-11-04T16:45:00Z',
+        type: 'check_out',
+        method: 'faceId',
+        deviceName: 'Camera AI Hikvision Cổng 1 - Trụ sở UBND',
+        faceScore: 98.9
+      }
+    ],
+    createdAt: '2026-11-04T07:12:00Z',
+    updatedAt: '2026-11-04T16:45:00Z'
+  },
+  {
+    id: 'att-ubnd-20261104-28',
+    tenantId: 'tenant-ubnd-001',
+    employeeId: 'emp-ubnd-28',
+    employeeCode: 'UBND-028',
+    employeeName: 'Bà Lê Khánh Vy',
+    departmentId: 'dept-ubnd-03',
+    departmentName: 'Bộ phận Tư pháp - Hộ tịch',
+    position: 'Chuyên viên Hộ tịch',
+    date: '2026-11-04',
+    shiftName: 'Ca hành chính UBND',
+    checkInTime: '07:18',
+    checkOutTime: '17:05',
+    workDurationHours: 8.5,
+    lateMinutes: 0,
+    earlyLeaveMinutes: 0,
+    status: 'on_time',
+    scanLogs: [
+      {
+        id: 'scan-28-1',
+        timestamp: '2026-11-04T07:18:00Z',
+        type: 'check_in',
+        method: 'faceId',
+        deviceName: 'Camera AI Hikvision Cổng 1 - Trụ sở UBND',
+        faceScore: 98.4
+      },
+      {
+        id: 'scan-28-2',
+        timestamp: '2026-11-04T17:05:00Z',
+        type: 'check_out',
+        method: 'faceId',
+        deviceName: 'Camera AI Hikvision Cổng 1 - Trụ sở UBND',
+        faceScore: 98.6
+      }
+    ],
+    createdAt: '2026-11-04T07:18:00Z',
+    updatedAt: '2026-11-04T17:05:00Z'
+  },
+  {
+    id: 'att-ubnd-20261104-29',
+    tenantId: 'tenant-ubnd-001',
+    employeeId: 'emp-ubnd-29',
+    employeeCode: 'UBND-029',
+    employeeName: 'Ông Phan Đình Trọng',
+    departmentId: 'dept-ubnd-04',
+    departmentName: 'Ban Chỉ huy Quân sự Phường',
+    position: 'Chiến sĩ Dân quân thường trực',
+    date: '2026-11-04',
+    shiftName: 'Ca hành chính UBND',
+    checkInTime: '07:05',
+    checkOutTime: '16:30',
+    workDurationHours: 8.5,
+    lateMinutes: 0,
+    earlyLeaveMinutes: 0,
+    status: 'on_time',
+    scanLogs: [
+      {
+        id: 'scan-29-1',
+        timestamp: '2026-11-04T07:05:00Z',
+        type: 'check_in',
+        method: 'faceId',
+        deviceName: 'Camera AI Hikvision Cổng 1 - Trụ sở UBND',
+        faceScore: 99.3
+      },
+      {
+        id: 'scan-29-2',
+        timestamp: '2026-11-04T16:30:00Z',
+        type: 'check_out',
+        method: 'faceId',
+        deviceName: 'Camera AI Hikvision Cổng 1 - Trụ sở UBND',
+        faceScore: 99.0
+      }
+    ],
+    createdAt: '2026-11-04T07:05:00Z',
+    updatedAt: '2026-11-04T16:30:00Z'
+  },
+  {
+    id: 'att-ubnd-20261104-30',
+    tenantId: 'tenant-ubnd-001',
+    employeeId: 'emp-ubnd-30',
+    employeeCode: 'UBND-030',
+    employeeName: 'Bà Vũ Mai Phương',
+    departmentId: 'dept-ubnd-05',
+    departmentName: 'Công An Phường Bến Nghé',
+    position: 'Cán bộ Cảnh sát trật tự',
+    date: '2026-11-04',
+    shiftName: 'Ca hành chính UBND',
+    checkInTime: '07:08',
+    checkOutTime: '16:40',
+    workDurationHours: 8.5,
+    lateMinutes: 0,
+    earlyLeaveMinutes: 0,
+    status: 'on_time',
+    scanLogs: [
+      {
+        id: 'scan-30-1',
+        timestamp: '2026-11-04T07:08:00Z',
+        type: 'check_in',
+        method: 'faceId',
+        deviceName: 'Camera AI Hikvision Cổng 1 - Trụ sở UBND',
+        faceScore: 98.9
+      },
+      {
+        id: 'scan-30-2',
+        timestamp: '2026-11-04T16:40:00Z',
+        type: 'check_out',
+        method: 'faceId',
+        deviceName: 'Camera AI Hikvision Cổng 1 - Trụ sở UBND',
+        faceScore: 98.8
+      }
+    ],
+    createdAt: '2026-11-04T07:08:00Z',
+    updatedAt: '2026-11-04T16:40:00Z'
+  },
 ];
 
 function buildMultiDayRecords(base20261104: DailyAttendanceRecord[]): DailyAttendanceRecord[] {

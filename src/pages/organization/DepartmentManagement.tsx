@@ -14,6 +14,7 @@ import {
   ToastContainer
 } from '../../design-system';
 import { departmentService } from '../../services/department';
+import { employeeService } from '../../services/employee';
 import { authService } from '../../services/auth';
 import { Department, DepartmentTreeNode } from '../../types/organization';
 import { AuthSession } from '../../types/auth';
@@ -59,12 +60,36 @@ export const DepartmentManagement: React.FC<DepartmentManagementProps> = ({ sess
     setLoading(true);
 
     try {
-      const [list, tree] = await Promise.all([
+      const [list, tree, employees] = await Promise.all([
         departmentService.getDepartmentsByTenant(session.tenant.id),
-        departmentService.getDepartmentTree(session.tenant.id)
+        departmentService.getDepartmentTree(session.tenant.id),
+        employeeService.getEmployeesByTenant(session.tenant.id)
       ]);
-      setDepartments(list);
-      setTreeNodes(tree);
+
+      // Dynamically count employees per department from actual employee data
+      const countMap = new Map<string, number>();
+      for (const emp of employees) {
+        if (emp.departmentId) {
+          countMap.set(emp.departmentId, (countMap.get(emp.departmentId) || 0) + 1);
+        }
+      }
+
+      // Override stale hardcoded employeeCount with real counts
+      const updatedList = list.map((d) => ({
+        ...d,
+        employeeCount: countMap.get(d.id) ?? 0
+      }));
+
+      // Also patch tree nodes with real counts
+      const patchTree = (nodes: DepartmentTreeNode[]): DepartmentTreeNode[] =>
+        nodes.map((n) => ({
+          ...n,
+          employeeCount: countMap.get(n.id) ?? 0,
+          children: n.children ? patchTree(n.children) : []
+        }));
+
+      setDepartments(updatedList);
+      setTreeNodes(patchTree(tree));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Không thể tải danh sách phòng ban';
       toast.danger(msg);

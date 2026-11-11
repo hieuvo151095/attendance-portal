@@ -297,7 +297,7 @@ export const DeviceModal: React.FC<DeviceModalProps> = ({
             className="body-sm-medium"
             style={{ display: 'block', marginBottom: '6px', color: 'var(--text-heading)' }}
           >
-            Trạng thái hoạt động <span style={{ color: 'var(--danger-500, #ef4444)' }}>*</span>
+            Trạng thái thiết bị <span style={{ color: 'var(--danger-500, #ef4444)' }}>*</span>
           </label>
           <SelectField
             id="device-status-select"

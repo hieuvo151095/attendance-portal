@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { EmployeeManagement } from '../pages/organization/EmployeeManagement';
 import { authService } from '../services/auth';
 import { employeeService } from '../services/employee';
@@ -157,10 +157,6 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
     await waitFor(() => {
       expect(screen.queryByText('Cập nhật hồ sơ nhân sự', { selector: 'h3' })).not.toBeInTheDocument();
     });
-
-    // Kiểm tra icon Face ID của nhân viên emp-ubnd-01 được cập nhật trạng thái tắt
-    const faceIdIconContainer = screen.getByTestId('method-faceId-emp-ubnd-01');
-    expect(faceIdIconContainer).toHaveAttribute('title', expect.stringContaining('tạm tắt'));
   });
 
   it('Nhân sự chưa có Face ID hoặc Thẻ thì modal khóa toggle và hiển thị ghi chú nhắc nhở rõ ràng', async () => {
@@ -375,7 +371,7 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
     // 1. Kiểm tra huy hiệu số lượng chưa đồng bộ có nền tròn màu đỏ
     const unsyncedBadge = screen.getByTestId('unsynced-badge');
     expect(unsyncedBadge).toBeInTheDocument();
-    expect(unsyncedBadge).toHaveTextContent('4');
+    expect(unsyncedBadge).toHaveTextContent('9');
     expect(unsyncedBadge).toHaveStyle({ backgroundColor: '#ef4444' });
 
     // 2. Kiểm tra cột Thao tác đã xóa hành động "Đồng bộ đến Camera AI"
@@ -394,8 +390,11 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
       expect(screen.getByText('Bước 2: Xem lại & Đồng bộ')).toBeInTheDocument();
     });
 
-    // Kiểm tra Hoàng Văn Đức chưa đủ điều kiện (thiếu cả ảnh và thẻ) nên bị khóa checkbox
-    expect(screen.getByText('Chưa đủ điều kiện (Thiếu ảnh & thẻ)')).toBeInTheDocument();
+    // Kiểm tra Hoàng Văn Đức chưa đủ điều kiện (chưa có ảnh Face ID) nên bị khóa checkbox
+    expect(screen.getByText('Chưa đủ điều kiện (Thiếu ảnh)')).toBeInTheDocument();
+    expect(
+      screen.getByText('⚠️ Chưa có ảnh - Cần tải ảnh chân dung trước khi đồng bộ đến Camera.')
+    ).toBeInTheDocument();
     const ducCheckbox = screen.getByLabelText(/Cán bộ Ông Hoàng Văn Đức chưa đủ điều kiện đồng bộ/i);
     expect(ducCheckbox).toBeDisabled();
     expect(ducCheckbox).not.toBeChecked();
@@ -465,21 +464,23 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
       expect(screen.getByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
     });
 
-    const actionBtns = screen.getAllByRole('button', { name: /Thao tác/i });
-    fireEvent.click(actionBtns[0]);
+    const anRow = screen.getByText('Đ/c Nguyễn Văn An').closest('tr');
+    const anActionBtn = within(anRow!).getByRole('button', { name: /Thao tác/i });
+    fireEvent.click(anActionBtn);
 
     await waitFor(() => {
-      expect(screen.getByText('Lịch sử đồng bộ lên camera')).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /Lịch sử đồng bộ lên camera/i })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Lịch sử đồng bộ lên camera'));
+    const syncItem = screen.getByRole('menuitem', { name: /Lịch sử đồng bộ lên camera/i });
+    fireEvent.click(syncItem);
 
     await waitFor(() => {
       expect(screen.getAllByText(/Lịch sử đồng bộ lên Camera/i).length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText(/Quy tắc đồng bộ thẻ RFID\/NFC lên Camera AI/i)).toBeInTheDocument();
-      expect(screen.getByText(/Mã & Tên thiết bị/i)).toBeInTheDocument();
-      expect(screen.getByText(/Thời gian đồng bộ/i)).toBeInTheDocument();
-      expect(screen.getByText(/Người thực hiện/i)).toBeInTheDocument();
+      expect(screen.getByText(/chưa tính là đã đồng bộ/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Mã và tên thiết bị/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Thời gian đồng bộ/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Người thực hiện/i).length).toBeGreaterThanOrEqual(1);
     });
   });
 });

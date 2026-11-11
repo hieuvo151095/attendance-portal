@@ -229,6 +229,7 @@ export const DataTable: DataTableComponent = (<R,>({
                         className={`body-sm ${col.align === 'right' ? 'is-right' : ''} ${
                           col.actions ? 'is-actions' : ''
                         } ${cIdx === 0 ? 'is-primary' : ''}`}
+                        onMouseDown={col.actions ? (e) => e.stopPropagation() : undefined}
                         onClick={col.actions ? (e) => e.stopPropagation() : undefined}
                       >
                         <span className="ecomd-cell__label body-xs-medium" aria-hidden="true">

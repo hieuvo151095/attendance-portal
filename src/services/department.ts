@@ -18,7 +18,7 @@ export const INITIAL_DEPARTMENTS: Department[] = [
     parentId: null,
     managerName: 'Ông Nguyễn Văn An',
     managerPhone: '0903 111 222',
-    employeeCount: 6,
+    employeeCount: 9,
     order: 1,
     createdAt: '2026-11-01T08:00:00Z',
     updatedAt: '2026-11-01T08:00:00Z'
@@ -31,7 +31,7 @@ export const INITIAL_DEPARTMENTS: Department[] = [
     parentId: 'dept-ubnd-01',
     managerName: 'Bà Phạm Thị Cúc',
     managerPhone: '0903 333 444',
-    employeeCount: 5,
+    employeeCount: 6,
     order: 2,
     createdAt: '2026-11-01T08:00:00Z',
     updatedAt: '2026-11-01T08:00:00Z'
@@ -44,7 +44,7 @@ export const INITIAL_DEPARTMENTS: Department[] = [
     parentId: 'dept-ubnd-01',
     managerName: 'Ông Hoàng Văn Đức',
     managerPhone: '0903 555 666',
-    employeeCount: 4,
+    employeeCount: 5,
     order: 3,
     createdAt: '2026-11-01T08:00:00Z',
     updatedAt: '2026-11-01T08:00:00Z'

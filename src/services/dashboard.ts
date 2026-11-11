@@ -1099,9 +1099,9 @@ class DashboardService {
       ? allMeetings
           .map((m) => ({
             ...m,
-            attendees: m.attendees.filter((a) => a.departmentId === selectedDepartmentId)
+            attendees: (m.attendees || []).filter((a) => a.departmentId === selectedDepartmentId)
           }))
-          .filter((m) => m.attendees.length > 0)
+          .filter((m) => (m.attendees || []).length > 0)
       : allMeetings;
 
     // Danh sách tất cả các cuộc họp đã diễn ra hoặc đang diễn ra trong năm (2026)
@@ -1110,7 +1110,7 @@ class DashboardService {
     );
 
     // 2. Tính toán số liệu Tổng quan cả năm 2026 (Yearly Overall Stats cho Donut Chart)
-    const yearAttendees = allActiveOrPastMeetings.flatMap((m) => m.attendees);
+    const yearAttendees = allActiveOrPastMeetings.flatMap((m) => m.attendees || []);
     const totalYearMeetings = allActiveOrPastMeetings.length;
     const yearTotalAttendees = yearAttendees.length > 0 ? yearAttendees.length : 1;
     const yearCompulsory = yearAttendees.filter((a) => a.role === 'required').length;
@@ -1217,7 +1217,7 @@ class DashboardService {
     const selectedMeetings = sortedMeetings.slice(0, meetingLimit);
 
     // 4. Tính toán KPIs dựa trên tập đại biểu bắt buộc của N cuộc họp gần nhất
-    const selectedAttendees = selectedMeetings.flatMap((m) => m.attendees);
+    const selectedAttendees = selectedMeetings.flatMap((m) => m.attendees || []);
     const compulsoryAttendees = selectedAttendees.filter((a) => a.role === 'required');
     const optionalAttendees = selectedAttendees.filter((a) => a.role === 'optional');
 
@@ -1262,8 +1262,9 @@ class DashboardService {
     // 5. Xu hướng chuyên cần cuộc họp: Mỗi cột đại diện cho 1 cuộc họp (sắp xếp tăng dần theo thời gian từ trái sang phải)
     const chronologicalMeetings = [...selectedMeetings].reverse();
     const trends: MeetingTrendPoint[] = chronologicalMeetings.map((m) => {
-      const comp = m.attendees.filter((a) => a.role === 'required');
-      const opt = m.attendees.filter((a) => a.role === 'optional');
+      const attendeesList = m.attendees || [];
+      const comp = attendeesList.filter((a) => a.role === 'required');
+      const opt = attendeesList.filter((a) => a.role === 'optional');
       const pres = comp.filter((a) => a.attendanceStatus === 'joined' || a.attendanceStatus === 'left').length;
       const late = comp.filter((a) => a.isLate).length;
       const early = comp.filter((a) => a.isEarlyLeave || (a.attendanceStatus === 'left' && !a.checkOutTime)).length;
@@ -1325,7 +1326,7 @@ class DashboardService {
     const completedMeetingsInCurrentMonth = currentMonthCompletedMeetings.length || 3;
 
     // Đại biểu tham gia các cuộc họp đã hoàn thành trong tháng hiện tại
-    const currentMonthAttendees = currentMonthCompletedMeetings.flatMap((m) => m.attendees);
+    const currentMonthAttendees = currentMonthCompletedMeetings.flatMap((m) => m.attendees || []);
 
     // 8. So sánh chuyên cần cuộc họp theo phòng ban
     // LƯU Ý: Phần này CHỈ TÍNH các cuộc họp trong tháng hiện tại (không thay đổi khi đổi bộ lọc số cuộc họp gần nhất)

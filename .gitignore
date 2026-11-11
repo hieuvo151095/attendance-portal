@@ -9,3 +9,6 @@ dist/
 .npm-cache/
 .vite/
 .env*.local
+
+# Brand source files kept locally only
+Design System/Logo Guideline*.pdf

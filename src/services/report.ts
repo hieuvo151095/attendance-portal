@@ -47,7 +47,8 @@ class MeetingReportService {
    * Tạo mã băm xác thực dữ liệu bất biến (Digital Hash)
    */
   private generateDigitalHash(meeting: Meeting): string {
-    const raw = `${meeting.id}:${meeting.closedAt}:${meeting.attendees.length}:${meeting.updatedAt}`;
+    const attendeesCount = meeting.attendees ? meeting.attendees.length : 0;
+    const raw = `${meeting.id}:${meeting.closedAt}:${attendeesCount}:${meeting.updatedAt}`;
     let hash = 0;
     for (let i = 0; i < raw.length; i++) {
       const char = raw.charCodeAt(i);
@@ -104,13 +105,14 @@ class MeetingReportService {
       ? 'Đang diễn ra'
       : 'Chưa diễn ra';
 
-    const totalAttendees = meeting.attendees.length;
-    const attendedList = meeting.attendees.filter(
+    const attendeesList = meeting.attendees || [];
+    const totalAttendees = attendeesList.length;
+    const attendedList = attendeesList.filter(
       (a) => a.attendanceStatus === 'joined' || a.attendanceStatus === 'left'
     );
     const presentAttendees = attendedList.length;
-    const lateAttendees = meeting.attendees.filter((a) => a.isLate).length;
-    const earlyLeaveAttendees = meeting.attendees.filter((a) => a.isEarlyLeave).length;
+    const lateAttendees = attendeesList.filter((a) => a.isLate).length;
+    const earlyLeaveAttendees = attendeesList.filter((a) => a.isEarlyLeave).length;
     const absentAttendees = totalAttendees - presentAttendees;
     const attendanceRate = totalAttendees > 0 ? Math.round((presentAttendees / totalAttendees) * 100) : 0;
     const totalDuration = attendedList.reduce((sum, a) => sum + (a.durationMinutes || 0), 0);
@@ -126,7 +128,7 @@ class MeetingReportService {
       averageDurationMinutes
     };
 
-    const attendees = meeting.attendees.map((att, idx) => {
+    const attendees = attendeesList.map((att, idx) => {
       let conclusion = 'Vắng mặt';
       if (att.attendanceStatus === 'left' || att.attendanceStatus === 'joined') {
         if (att.isLate && att.isEarlyLeave) {

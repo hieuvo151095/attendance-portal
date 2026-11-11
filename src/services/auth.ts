@@ -15,6 +15,22 @@ const SESSION_EXPIRY_MS = 8 * 60 * 60 * 1000; // 8 tiếng
 export const INITIAL_TENANTS: TenantAccount[] = [
   {
     id: 'tenant-ubnd-001',
+    username: 'ubnd-tan-son-nhat',
+    passwordHash: hashPassword('Finviet@2026'),
+    orgName: 'Ủy Ban Nhân Dân Phường Tân Sơn Nhất',
+    orgType: 'government',
+    isDefaultPassword: true,
+    status: 'active',
+    failedAttempts: 0,
+    lockedUntil: null,
+    contactName: 'Đ/c Nguyễn Văn An',
+    contactPhone: '028 3829 1234',
+    address: '25 Hoàng Việt, Tân Sơn Nhất, Hồ Chí Minh',
+    createdAt: '2026-11-01T08:00:00Z',
+    updatedAt: '2026-11-01T08:00:00Z'
+  },
+  {
+    id: 'tenant-ubnd-001',
     username: 'ubnd-ben-nghe',
     passwordHash: hashPassword('Finviet@2026'),
     orgName: 'Ủy Ban Nhân Dân Phường Bến Nghé',
@@ -102,9 +118,30 @@ class AuthService {
       const storedTenants = localStorage.getItem(STORAGE_TENANTS_KEY);
       if (!storedTenants) {
         localStorage.setItem(STORAGE_TENANTS_KEY, JSON.stringify(INITIAL_TENANTS));
+      } else {
+        try {
+          const list = JSON.parse(storedTenants);
+          if (Array.isArray(list)) {
+            let changed = false;
+            for (const initTenant of INITIAL_TENANTS) {
+              const exists = list.some(
+                (t: TenantAccount) => t.username.toLowerCase() === initTenant.username.toLowerCase()
+              );
+              if (!exists) {
+                list.unshift({ ...initTenant });
+                changed = true;
+              }
+            }
+            if (changed) {
+              localStorage.setItem(STORAGE_TENANTS_KEY, JSON.stringify(list));
+            }
+          }
+        } catch {
+          localStorage.setItem(STORAGE_TENANTS_KEY, JSON.stringify(INITIAL_TENANTS));
+        }
       }
     } else {
-      INITIAL_TENANTS.forEach((t) => this.memoryTenants.set(t.id, { ...t }));
+      INITIAL_TENANTS.forEach((t) => this.memoryTenants.set(t.username.toLowerCase(), { ...t }));
     }
   }
 
@@ -113,7 +150,24 @@ class AuthService {
       const data = localStorage.getItem(STORAGE_TENANTS_KEY);
       if (data) {
         try {
-          return JSON.parse(data);
+          const parsed = JSON.parse(data);
+          if (Array.isArray(parsed)) {
+            let changed = false;
+            for (const initTenant of INITIAL_TENANTS) {
+              const exists = parsed.some(
+                (t: TenantAccount) => t.username.toLowerCase() === initTenant.username.toLowerCase()
+              );
+              if (!exists) {
+                parsed.unshift({ ...initTenant });
+                changed = true;
+              }
+            }
+            if (changed) {
+              localStorage.setItem(STORAGE_TENANTS_KEY, JSON.stringify(parsed));
+            }
+            return parsed;
+          }
+          return INITIAL_TENANTS;
         } catch {
           return INITIAL_TENANTS;
         }
@@ -128,7 +182,7 @@ class AuthService {
       localStorage.setItem(STORAGE_TENANTS_KEY, JSON.stringify(tenants));
     } else {
       this.memoryTenants.clear();
-      tenants.forEach((t) => this.memoryTenants.set(t.id, t));
+      tenants.forEach((t) => this.memoryTenants.set(t.username.toLowerCase(), t));
     }
   }
 
@@ -265,7 +319,9 @@ class AuthService {
 
     // Bổ sung địa chỉ nếu phiên lưu trữ trước đó chưa có
     if (!session.tenant.address) {
-      const found = INITIAL_TENANTS.find((t) => t.id === session?.tenant.id);
+      const found = INITIAL_TENANTS.find(
+        (t) => t.username === session?.tenant.username || t.id === session?.tenant.id
+      );
       if (found?.address) {
         session.tenant.address = found.address;
       }
@@ -298,7 +354,12 @@ class AuthService {
     profile?: { contactName?: string; contactPhone?: string }
   ): Promise<{ success: boolean; error?: string; session?: AuthSession }> {
     const tenants = this.getTenants();
-    const tenantIndex = tenants.findIndex((t) => t.id === tenantId);
+    const currentSession = this.getCurrentSession();
+    const tenantIndex = tenants.findIndex((t) =>
+      currentSession && currentSession.tenant.id === tenantId
+        ? t.username.toLowerCase() === currentSession.tenant.username.toLowerCase()
+        : t.id === tenantId
+    );
 
     if (tenantIndex === -1) {
       return { success: false, error: 'Không tìm thấy tài khoản đơn vị trong hệ thống' };
@@ -353,7 +414,6 @@ class AuthService {
     this.saveTenants(tenants);
 
     // 6. Cập nhật phiên làm việc hiện tại
-    const currentSession = this.getCurrentSession();
     let updatedSession: AuthSession;
 
     if (currentSession && currentSession.tenant.id === tenantId) {
@@ -401,7 +461,12 @@ class AuthService {
     profile: { contactName?: string; contactPhone?: string }
   ): Promise<{ success: boolean; error?: string; session?: AuthSession }> {
     const tenants = this.getTenants();
-    const tenantIndex = tenants.findIndex((t) => t.id === tenantId);
+    const currentSession = this.getCurrentSession();
+    const tenantIndex = tenants.findIndex((t) =>
+      currentSession && currentSession.tenant.id === tenantId
+        ? t.username.toLowerCase() === currentSession.tenant.username.toLowerCase()
+        : t.id === tenantId
+    );
 
     if (tenantIndex === -1) {
       return { success: false, error: 'Không tìm thấy tài khoản đơn vị' };
@@ -419,7 +484,6 @@ class AuthService {
     tenants[tenantIndex] = tenant;
     this.saveTenants(tenants);
 
-    const currentSession = this.getCurrentSession();
     let updatedSession: AuthSession | undefined;
 
     if (currentSession && currentSession.tenant.id === tenantId) {
@@ -460,7 +524,7 @@ class AuthService {
     }
     this.memorySession = null;
     this.memoryTenants.clear();
-    INITIAL_TENANTS.forEach((t) => this.memoryTenants.set(t.id, { ...t }));
+    INITIAL_TENANTS.forEach((t) => this.memoryTenants.set(t.username.toLowerCase(), { ...t }));
   }
 }
 

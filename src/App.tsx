@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Login } from './pages/auth/Login';
 import { ChangePasswordModal } from './pages/auth/ChangePasswordModal';
 import { DepartmentManagement } from './pages/organization/DepartmentManagement';
@@ -28,6 +28,12 @@ export const App: React.FC = () => {
   const [meetingSubTab, setMeetingSubTab] = useState<'list' | 'reports'>('list');
   const [settingsSubTab, setSettingsSubTab] = useState<'attendance' | 'rooms' | 'devices'>('attendance');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Khung cuộn dùng chung của mọi module: luôn đưa về đầu trang khi chuyển module
+  const mainRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, left: 0 });
+  }, [currentTab]);
 
   // Pop-up modals state for user frame
   const [showWardModal, setShowWardModal] = useState(false);
@@ -89,6 +95,7 @@ export const App: React.FC = () => {
         brand={{
           name: 'Finviet Attendance',
           icon: 'fingerprint',
+          logoSrc: `${import.meta.env.BASE_URL}brand/finviet-logo.svg`,
           subtitle: 'Cổng Điểm Danh Đơn Vị'
         }}
         activeKey={currentTab === 'reports' ? 'meetings' : currentTab}
@@ -247,6 +254,7 @@ export const App: React.FC = () => {
 
         {/* Viewport Stage: Expanded Frame ("mở rộng khung") */}
         <main
+          ref={mainRef}
           className="attendance-viewport-stage"
           style={{
             flex: 1,

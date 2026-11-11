@@ -13,6 +13,8 @@ export interface SidebarNavProps {
   brand?: {
     name: string;
     icon?: IconName;
+    /** Đường dẫn ảnh logo (SVG/PNG). Nếu có, sẽ thay thế biểu tượng mặc định. */
+    logoSrc?: string;
     subtitle?: string;
   };
   context?: {
@@ -48,9 +50,33 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
       {/* Brand Header */}
       <div className="ecomd-sidebar__top">
         <div className="ecomd-sidebar__brand" title={brand.name}>
-          <div className="ecomd-sidebar__logo">
-            <Icon name={brand.icon || 'fingerprint'} size={18} />
-          </div>
+          {brand.logoSrc ? (
+            <div
+              className="ecomd-sidebar__logo ecomd-sidebar__logo--image"
+              style={{
+                width: 'auto',
+                background: 'transparent',
+                boxShadow: 'none',
+                borderRadius: 0
+              }}
+            >
+              <img
+                src={brand.logoSrc}
+                alt="Finviet"
+                style={{
+                  height: collapsed ? 22 : 30,
+                  width: 'auto',
+                  maxWidth: collapsed ? 40 : 'none',
+                  display: 'block',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+          ) : (
+            <div className="ecomd-sidebar__logo">
+              <Icon name={brand.icon || 'fingerprint'} size={18} />
+            </div>
+          )}
           {!collapsed && (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
               <span className="ecomd-sidebar__name title-md" style={{ fontSize: '15px' }}>

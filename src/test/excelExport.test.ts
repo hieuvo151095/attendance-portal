@@ -42,6 +42,7 @@ describe('Excel OpenXML (.xlsx) Generator', () => {
   });
 
   it('downloadExcelFile gọi URL.createObjectURL và tạo thẻ a download file .xlsx', () => {
+    vi.useFakeTimers();
     const sheet: ExcelSheetDefinition = {
       name: 'Download Test',
       rows: [
@@ -65,6 +66,7 @@ describe('Excel OpenXML (.xlsx) Generator', () => {
     const removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation((node) => node);
 
     downloadExcelFile(sheet, 'Test_Report.xlsx');
+    vi.advanceTimersByTime(1000);
 
     expect(createObjectURLMock).toHaveBeenCalled();
     expect(clickSpy).toHaveBeenCalled();
@@ -73,6 +75,7 @@ describe('Excel OpenXML (.xlsx) Generator', () => {
     createElementSpy.mockRestore();
     appendChildSpy.mockRestore();
     removeChildSpy.mockRestore();
+    vi.useRealTimers();
   });
 
   it('exportMeetingToExcel xuất biên bản cuộc họp ra file .xlsx với cấu trúc bảng hoàn chỉnh', () => {

@@ -406,16 +406,17 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({
           { width: 22 }, // Mã thiết bị
           { width: 34 }, // Tên thiết bị
           { width: 24 }, // Loại điểm danh
-          { width: 18 }, // Trạng thái
+          { width: 18 }, // Trạng thái thiết bị
+          { width: 18 }, // Trạng thái kết nối
           { width: 30 }  // Vị trí lắp đặt
         ],
         rows: [
-          { cells: [{ value: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', style: 'subtitle', colSpan: 6 }] },
-          { cells: [{ value: 'Độc lập - Tự do - Hạnh phúc', style: 'subtitle', colSpan: 6 }] },
+          { cells: [{ value: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', style: 'subtitle', colSpan: 7 }] },
+          { cells: [{ value: 'Độc lập - Tự do - Hạnh phúc', style: 'subtitle', colSpan: 7 }] },
           { cells: [] },
-          { height: 28, cells: [{ value: 'DANH SÁCH THIẾT BỊ CAMERA AI & ĐẦU ĐỌC ĐIỂM DANH', style: 'title', colSpan: 6 }] },
-          { cells: [{ value: `Mã đơn vị: ${tenantId}  |  Tổng số thiết bị: ${filteredDevices.length}`, style: 'subtitle', colSpan: 6 }] },
-          { cells: [{ value: `Thời điểm xuất: ${new Date().toLocaleString('vi-VN')}`, style: 'subtitle', colSpan: 6 }] },
+          { height: 28, cells: [{ value: 'DANH SÁCH THIẾT BỊ CAMERA AI & ĐẦU ĐỌC ĐIỂM DANH', style: 'title', colSpan: 7 }] },
+          { cells: [{ value: `Mã đơn vị: ${tenantId}  |  Tổng số thiết bị: ${filteredDevices.length}`, style: 'subtitle', colSpan: 7 }] },
+          { cells: [{ value: `Thời điểm xuất: ${new Date().toLocaleString('vi-VN')}`, style: 'subtitle', colSpan: 7 }] },
           { cells: [] },
           {
             height: 26,
@@ -424,7 +425,8 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({
               { value: 'Mã thiết bị', style: 'header' },
               { value: 'Tên thiết bị', style: 'header' },
               { value: 'Loại điểm danh', style: 'header' },
-              { value: 'Trạng thái', style: 'header' },
+              { value: 'Trạng thái thiết bị', style: 'header' },
+              { value: 'Trạng thái kết nối', style: 'header' },
               { value: 'Vị trí lắp đặt', style: 'header' }
             ]
           },
@@ -436,6 +438,7 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({
                 ? 'Chấm công'
                 : 'Cuộc họp';
             const isActive = d.status === 'active';
+            const isOnline = d.connectionStatus === 'online';
             return {
               height: 21,
               cells: [
@@ -446,6 +449,10 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({
                 {
                   value: isActive ? 'Hoạt động' : 'Tạm khoá',
                   style: isActive ? ('badgeSuccess' as const) : ('badgeWarning' as const)
+                },
+                {
+                  value: isOnline ? 'Đang kết nối' : 'Mất kết nối',
+                  style: isOnline ? ('badgeSuccess' as const) : ('badgeDanger' as const)
                 },
                 { value: d.location || 'Chưa thiết lập', style: 'borderLeft' as const }
               ]
@@ -613,13 +620,25 @@ export const SettingsManagement: React.FC<SettingsManagementProps> = ({
     },
     {
       key: 'status',
-      title: 'Trạng thái',
-      width: '140px',
+      title: 'Trạng thái thiết bị',
+      width: '160px',
       render: (d: CameraDevice) => (
         d.status === 'active' ? (
           <StatusTag tone="success" label="Hoạt động" icon="circle-check" />
         ) : (
           <StatusTag tone="neutral" label="Tạm khoá" />
+        )
+      )
+    },
+    {
+      key: 'connectionStatus',
+      title: 'Trạng thái kết nối',
+      width: '170px',
+      render: (d: CameraDevice) => (
+        d.connectionStatus === 'online' ? (
+          <StatusTag tone="success" label="Đang kết nối" icon="link" />
+        ) : (
+          <StatusTag tone="danger" label="Mất kết nối" icon="circle-xmark" />
         )
       )
     },
