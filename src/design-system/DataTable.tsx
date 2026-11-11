@@ -229,6 +229,7 @@ export const DataTable: DataTableComponent = (<R,>({
                         className={`body-sm ${col.align === 'right' ? 'is-right' : ''} ${
                           col.actions ? 'is-actions' : ''
                         } ${cIdx === 0 ? 'is-primary' : ''}`}
+                        onClick={col.actions ? (e) => e.stopPropagation() : undefined}
                       >
                         <span className="ecomd-cell__label body-xs-medium" aria-hidden="true">
                           {col.title}
@@ -320,7 +321,10 @@ DataTable.RowAction = ({
       icon={icon}
       label={label}
       size="sm"
-      onClick={onClick}
+      onClick={(e) => {
+        e?.stopPropagation?.();
+        if (onClick) onClick(e);
+      }}
     />
   );
 

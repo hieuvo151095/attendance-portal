@@ -36,27 +36,16 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
       expect(screen.getByText('Ông Hoàng Văn Đức')).toBeInTheDocument();
     });
 
-    // Check table headers and attendance method icons
+    // Check table headers (Cột 'Hình thức điểm danh' đã được xóa theo yêu cầu mới)
     expect(screen.getAllByText('Mã NV & CCCD').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Liên lạc').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Chức danh & Phòng ban').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Hình thức điểm danh').length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText('Hình thức điểm danh')).not.toBeInTheDocument();
     expect(screen.getAllByText('Mã thẻ').length).toBeGreaterThanOrEqual(1);
 
     // Kiểm tra cột Liên lạc hiển thị email và số điện thoại
     expect(screen.getByText('an.nguyen@ubnd.gov.vn')).toBeInTheDocument();
     expect(screen.getByText('0903 111 222')).toBeInTheDocument();
-
-    // Nguyễn Văn An (đã có Face ID, Vân tay, Thẻ) hiển thị đủ 3 icon
-    expect(screen.getByTestId('method-faceId-emp-ubnd-01')).toBeInTheDocument();
-    expect(screen.getByTestId('method-fingerprint-emp-ubnd-01')).toBeInTheDocument();
-    expect(screen.getByTestId('method-card-emp-ubnd-01')).toBeInTheDocument();
-
-    // Hoàng Văn Đức (chưa đồng bộ camera, chưa có Face ID, chưa có Thẻ) thì KHÔNG hiển thị bất kỳ phương thức nào -> "Chưa kích hoạt"
-    expect(screen.queryByTestId('method-card-emp-ubnd-03')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('method-faceId-emp-ubnd-03')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('method-fingerprint-emp-ubnd-03')).not.toBeInTheDocument();
-    expect(screen.getByText('Chưa kích hoạt')).toBeInTheDocument();
   });
 
   it('Tìm kiếm nhân sự theo họ tên cập nhật danh sách bảng tức thì', async () => {
@@ -466,6 +455,31 @@ describe('Giao diện Quản Lý Nhân Sự (ORG-02: Employee Management UI)', (
     // Chờ SideSheet đóng và đồng bộ hoàn tất
     await waitFor(() => {
       expect(screen.queryByText('Đồng Bộ Dữ Liệu Đến Camera AI')).not.toBeInTheDocument();
+    });
+  });
+
+  it('Cột Thao tác: Bấm nút 3 chấm hiển thị mục "Lịch sử đồng bộ lên camera", mở SideSheet xem chi tiết', async () => {
+    render(<EmployeeManagement tenantId={ubndTenant} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Đ/c Nguyễn Văn An')).toBeInTheDocument();
+    });
+
+    const actionBtns = screen.getAllByRole('button', { name: /Thao tác/i });
+    fireEvent.click(actionBtns[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Lịch sử đồng bộ lên camera')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Lịch sử đồng bộ lên camera'));
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/Lịch sử đồng bộ lên Camera/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText(/Quy tắc đồng bộ thẻ RFID\/NFC lên Camera AI/i)).toBeInTheDocument();
+      expect(screen.getByText(/Mã & Tên thiết bị/i)).toBeInTheDocument();
+      expect(screen.getByText(/Thời gian đồng bộ/i)).toBeInTheDocument();
+      expect(screen.getByText(/Người thực hiện/i)).toBeInTheDocument();
     });
   });
 });

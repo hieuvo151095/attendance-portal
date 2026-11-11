@@ -223,7 +223,7 @@ export const DeviceModal: React.FC<DeviceModalProps> = ({
                   Chấm công
                 </span>
                 <span className="body-xs" style={{ color: 'var(--text-subtle)' }}>
-                  Điểm danh ca làm việc hàng ngày của cán bộ nhân viên
+                  Điểm danh ca làm việc hàng ngày
                 </span>
               </div>
             </label>

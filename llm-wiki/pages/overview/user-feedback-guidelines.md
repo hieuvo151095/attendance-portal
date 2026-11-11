@@ -133,6 +133,18 @@ Tài liệu quy định các nguyên tắc thiết kế bắt buộc được đ
 - **Cột Phòng ban trong file Excel mẫu (`Mau_nhap_lieu_nhan_su_Finviet.xlsx`):** Chuyển đổi tên phòng ban dạng chuỗi dài thành mã phòng ban chuẩn (`VP-UBND`, `DC-XD`, `TP-HT`). Tiêu đề cột chuẩn là `Mã phòng ban`.
 - **Xem trước danh sách 3 nhân sự chuẩn bị nhập (Bước 1):** Cập nhật tiêu đề cột thành "Chức danh & Mã phòng ban", hiển thị mã phòng ban dưới dạng huy hiệu code tag (`<Tag variant="code">VP-UBND</Tag>`), đồng bộ trải nghiệm người dùng với cấu trúc dữ liệu thực tế.
 
+### 21. Khắc Phục Xuất Báo Cáo Cuộc Họp & Tối Ưu Menu Thao Tác Ba Chấm
+- **Khắc phục nút "Xuất Báo Cáo" tab Cuộc Họp:** Thay thế thuộc tính `data.departmentAttendance` bằng `data.departmentMetrics` và trang bị danh sách fallback an toàn.
+- **Tối ưu độ nhạy menu 3 chấm:** Tính toán tọa độ menu tức thì khi bấm nút, chặn nổi bọt sự kiện click trên ô thao tác của bảng, bảo đảm phản hồi mượt mà 100%.
+
+### 22. Xóa Cột Hình Thức Điểm Danh & Thêm Lịch Sử Đồng Bộ Lên Camera
+- **Xóa cột Hình thức điểm danh:** Bảng nhân sự tinh gọn, không còn cột icon điểm danh.
+- **Bổ sung SideSheet Lịch sử đồng bộ lên camera trong menu Thao tác:** Hiển thị 4 cột chuẩn: Mã & Tên thiết bị, Hình thức điểm danh (Face ID / Thẻ), Thời gian đồng bộ, Người thực hiện.
+- **Quy tắc thẻ RFID/NFC:** Thẻ cấp mới chỉ tính là đồng bộ khi cán bộ quẹt (tap) lần đầu vào Camera AI.
+
+### 23. Rút Gọn Phụ Đề Loại Điểm Danh Chấm Công Thiết Bị
+- Điều chỉnh phụ đề loại điểm danh Chấm công thành "Điểm danh ca làm việc hàng ngày".
+
 ## Liên quan
 - [Tài liệu hướng dẫn chi tiết](file:///Users/hieuvo/Desktop/Finviet/Attendance%20Portal/docs/USER_FEEDBACK_GUIDELINES.md)
 - [Tổng quan Attendance Portal](project-overview.md)

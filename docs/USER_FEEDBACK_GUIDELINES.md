@@ -321,6 +321,41 @@
   * Dòng thông tin phòng ban được định dạng bằng huy hiệu mã định danh chuẩn (`<Tag variant="code">VP-UBND</Tag>`, `DC-XD`, `TP-HT`), giúp người dùng nhận diện ngay mã định danh cần nhập trong tệp bảng tính.
   * Hướng dẫn tải tệp mẫu cập nhật danh mục cột chuẩn: `Mã NV, Họ tên, Số CCCD, Chức danh, Mã phòng ban, Email, Số ĐT`.
 
+---
+
+### 21. Khắc Phục Nút Xuất Báo Cáo Cuộc Họp & Tối Ưu Độ Phản Hồi Menu Thao Tác Ba Chấm
+* **Sửa lỗi nút "Xuất Báo Cáo" tại Tab Cuộc Họp (`MeetingDashboard.tsx`):**
+  * Khắc phục triệt để lỗi tham chiếu `data.departmentAttendance` (chuyển sang `data.departmentMetrics`) trong hàm `exportMeetingDashboardExcel`, đồng thời trang bị cơ chế phòng vệ an toàn (`|| []`) cho toàn bộ các danh sách con (`trends`, `departmentMetrics`, `roomStats.rooms`).
+  * Nút "Xuất Báo Cáo" phản hồi ngay lập tức, xuất ra tệp Excel `.xlsx` chuẩn OpenXML đầy đủ 4 khối nội dung.
+* **Tối ưu độ nhạy và tính phản hồi của menu Thao tác (3 chấm) trên toàn bộ hệ thống:**
+  * Tính toán tọa độ menu nổi ngay lập tức khi click (`synchronous position calculation`), loại bỏ độ trễ và hiện tượng giật hiển thị (flicker).
+  * Chặn nổi bọt sự kiện click (`e.stopPropagation()`) tại ô `td.is-actions` và nút thao tác, ngăn chặn hoàn toàn xung đột với sự kiện click dòng của bảng `DataTable`.
+  * Khắc phục cơ chế đóng menu khi bấm ngoài (`onMouseDown`), phân biệt rõ ràng thao tác đóng menu hiện tại và mở menu của dòng khác.
+
+---
+
+### 22. Xóa Cột "Hình Thức Điểm Danh" & Bổ Sung Bảng "Lịch Sử Đồng Bộ Lên Camera"
+* **Xóa cột "Hình thức điểm danh" trên bảng Quản lý nhân sự (`EmployeeManagement.tsx`):**
+  * Tinh gọn giao diện bảng nhân sự, tập trung vào các trường cốt lõi (Nhân viên, Liên lạc, Mã NV & CCCD, Chức danh & Phòng ban, Mã thẻ, Thao tác).
+* **Bổ sung hành động "Lịch sử đồng bộ lên camera" vào menu Thao tác (3 chấm):**
+  * Thêm mục thao tác chuyên dụng kèm biểu tượng camera cho từng nhân sự.
+  * Khi bấm, mở SideSheet chi tiết **"Lịch sử đồng bộ lên Camera"** với đầy đủ thông tin tóm tắt cán bộ và bảng lịch sử gồm 4 cột chuẩn:
+    1. *Mã & Tên thiết bị:* Hiển thị mã thiết bị (`CAM-UBND-CC-01`), tên camera và vị trí lắp đặt.
+    2. *Hình thức điểm danh:* Khuôn mặt (Face ID) hoặc Thẻ RFID/NFC, phân định rõ trạng thái `Đã đồng bộ` hoặc `Chờ tap thẻ lần đầu`.
+    3. *Thời gian đồng bộ:* Thời điểm thiết bị nạp dữ liệu nhận diện thành công.
+    4. *Người thực hiện:* Tên cán bộ/quản trị viên hoặc hệ thống tự động.
+* **Quy tắc nghiệp vụ đồng bộ Thẻ RFID/NFC:**
+  * Thông báo hướng dẫn rõ ràng: Khi quản trị viên cấp hoặc đổi thẻ trong hồ sơ, hệ thống **chưa tính là đồng bộ** lên Camera AI.
+  * Thẻ chỉ được tính là đã đồng bộ khi cán bộ **quẹt (tap) thẻ lần đầu tiên** tại đầu đọc của Camera. Hỗ trợ nút mô phỏng quẹt thẻ ngay trên giao diện để quản trị viên kiểm thử trạng thái.
+
+---
+
+### 23. Chuẩn Hóa Phụ Đề Loại Điểm Danh Chấm Công Trong Cấu Hình Thiết Bị
+* Tại modal Thêm mới / Chỉnh sửa thiết bị Camera (`DeviceModal.tsx`), văn bản mô tả dưới loại điểm danh Chấm công được rút gọn chuẩn xác:
+  * Cũ: *"Điểm danh ca làm việc hàng ngày của cán bộ nhân viên"*
+  * Mới: **"Điểm danh ca làm việc hàng ngày"**
+
+
 
 
 

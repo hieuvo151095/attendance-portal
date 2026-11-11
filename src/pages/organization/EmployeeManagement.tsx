@@ -23,6 +23,7 @@ import { EmployeeModal } from './EmployeeModal';
 import { ExcelImportModal } from './ExcelImportModal';
 import { CardManagementModal } from './CardManagementModal';
 import { CameraSyncModal } from './CameraSyncModal';
+import { CameraSyncHistoryModal } from './CameraSyncHistoryModal';
 
 export interface EmployeeManagementProps {
   tenantId: string;
@@ -49,8 +50,15 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
 
   const [cardModalOpen, setCardModalOpen] = useState(false);
   const [employeeForCard, setEmployeeForCard] = useState<Employee | null>(null);
+  const [syncHistoryModalOpen, setSyncHistoryModalOpen] = useState(false);
+  const [employeeForSyncHistory, setEmployeeForSyncHistory] = useState<Employee | null>(null);
   const [empToDelete, setEmpToDelete] = useState<Employee | null>(null);
   const [isDeletingEmp, setIsDeletingEmp] = useState(false);
+
+  const handleOpenSyncHistoryModal = (emp: Employee) => {
+    setEmployeeForSyncHistory(emp);
+    setSyncHistoryModalOpen(true);
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -235,123 +243,6 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
       )
     },
     {
-      key: 'attendanceMethods',
-      title: 'Hình thức điểm danh',
-      width: '180px',
-      render: (emp: Employee) => {
-        const card = activeCardMap.get(emp.id);
-        const hasCard = Boolean(card);
-        const hasFaceId = Boolean(emp.avatarUrl) || emp.faceIdStatus === 'enrolled';
-        // Quy tắc: Chỉ có thể có phương thức vân tay khi cán bộ đã đồng bộ đến Camera và đã lấy mẫu vân tay trên máy
-        const hasFingerprint = Boolean(emp.cameraSyncInfo) && emp.fingerprintStatus === 'enrolled';
-
-        const allowed = emp.allowedMethods || {
-          faceId: hasFaceId,
-          fingerprint: hasFingerprint,
-          card: hasCard
-        };
-
-        const methods = [];
-
-        // 1. Face ID:
-        if (hasFaceId) {
-          const isAllowed = allowed.faceId !== false;
-          const isSynced = Boolean(emp.cameraSyncInfo);
-          methods.push({
-            key: 'faceId',
-            name: 'Khuôn mặt (Face ID)',
-            icon: 'camera' as const,
-            allowed: isAllowed,
-            isSynced,
-            statusText: isAllowed
-              ? (isSynced
-                  ? 'Đang bật nhận diện Face ID qua Camera AI (Đã đồng bộ)'
-                  : 'Đã có ảnh Face ID trên Portal (Chưa đồng bộ đến Camera)')
-              : 'Đã có Face ID nhưng Quản trị viên tạm tắt'
-          });
-        }
-
-        // 2. Vân tay:
-        if (hasFingerprint) {
-          const isAllowed = allowed.fingerprint !== false;
-          methods.push({
-            key: 'fingerprint',
-            name: 'Vân tay',
-            icon: 'fingerprint' as const,
-            allowed: isAllowed,
-            isSynced: true,
-            statusText: isAllowed
-              ? 'Đang bật xác thực sinh trắc học vân tay'
-              : 'Đã có mẫu vân tay nhưng Quản trị viên tạm tắt'
-          });
-        }
-
-        // 3. Thẻ nhân viên:
-        if (hasCard && card) {
-          const isAllowed = (allowed.card !== false) && card.status === 'active';
-          methods.push({
-            key: 'card',
-            name: 'Thẻ nhân viên',
-            icon: 'id-badge' as const,
-            allowed: isAllowed,
-            isSynced: true,
-            statusText: isAllowed
-              ? `Đang bật quẹt thẻ (${card.cardUid})`
-              : card.status === 'locked'
-              ? `Thẻ tạm khóa (${card.cardUid})`
-              : `Đã cấp thẻ (${card.cardUid}) nhưng Quản trị viên tạm tắt`
-          });
-        }
-
-        if (methods.length === 0) {
-          return <EmptyValue italic>Chưa kích hoạt</EmptyValue>;
-        }
-
-        return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)' }}>
-            {methods.map((m) => (
-              <div
-                key={m.key}
-                title={`${m.name}: ${m.statusText}`}
-                data-testid={`method-${m.key}-${emp.id}`}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  width: 30,
-                  height: 30,
-                  borderRadius: 'var(--radius-6)',
-                  backgroundColor: m.allowed ? 'var(--primary-50)' : 'var(--bg-subtle)',
-                  color: m.allowed ? 'var(--primary-700)' : 'var(--text-disabled)',
-                  border: `1px solid ${m.allowed ? 'var(--primary-200)' : 'var(--border-neutral-subtle)'}`,
-                  opacity: m.allowed ? 1 : 0.45,
-                  cursor: 'default'
-                }}
-              >
-                <Icon name={m.icon} size={15} />
-                {m.key === 'faceId' && !m.isSynced && (
-                  <span
-                    title="Chưa đồng bộ đến Camera AI"
-                    style={{
-                      position: 'absolute',
-                      top: -2,
-                      right: -2,
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      backgroundColor: '#f59e0b',
-                      border: '1.5px solid #ffffff'
-                    }}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        );
-      }
-    },
-    {
       key: 'cardUid',
       title: 'Mã thẻ',
       width: '160px',
@@ -386,6 +277,11 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
               icon: 'id-badge',
               label: 'Quản lý thẻ nhân viên',
               onClick: () => handleOpenCardModal(emp)
+            },
+            {
+              icon: 'camera',
+              label: 'Lịch sử đồng bộ lên camera',
+              onClick: () => handleOpenSyncHistoryModal(emp)
             },
             {
               icon: 'pen',
@@ -683,6 +579,22 @@ export const EmployeeManagement: React.FC<EmployeeManagementProps> = ({ tenantId
           </div>
         </PopupModal>
       )}
+
+      {/* Modal Lịch sử đồng bộ lên Camera */}
+      <CameraSyncHistoryModal
+        open={syncHistoryModalOpen}
+        onClose={() => {
+          setSyncHistoryModalOpen(false);
+          setEmployeeForSyncHistory(null);
+        }}
+        employee={employeeForSyncHistory}
+        departmentName={
+          employeeForSyncHistory
+            ? departmentMap.get(employeeForSyncHistory.departmentId)
+            : undefined
+        }
+        tenantId={tenantId}
+      />
     </div>
   );
 };

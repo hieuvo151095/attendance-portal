@@ -2079,7 +2079,7 @@ class DashboardService {
             { value: 'Đánh giá', style: 'header' }
           ]
         },
-        ...data.trends.map((item, idx) => {
+        ...(data.trends || []).map((item, idx) => {
           const evalBadge = item.attendanceRate >= 90 ? ('badgeSuccess' as const) : item.attendanceRate >= 80 ? ('badgeWarning' as const) : ('badgeDanger' as const);
           const evalText = item.attendanceRate >= 90 ? 'Tốt' : item.attendanceRate >= 80 ? 'Cần lưu ý' : 'Kém';
           return {
@@ -2116,7 +2116,7 @@ class DashboardService {
             { value: 'Tỷ lệ đúng giờ', style: 'header' }
           ]
         },
-        ...data.departmentAttendance.map((dept, idx) => ({
+        ...(data.departmentMetrics || []).map((dept, idx) => ({
           height: 21,
           cells: [
             { value: idx + 1, style: 'borderCenter' as const },
@@ -2144,7 +2144,7 @@ class DashboardService {
             { value: 'Tỷ lệ sử dụng', style: 'header', colSpan: 2 }
           ]
         },
-        ...data.roomStats.rooms.map((r, idx) => ({
+        ...(data.roomStats?.rooms || []).map((r, idx) => ({
           height: 21,
           cells: [
             { value: idx + 1, style: 'borderCenter' as const },

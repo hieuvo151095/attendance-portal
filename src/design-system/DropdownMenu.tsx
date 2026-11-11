@@ -201,6 +201,8 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
         coords.openUpwards ? 'is-upwards' : ''
       } ${align === 'left' ? 'is-left' : 'is-right'} ${!trigger ? className : ''}`}
       role="menu"
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
       style={
         trigger
           ? {
@@ -226,8 +228,16 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
 
   const clonedTrigger = React.cloneElement(trigger, {
     onClick: (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
       if (trigger.props.onClick) trigger.props.onClick(e);
-      setOpen(!isOpen);
+
+      if (!isOpen) {
+        updatePosition();
+        setOpen(true);
+      } else {
+        setOpen(false);
+      }
     },
     'aria-haspopup': 'menu',
     'aria-expanded': isOpen
